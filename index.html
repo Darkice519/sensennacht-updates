@@ -30,7 +30,7 @@ html,body{height:100%}
 body{background:var(--void);color:var(--bone);font-family:var(--ui);font-size:19px;font-weight:500;overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #app{position:relative;height:100%;overflow:hidden}
-#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated}
+#game,#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated}
 .px{image-rendering:pixelated;display:block}
 
 /* HUD */
@@ -179,6 +179,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 </head>
 <body>
 <div id="app">
+  <canvas id="gl" aria-hidden="true"></canvas>
   <canvas id="game" aria-label="Spielfeld"></canvas>
 
   <div id="hud" hidden>
@@ -308,7 +309,8 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
-const cv = $('game'), ctx = cv.getContext('2d');
+const cv = $('game'), glc = $('gl');
+let ctx = cv.getContext('2d');   // wird beim Vorbacken von Boden und Gebäuden kurz umgehängt
 const C = {void:'#080405', g1:'#1c1215', g2:'#24171b', coal:'#3a262d', ash:'#9a8a8e', bone:'#f2e9dd', gore:'#8a0f1e', blood:'#f02238', ember:'#ff6a2a', glow:'#ffc94a'};
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
@@ -555,6 +557,7 @@ function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = cv.clientWidth; H = cv.clientHeight;
   cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr));
+  glc.width = cv.width; glc.height = cv.height;
   S = Math.max(2, Math.floor(Math.min(W, H) / 230));
   VW = W / S; VH = H / S;
 }
@@ -562,7 +565,7 @@ window.addEventListener('resize', resize);
 
 function reset() {
   sk = SKINS[save.skin]; sc = SCY[save.scythe];
-  seed = Math.random() * 1e6 | 0; tcache.clear();
+  seed = Math.random() * 1e6 | 0; tcache.clear(); clearChunks();
   P = {x: (Math.random() - 0.5) * 40000 | 0, y: (Math.random() - 0.5) * 40000 | 0, hp: 100, face: 0, flip: false, inv: 0, walk: 0};
   lv = {}; dark = {}; UP.forEach(u => lv[u.id] = 0); lv.sense = 1;
   if (sk.startW) { const w = UP.filter(u => u.w && u.id !== 'sense' && fitsW(u)); lv[w[Math.random() * w.length | 0].id] = 1; }
@@ -610,21 +613,128 @@ const sfx = {
   box(good) { [262, 330, 392, 523, good ? 784 : 440].forEach((f, i) => beep(f, 0.1, 'square', 0.05, 0, i * 0.08)); },
 };
 
+/* ---------- WebGL-Zeichner ---------- */
+// Alles, was in großer Zahl vorkommt (Boden, Blutspuren, Seelen, Gegner, Partikel, Leuchten), zeichnet die Grafikkarte:
+// der Boden als vorgebackene Kacheln, der Rest in einem einzigen Schub aus Vierecken.
+// Feine Effekte, Gebäude, die Figur und Schrift bleiben auf der 2D-Ebene, die darüber liegt.
+//
+// Farben sind vormultipliziert. Ein Viereck mit Alpha 0 wird dadurch additiv gezeichnet (Leuchten),
+// eines mit Alpha > 0 deckend. So reicht ein Schub für beides, ohne die Reihenfolge zu verlieren.
+const GLMAX = 14000, GLSTRIDE = 24;
+let gl = null, glOk = false, glN = 0, glTexA = null, glTexB = null, glCur = null, glF32 = null, glU8 = null, glBuf = null, glCam = null;
+const atlas = {cv: null, g: null, x: 2, y: 2, rowH: 0, size: 1024, white: null};
+const UV_GLOW = [0, 0, 0.5, 1], UV_DISC = [0.5, 0, 1, 1];
+let glQ = [], glQc = [];                     // gesammelte Leuchtflecken eines Bildes
+
+const hexCache = {};
+function rgb(c) {
+  let v = hexCache[c];
+  if (!v) { let h = String(c).slice(1); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; const n = parseInt(h, 16); v = hexCache[c] = isNaN(n) ? [1, 1, 1] : [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+  return v;
+}
+
+// Bild in den gemeinsamen Atlas legen, gibt die Texturkoordinaten zurück
+function atlasAdd(img, w, h) {
+  const a = atlas; w = w || img.width; h = h || img.height;
+  if (a.x + w + 2 > a.size) { a.x = 2; a.y += a.rowH + 2; a.rowH = 0; }
+  a.g.drawImage(img, a.x, a.y);
+  const uv = [a.x / a.size, a.y / a.size, (a.x + w) / a.size, (a.y + h) / a.size];
+  a.x += w + 2; a.rowH = Math.max(a.rowH, h);
+  return uv;
+}
+function glTexture(src, smooth) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+  const f = smooth ? gl.LINEAR : gl.NEAREST;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, f); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, f);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+
+function glInit() {
+  gl = glc.getContext('webgl', {alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: true, powerPreference: 'high-performance'});
+  if (!gl) return false;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, 'attribute vec2 aPos;attribute vec2 aUv;attribute float aT;attribute vec4 aCol;uniform vec4 uCam;varying vec2 vUv;varying float vT;varying vec4 vCol;void main(){vUv=aUv;vT=aT;vCol=aCol;gl_Position=vec4(aPos*uCam.xy+uCam.zw,0.0,1.0);}'));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, 'precision mediump float;varying vec2 vUv;varying float vT;varying vec4 vCol;uniform sampler2D uA;uniform sampler2D uB;void main(){vec4 t=vT<0.5?texture2D(uA,vUv):texture2D(uB,vUv);gl_FragColor=t*vCol;}'));
+  gl.linkProgram(p); gl.useProgram(p);
+  const data = new ArrayBuffer(GLMAX * 4 * GLSTRIDE); glF32 = new Float32Array(data); glU8 = new Uint8Array(data);
+  glBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, glBuf); gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
+  const idx = new Uint16Array(GLMAX * 6);
+  for (let i = 0, v = 0; i < idx.length; i += 6, v += 4) { idx[i] = v; idx[i + 1] = v + 1; idx[i + 2] = v + 2; idx[i + 3] = v + 2; idx[i + 4] = v + 1; idx[i + 5] = v + 3; }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+  const at = (n, size, type, norm, off) => { const l = gl.getAttribLocation(p, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, type, norm, GLSTRIDE, off); };
+  at('aPos', 2, gl.FLOAT, false, 0); at('aUv', 2, gl.FLOAT, false, 8); at('aT', 1, gl.FLOAT, false, 16); at('aCol', 4, gl.UNSIGNED_BYTE, true, 20);
+  glCam = gl.getUniformLocation(p, 'uCam');
+  gl.uniform1i(gl.getUniformLocation(p, 'uA'), 0); gl.uniform1i(gl.getUniformLocation(p, 'uB'), 1);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.disable(gl.DEPTH_TEST);
+
+  // Atlas: weißes Feld für Rechtecke, dazu alle Figuren in normaler und in weißer (Treffer-)Fassung
+  atlas.cv = document.createElement('canvas'); atlas.cv.width = atlas.cv.height = atlas.size; atlas.g = atlas.cv.getContext('2d');
+  atlas.g.fillStyle = '#fff'; atlas.g.fillRect(2, 2, 8, 8); atlas.white = [4 / atlas.size, 4 / atlas.size, 8 / atlas.size, 8 / atlas.size]; atlas.x = 14; atlas.rowH = 8;
+  for (const k in SP) { SP[k].uv = atlasAdd(SP[k].img, SP[k].w, SP[k].h); SP[k].fuv = atlasAdd(SP[k].flash, SP[k].w, SP[k].h); }
+  glTexA = glTexture(atlas.cv, false);
+  // zweite Textur, weich gefiltert: links ein Leuchtfleck, rechts eine Scheibe
+  const b = document.createElement('canvas'); b.width = 128; b.height = 64; const g = b.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 31); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); g.fillStyle = '#fff'; g.beginPath(); g.arc(96, 32, 29, 0, Math.PI * 2); g.fill();
+  glTexB = glTexture(b, true);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, glTexB); gl.activeTexture(gl.TEXTURE0);
+  return true;
+}
+
+function glFlush() {
+  if (!glN) return;
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, glU8.subarray(0, glN * 4 * GLSTRIDE));
+  gl.drawElements(gl.TRIANGLES, glN * 6, gl.UNSIGNED_SHORT, 0); glN = 0;
+}
+function glTex(t) { if (glCur !== t) { glFlush(); gl.bindTexture(gl.TEXTURE_2D, t); glCur = t; } }
+// Bild beginnen: Kamera setzen (Weltpunkt cx, cy liegt oben links, k = Bildpunkte pro Welteinheit) und leeren
+function glBegin(cx, cy, k) {
+  if (!gl) { glOk = glInit(); if (!glOk) return; }
+  gl.viewport(0, 0, glc.width, glc.height);
+  const bg = rgb(C.g1); gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT);
+  const sx = 2 * k / glc.width, sy = -2 * k / glc.height;
+  gl.uniform4f(glCam, sx, sy, -cx * sx - 1, -cy * sy + 1);
+  glN = 0; glCur = null; glQ.length = 0; glQc.length = 0;
+}
+// ein Viereck: uv-Feld, Lage und Größe in Welteinheiten, vormultiplizierte Farbe 0..1, t = 0 Atlas / 1 weiche Textur
+function gq(uv, x, y, w, h, r, g, b, a, t, flip) {
+  if (glN >= GLMAX) glFlush();
+  const u0 = flip ? uv[2] : uv[0], u1 = flip ? uv[0] : uv[2], v0 = uv[1], v1 = uv[3], x1 = x + w, y1 = y + h;
+  const R = r * 255 + 0.5 | 0, G = g * 255 + 0.5 | 0, B = b * 255 + 0.5 | 0, A = a * 255 + 0.5 | 0;
+  let f = glN * 24, o = glN * 96;
+  const F = glF32, U = glU8;
+  F[f] = x; F[f + 1] = y; F[f + 2] = u0; F[f + 3] = v0; F[f + 4] = t; U[o + 20] = R; U[o + 21] = G; U[o + 22] = B; U[o + 23] = A; f += 6; o += 24;
+  F[f] = x1; F[f + 1] = y; F[f + 2] = u1; F[f + 3] = v0; F[f + 4] = t; U[o + 20] = R; U[o + 21] = G; U[o + 22] = B; U[o + 23] = A; f += 6; o += 24;
+  F[f] = x; F[f + 1] = y1; F[f + 2] = u0; F[f + 3] = v1; F[f + 4] = t; U[o + 20] = R; U[o + 21] = G; U[o + 22] = B; U[o + 23] = A; f += 6; o += 24;
+  F[f] = x1; F[f + 1] = y1; F[f + 2] = u1; F[f + 3] = v1; F[f + 4] = t; U[o + 20] = R; U[o + 21] = G; U[o + 22] = B; U[o + 23] = A;
+  glN++;
+}
+// Figur aus dem Atlas, um ihren Mittelpunkt, wie spr() auf der 2D-Ebene
+function gSprite(sp, x, y, s, flip, flash, al) { const w = sp.w * s, h = sp.h * s; gq(flash ? sp.fuv : sp.uv, snap(x - w / 2), snap(y - h / 2), w, h, al, al, al, al, 0, flip); }
+function gRect(c, x, y, w, h, al) { const v = rgb(c); gq(atlas.white, x, y, w, h, v[0] * al, v[1] * al, v[2] * al, al, 0, false); }
+function gRectAdd(c, x, y, w, h, al) { const v = rgb(c); gq(atlas.white, x, y, w, h, v[0] * al, v[1] * al, v[2] * al, 0, 0, false); }
+function gDisc(c, x, y, rx, ry, al) { const v = rgb(c); gq(UV_DISC, x - rx, y - ry, rx * 2, ry * 2, v[0] * al, v[1] * al, v[2] * al, al, 1, false); }
+// vorgebackene Bodenkachel mit eigener Textur
+function gChunk(tex, x, y, size) { glTex(tex); gq([0, 0, 1, 1], x, y, size, size, 1, 1, 1, 1, 0, false); }
+// gesammelte Leuchtflecken ausgeben (additiv)
+function glGlows() {
+  glTex(glTexA);
+  for (let i = 0, j = 0; i < glQ.length; i += 4, j++) { const v = rgb(glQc[j]), a = glQ[i + 3], r = glQ[i + 2]; gq(UV_GLOW, glQ[i] - r, glQ[i + 1] - r, r * 2, r * 2, v[0] * a, v[1] * a, v[2] * a, 0, 1, false); }
+  glQ.length = 0; glQc.length = 0;
+}
+function glEnd() { if (!glOk) return; glGlows(); glFlush(); }
 /* ---------- Effekte ---------- */
 const QN = ['Niedrig', 'Mittel', 'Hoch', 'Ultra'], PMUL = [0.35, 0.65, 1, 1.7], FPSV = [30, 60, 90, 120, 144, 0];
 const QD = ['Wenige Partikel, kein Leuchten. Für schwache Rechner.', 'Leuchten und Schweife, etwas weniger Partikel.', 'Alle Effekte: Leuchten, Blutspuren, Kerzen und Glut in der Luft.', 'Maximale Partikel, Nachbilder und zusätzliche Lichteffekte.'];
 let Q = opt.q, PM = PMUL[Q];
-const glowCache = {};
-function glowImg(c) {
-  let g = glowCache[c];
-  if (!g) { g = document.createElement('canvas'); g.width = g.height = 64; const x = g.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); glowCache[c] = g; }
-  return g;
-}
+// Leuchtfleck vormerken; gezeichnet wird er gesammelt in WebGL (siehe 05-webgl.js)
 function glow(x, y, r, c, a) {
-  if (Q < 1 || a <= 0) return;
-  ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a); ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(glowImg(c), x - r, y - r, r * 2, r * 2);
-  ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if (Q < 1 || a <= 0 || !glOk) return;
+  glQ.push(x, y, r, a > 1 ? 1 : a); glQc.push(c);
 }
 // Partikelschub: o = {c, a, sp, v0, v1, d0, d1, s, g, add, j}
 function fx(x, y, n, o) {
@@ -1444,7 +1554,8 @@ function collide() {
   }
 }
 function R(c, x, y, w, h) { ctx.fillStyle = c; ctx.fillRect(snap(x), snap(y), w, h); }
-function light(x, y, r, c, sd) { if (Q < 1) return; const fl = Math.sin(clock * 9 + sd * 90) * 0.5 + Math.sin(clock * 23 + sd * 50) * 0.5; glow(x, y, r + fl * 2, c, 0.32 + fl * 0.05); }
+let bakeLights = null, bakeX = 0, bakeY = 0;
+function light(x, y, r, c, sd) { if (bakeLights) { bakeLights.push(x - bakeX, y - bakeY, r, c, sd); return; } if (Q < 1) return; const fl = Math.sin(clock * 9 + sd * 90) * 0.5 + Math.sin(clock * 23 + sd * 50) * 0.5; glow(x, y, r + fl * 2, c, 0.32 + fl * 0.05); }
 function drawObj(o) {
   const x = snap(o.x), y = snap(o.y), h = o.h, D = '#161016', sh = (w) => { ctx.globalAlpha = 0.35; R('#000', x - w / 2, y - 1, w, 3); ctx.globalAlpha = 1; };
   const win = (wx, wy, w, hh, lit, c) => { R(D, wx - 1, wy - 1, w + 2, hh + 2); R(lit ? (c || '#ffc94a') : '#1e1824', wx, wy, w, hh); R(D, wx + (w >> 1), wy, 1, hh); R(D, wx, wy + (hh >> 1), w, 1); if (lit) light(wx + w / 2, wy + hh / 2, 15, c === '#8a3ad0' ? '#b040ff' : '#ffb040', h + wx); };
@@ -1556,6 +1667,87 @@ function drawObj(o) {
   }
 }
 
+// Eine Bodenkachel zeichnen (32 x 32). Wird nur beim Vorbacken aufgerufen.
+function drawTile(tx, ty, objs) {
+  const T = 32;
+  const t = tile(tx, ty), h = t.h, bx = tx * T, by = ty * T, f = h * 977 % 1, g2 = h * 389 % 1;
+  ctx.fillStyle = (t.road ? ROADC : BIO[t.b].g)[h * 3 | 0]; ctx.fillRect(bx, by, T, T);
+  if (t.o) objs.push(t.o);
+  if (t.road) { ctx.fillStyle = '#4a3a2c'; ctx.fillRect(bx + (f * 26 | 0), by + (g2 * 26 | 0), 2, 1); ctx.fillRect(bx + (g2 * 20 | 0) + 4, by + (f * 22 | 0) + 6, 1, 1); ctx.fillStyle = '#231a12'; ctx.fillRect(bx + (h * 24 | 0), by + (f * 20 | 0) + 8, 3, 1); return; }
+  if (t.b === 1) {            // Geisterstadt: Kopfsteinpflaster
+    ctx.fillStyle = '#342c2a'; const o = (h * 4 | 0);
+    ctx.fillRect(bx + 2 + o, by + 3, 11, 6); ctx.fillRect(bx + 18, by + 2 + o, 11, 7); ctx.fillRect(bx + 4, by + 13 + o, 9, 6); ctx.fillRect(bx + 16 + o, by + 13, 12, 6); ctx.fillRect(bx + 1, by + 23, 12, 6); ctx.fillRect(bx + 17, by + 22 + (o >> 1), 11, 7);
+    if (h > 0.9) { ctx.fillStyle = '#16202a'; ctx.fillRect(bx + 8, by + 10, 12, 5); ctx.fillStyle = '#2a3a4a'; ctx.fillRect(bx + 10, by + 11, 5, 1); }
+  } else if (t.b === 0) {     // Friedhof
+    if (h < 0.13) { if (f < 0.35) { ctx.fillStyle = '#54454c'; ctx.fillRect(bx + 15, by + 6, 3, 13); ctx.fillRect(bx + 11, by + 9, 11, 3); ctx.fillStyle = '#3a262d'; ctx.fillRect(bx + 12, by + 19, 9, 2); } else spr(SP.grave, bx + 16, by + 14, 1, h < 0.06, false); if (g2 > 0.6) { ctx.fillStyle = '#2a1c22'; ctx.fillRect(bx + 10, by + 21, 13, 6); } }
+    else if (h < 0.16) { ctx.fillStyle = '#d8ccb8'; ctx.fillRect(bx + 15, by + 13, 2, 5); ctx.fillStyle = '#8a7c6c'; ctx.fillRect(bx + 14, by + 18, 4, 1); const fl = Math.sin(clock * 9 + h * 900) > 0.3 ? 1 : 0; ctx.fillStyle = C.ember; ctx.fillRect(bx + 15, by + 10 - fl, 2, 3); ctx.fillStyle = C.glow; ctx.fillRect(bx + 15, by + 11, 1, 1); if (Q >= 2) light(bx + 16, by + 11, 26, '#ff8a2a', h); }
+    else if (h < 0.3) { ctx.fillStyle = '#4a2a52'; const gx = bx + (f * 24 | 0) + 3, gy = by + (g2 * 24 | 0); ctx.fillRect(gx, gy, 1, 3); ctx.fillRect(gx + 2, gy + 1, 1, 2); ctx.fillRect(gx - 2, gy + 1, 1, 2); }
+    else if (h < 0.34) { ctx.fillStyle = '#b8a898'; const gx = bx + (f * 22 | 0) + 2, gy = by + (g2 * 22 | 0) + 2; ctx.fillRect(gx, gy, 5, 1); ctx.fillRect(gx - 1, gy - 1, 1, 3); ctx.fillRect(gx + 5, gy - 1, 1, 3); }
+    else if (h < 0.4) { ctx.fillStyle = '#14141a'; for (let i = 0; i < 5; i++) { ctx.fillRect(bx + 2 + i * 7, by + 9, 1, 9); ctx.fillRect(bx + 1 + i * 7, by + 8, 3, 1); } ctx.fillRect(bx, by + 12, T, 1); }
+  } else if (t.b === 2) {     // Kürbisfeld: Furchen, Kürbisse, Ranken
+    ctx.fillStyle = '#1d120a'; ctx.fillRect(bx, by + 5, T, 2); ctx.fillRect(bx, by + 16, T, 2); ctx.fillRect(bx, by + 27, T, 2);
+    if (h < 0.16) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + 9, by + 12, 6, 1); ctx.fillRect(bx + 8, by + 13, 2, 2); spr(SP.pumpkin, bx + 17, by + 12, 0.7, h < 0.08, false); }
+    else if (h < 0.26) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + (f * 20 | 0) + 4, by + 9, 5, 1); ctx.fillRect(bx + (f * 20 | 0) + 6, by + 8, 1, 3); }
+    else if (h < 0.38) { for (let i = 0; i < 3; i++) { const sx2 = bx + 5 + i * 10; ctx.fillStyle = '#5a6a2a'; ctx.fillRect(sx2, by + 2, 1, 12); ctx.fillRect(sx2 - 2, by + 6, 2, 1); ctx.fillRect(sx2 + 1, by + 9, 2, 1); ctx.fillStyle = '#c9a43a'; ctx.fillRect(sx2, by + 3, 1, 3); } }
+    else if (h < 0.43) { ctx.fillStyle = '#4a3220'; for (let i = 0; i < 3; i++) ctx.fillRect(bx + 3 + i * 12, by + 8, 2, 9); ctx.fillRect(bx, by + 10, T, 1); ctx.fillRect(bx, by + 14, T, 1); }
+  } else if (t.b === 3) {     // Toter Wald: Laub, Stümpfe, Leuchtpilze
+    ctx.fillStyle = '#24321e'; ctx.fillRect(bx + (f * 28 | 0), by + (g2 * 28 | 0), 2, 1); ctx.fillRect(bx + (g2 * 26 | 0), by + (f * 26 | 0), 1, 2); ctx.fillStyle = '#3a2a1a'; ctx.fillRect(bx + (h * 26 | 0), by + (f * 14 | 0) + 14, 2, 1);
+    if (h < 0.06) { ctx.fillStyle = '#2c1e18'; ctx.fillRect(bx + 12, by + 14, 8, 5); ctx.fillStyle = '#5a4434'; ctx.fillRect(bx + 13, by + 14, 6, 2); }
+    else if (h < 0.12) { const mx = bx + (f * 20 | 0) + 5, my = by + (g2 * 18 | 0) + 6; ctx.fillStyle = '#d8ccb8'; ctx.fillRect(mx + 1, my + 2, 1, 2); ctx.fillStyle = '#b040ff'; ctx.fillRect(mx, my, 3, 2); ctx.fillStyle = '#e0b0ff'; ctx.fillRect(mx, my, 1, 1); if (Q >= 2) light(mx + 1.5, my + 1, 12, '#b040ff', h); }
+    else if (h < 0.18) { ctx.fillStyle = '#16261a'; ctx.fillRect(bx + 9, by + 12, 12, 7); ctx.fillRect(bx + 11, by + 10, 8, 2); ctx.fillStyle = '#22382a'; ctx.fillRect(bx + 11, by + 11, 3, 2); ctx.fillRect(bx + 16, by + 14, 3, 2); }
+    else if (h < 0.21) { ctx.fillStyle = '#2c1e18'; ctx.fillRect(bx + 6, by + 15, 18, 4); ctx.fillStyle = '#5a4434'; ctx.fillRect(bx + 22, by + 15, 2, 4); ctx.fillStyle = '#3a5a2a'; ctx.fillRect(bx + 10, by + 14, 5, 1); }
+  } else if (t.b === 5) {     // Verlassenes Anwesen: verwilderter Garten
+    ctx.fillStyle = '#2a3a22'; const gx = bx + (f * 24 | 0) + 3, gy = by + (g2 * 24 | 0); ctx.fillRect(gx, gy, 1, 3); ctx.fillRect(gx + 2, gy + 1, 1, 2); ctx.fillRect(gx - 2, gy + 1, 1, 2);
+    if (h < 0.1) { ctx.fillStyle = '#14141a'; for (let i = 0; i < 5; i++) { ctx.fillRect(bx + 2 + i * 7, by + 8, 1, 10); ctx.fillRect(bx + 1 + i * 7, by + 7, 3, 1); } ctx.fillRect(bx, by + 11, T, 1); ctx.fillRect(bx, by + 16, T, 1); }
+    else if (h < 0.2) { ctx.fillStyle = '#1c2e1a'; ctx.fillRect(bx + 10, by + 12, 10, 6); ctx.fillStyle = '#8a0f1e'; ctx.fillRect(bx + 12, by + 13, 2, 2); ctx.fillRect(bx + 16, by + 15, 2, 2); ctx.fillRect(bx + 18, by + 12, 1, 1); }
+    else if (h < 0.3) { ctx.fillStyle = '#3a3640'; ctx.fillRect(bx + (f * 22 | 0), by + (g2 * 22 | 0) + 4, 3, 2); ctx.fillRect(bx + (g2 * 22 | 0) + 6, by + (f * 20 | 0), 2, 2); }
+  } else {                    // Sumpf: Tümpel, Schilf, Irrlichter
+    if (h < 0.22) { ctx.fillStyle = '#0a2c2e'; ctx.beginPath(); ctx.ellipse(bx + 16, by + 16, 11 + f * 3, 6 + g2 * 3, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#1e5450'; const sh = (clock * 6 + h * 40 | 0) % 8; ctx.fillRect(bx + 9 + sh, by + 14, 4, 1); ctx.fillRect(bx + 18 - sh, by + 18, 3, 1); if (f > 0.5) { ctx.fillStyle = '#2e6a3a'; ctx.fillRect(bx + 11, by + 16, 4, 3); ctx.fillStyle = '#e85ab0'; ctx.fillRect(bx + 12, by + 16, 1, 1); } if (g2 > 0.5) { const bb = (clock * 0.8 + h * 9) % 1; ctx.fillStyle = '#4aa89a'; ctx.fillRect(bx + 20, by + 18 - bb * 6, 1, 1); } }
+    else if (h < 0.34) { ctx.fillStyle = '#3c5c2c'; const gx = bx + (f * 22 | 0) + 4, gy = by + (g2 * 18 | 0) + 4; ctx.fillRect(gx, gy, 1, 6); ctx.fillRect(gx + 2, gy + 2, 1, 4); ctx.fillRect(gx - 2, gy + 1, 1, 5); ctx.fillStyle = '#5a3a22'; ctx.fillRect(gx, gy - 2, 1, 2); }
+    else if (h < 0.37 && Q >= 1) { const wy = by + 14 + Math.sin(clock * 1.5 + h * 60) * 4, wx = bx + 16 + Math.cos(clock * 1.1 + h * 60) * 5; ctx.fillStyle = '#b8ffe8'; ctx.fillRect(snap(wx), snap(wy), 1.5, 1.5); light(wx, wy, 16, '#2fe08a', h); }
+  }
+}
+
+// Der Boden wird in Stücken von 8 x 8 Kacheln einmal gezeichnet und als Textur behalten.
+// Lichter (Kerzen, Pilze, Irrlichter) und Gebäude werden dabei notiert und jedes Bild frisch ausgegeben.
+const CHT = 8, CHPX = 256, chunks = new Map();
+function clearChunks() { if (gl) for (const c of chunks.values()) gl.deleteTexture(c.tex); chunks.clear(); }
+function chunkAt(ci, cj) {
+  const key = (ci + 32768) * 65536 + (cj + 32768);
+  let c = chunks.get(key); if (c) return c;
+  const cvs = document.createElement('canvas'); cvs.width = cvs.height = CHPX;
+  const g = cvs.getContext('2d'), oc = ctx, oS = S, oQ = Q;
+  c = {lights: [], objs: [], x: ci * CHPX, y: cj * CHPX};
+  ctx = g; S = 1; Q = 3; g.imageSmoothingEnabled = false; g.translate(-c.x, -c.y);
+  bakeLights = c.lights; bakeX = 0; bakeY = 0;
+  for (let ty = cj * CHT; ty < cj * CHT + CHT; ty++) for (let tx = ci * CHT; tx < ci * CHT + CHT; tx++) drawTile(tx, ty, c.objs);
+  bakeLights = null; ctx = oc; S = oS; Q = oQ;
+  c.tex = glTexture(cvs, false);
+  if (chunks.size > 60) {      // weit entfernte Stücke wieder freigeben
+    let far = null, fd = 0, fk = 0;
+    for (const [k2, o] of chunks) { const d = Math.abs(o.x - c.x) + Math.abs(o.y - c.y); if (d > fd) { fd = d; far = o; fk = k2; } }
+    if (far) { gl.deleteTexture(far.tex); chunks.delete(fk); }
+  }
+  chunks.set(key, c); return c;
+}
+// Platz, den ein Gebäude um seinen Fußpunkt braucht: links, oben, Breite, Höhe
+const OBB = {house: [-27, -54, 54, 58], church: [-30, -72, 62, 76], barn: [-34, -48, 68, 52], crypt: [-27, -50, 54, 54], oak: [-23, -68, 48, 72], hut: [-28, -42, 46, 46], manor: [-60, -110, 120, 114],
+  tree: [-12, -37, 24, 40], lamp: [-4, -26, 8, 28], statue: [-8, -20, 16, 22], obelisk: [-5, -23, 10, 25], well: [-9, -20, 18, 22], hedge: [-10, -11, 20, 13], scare: [-9, -25, 18, 27], hay: [-8, -10, 16, 12], barrel: [-5, -11, 10, 13]};
+// Gebäude zeichnen: beim ersten Mal in ein eigenes kleines Bild, danach nur noch dieses Bild
+function drawObjC(o) {
+  const bb = OBB[o.k]; if (!bb) return;
+  const ax = Math.round(o.x), ay = Math.round(o.y);
+  if (!o.cv) {
+    const cvs = document.createElement('canvas'); cvs.width = bb[2]; cvs.height = bb[3];
+    const g = cvs.getContext('2d'), oc = ctx, oS = S, oQ = Q;
+    ctx = g; S = 1; Q = 3; g.imageSmoothingEnabled = false; g.translate(-(ax + bb[0]), -(ay + bb[1]));
+    o.lights = []; bakeLights = o.lights; bakeX = ax; bakeY = ay;
+    drawObj(o);
+    bakeLights = null; ctx = oc; S = oS; Q = oQ; o.cv = cvs;
+  }
+  ctx.drawImage(o.cv, ax + bb[0], ay + bb[1]);
+  const L = o.lights; for (let i = 0; i < L.length; i += 5) light(ax + L[i], ay + L[i + 1], L[i + 2], L[i + 3], L[i + 4]);
+}
 /* ---------- Zeichnen ---------- */
 function snap(v) { return Math.round(v * S) / S; }
 function spr(sp, x, y, s, flip, flash) {
@@ -1573,7 +1765,7 @@ function spin(img, x, y, rot, z) { ctx.save(); ctx.translate(x, y); ctx.rotate(r
 function draw() {
   const k = S * dpr, add = Q >= 1 ? 'lighter' : 'source-over', blade = (sc.type ? SCY.rost.sp : sc.sp).img;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-  ctx.fillStyle = C.g1; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.clearRect(0, 0, cv.width, cv.height);
   const inGame = state !== 'menu';
   let px = P.x, py = P.y;
   if (!inGame) { px = menuT * 9; py = Math.sin(menuT * 0.3) * 20; }
@@ -1582,59 +1774,29 @@ function draw() {
   const sh = (reduceMotion || !opt.shake) ? 0 : shake;
   const cx = px - snap(VW / 2) + snap(rnd(-sh, sh)), cy = py - snap(VH / 2) + snap(rnd(-sh, sh));
   ctx.setTransform(k, 0, 0, k, -cx * k, -cy * k);
+  glBegin(cx, cy, k);
 
-  // Boden: jedes Gebiet hat eigene Farben und Kleinigkeiten
-  const T = 32, x0 = Math.floor(cx / T) - 2, y0 = Math.floor(cy / T) - 1, x1 = Math.ceil((cx + VW) / T) + 2, y1 = Math.ceil((cy + VH) / T) + 3;
+  // Boden: vorgebackene Stücke aus der Grafikkarte, dazu ihre Lichter; Gebäude werden eingesammelt
   const objs = [];
-  for (let ty = y0; ty < y1; ty++) for (let tx = x0; tx < x1; tx++) {
-    const t = tile(tx, ty), h = t.h, bx = tx * T, by = ty * T, f = h * 977 % 1, g2 = h * 389 % 1;
-    ctx.fillStyle = (t.road ? ROADC : BIO[t.b].g)[h * 3 | 0]; ctx.fillRect(bx, by, T, T);
-    if (t.o) objs.push(t.o);
-    if (t.road) { ctx.fillStyle = '#4a3a2c'; ctx.fillRect(bx + (f * 26 | 0), by + (g2 * 26 | 0), 2, 1); ctx.fillRect(bx + (g2 * 20 | 0) + 4, by + (f * 22 | 0) + 6, 1, 1); ctx.fillStyle = '#231a12'; ctx.fillRect(bx + (h * 24 | 0), by + (f * 20 | 0) + 8, 3, 1); continue; }
-    if (t.b === 1) {            // Geisterstadt: Kopfsteinpflaster
-      ctx.fillStyle = '#342c2a'; const o = (h * 4 | 0);
-      ctx.fillRect(bx + 2 + o, by + 3, 11, 6); ctx.fillRect(bx + 18, by + 2 + o, 11, 7); ctx.fillRect(bx + 4, by + 13 + o, 9, 6); ctx.fillRect(bx + 16 + o, by + 13, 12, 6); ctx.fillRect(bx + 1, by + 23, 12, 6); ctx.fillRect(bx + 17, by + 22 + (o >> 1), 11, 7);
-      if (h > 0.9) { ctx.fillStyle = '#16202a'; ctx.fillRect(bx + 8, by + 10, 12, 5); ctx.fillStyle = '#2a3a4a'; ctx.fillRect(bx + 10, by + 11, 5, 1); }
-    } else if (t.b === 0) {     // Friedhof
-      if (h < 0.13) { if (f < 0.35) { ctx.fillStyle = '#54454c'; ctx.fillRect(bx + 15, by + 6, 3, 13); ctx.fillRect(bx + 11, by + 9, 11, 3); ctx.fillStyle = '#3a262d'; ctx.fillRect(bx + 12, by + 19, 9, 2); } else spr(SP.grave, bx + 16, by + 14, 1, h < 0.06, false); if (g2 > 0.6) { ctx.fillStyle = '#2a1c22'; ctx.fillRect(bx + 10, by + 21, 13, 6); } }
-      else if (h < 0.16) { ctx.fillStyle = '#d8ccb8'; ctx.fillRect(bx + 15, by + 13, 2, 5); ctx.fillStyle = '#8a7c6c'; ctx.fillRect(bx + 14, by + 18, 4, 1); const fl = Math.sin(clock * 9 + h * 900) > 0.3 ? 1 : 0; ctx.fillStyle = C.ember; ctx.fillRect(bx + 15, by + 10 - fl, 2, 3); ctx.fillStyle = C.glow; ctx.fillRect(bx + 15, by + 11, 1, 1); if (Q >= 2) light(bx + 16, by + 11, 26, '#ff8a2a', h); }
-      else if (h < 0.3) { ctx.fillStyle = '#4a2a52'; const gx = bx + (f * 24 | 0) + 3, gy = by + (g2 * 24 | 0); ctx.fillRect(gx, gy, 1, 3); ctx.fillRect(gx + 2, gy + 1, 1, 2); ctx.fillRect(gx - 2, gy + 1, 1, 2); }
-      else if (h < 0.34) { ctx.fillStyle = '#b8a898'; const gx = bx + (f * 22 | 0) + 2, gy = by + (g2 * 22 | 0) + 2; ctx.fillRect(gx, gy, 5, 1); ctx.fillRect(gx - 1, gy - 1, 1, 3); ctx.fillRect(gx + 5, gy - 1, 1, 3); }
-      else if (h < 0.4) { ctx.fillStyle = '#14141a'; for (let i = 0; i < 5; i++) { ctx.fillRect(bx + 2 + i * 7, by + 9, 1, 9); ctx.fillRect(bx + 1 + i * 7, by + 8, 3, 1); } ctx.fillRect(bx, by + 12, T, 1); }
-    } else if (t.b === 2) {     // Kürbisfeld: Furchen, Kürbisse, Ranken
-      ctx.fillStyle = '#1d120a'; ctx.fillRect(bx, by + 5, T, 2); ctx.fillRect(bx, by + 16, T, 2); ctx.fillRect(bx, by + 27, T, 2);
-      if (h < 0.16) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + 9, by + 12, 6, 1); ctx.fillRect(bx + 8, by + 13, 2, 2); spr(SP.pumpkin, bx + 17, by + 12, 0.7, h < 0.08, false); }
-      else if (h < 0.26) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + (f * 20 | 0) + 4, by + 9, 5, 1); ctx.fillRect(bx + (f * 20 | 0) + 6, by + 8, 1, 3); }
-      else if (h < 0.38) { for (let i = 0; i < 3; i++) { const sx2 = bx + 5 + i * 10; ctx.fillStyle = '#5a6a2a'; ctx.fillRect(sx2, by + 2, 1, 12); ctx.fillRect(sx2 - 2, by + 6, 2, 1); ctx.fillRect(sx2 + 1, by + 9, 2, 1); ctx.fillStyle = '#c9a43a'; ctx.fillRect(sx2, by + 3, 1, 3); } }
-      else if (h < 0.43) { ctx.fillStyle = '#4a3220'; for (let i = 0; i < 3; i++) ctx.fillRect(bx + 3 + i * 12, by + 8, 2, 9); ctx.fillRect(bx, by + 10, T, 1); ctx.fillRect(bx, by + 14, T, 1); }
-    } else if (t.b === 3) {     // Toter Wald: Laub, Stümpfe, Leuchtpilze
-      ctx.fillStyle = '#24321e'; ctx.fillRect(bx + (f * 28 | 0), by + (g2 * 28 | 0), 2, 1); ctx.fillRect(bx + (g2 * 26 | 0), by + (f * 26 | 0), 1, 2); ctx.fillStyle = '#3a2a1a'; ctx.fillRect(bx + (h * 26 | 0), by + (f * 14 | 0) + 14, 2, 1);
-      if (h < 0.06) { ctx.fillStyle = '#2c1e18'; ctx.fillRect(bx + 12, by + 14, 8, 5); ctx.fillStyle = '#5a4434'; ctx.fillRect(bx + 13, by + 14, 6, 2); }
-      else if (h < 0.12) { const mx = bx + (f * 20 | 0) + 5, my = by + (g2 * 18 | 0) + 6; ctx.fillStyle = '#d8ccb8'; ctx.fillRect(mx + 1, my + 2, 1, 2); ctx.fillStyle = '#b040ff'; ctx.fillRect(mx, my, 3, 2); ctx.fillStyle = '#e0b0ff'; ctx.fillRect(mx, my, 1, 1); if (Q >= 2) light(mx + 1.5, my + 1, 12, '#b040ff', h); }
-      else if (h < 0.18) { ctx.fillStyle = '#16261a'; ctx.fillRect(bx + 9, by + 12, 12, 7); ctx.fillRect(bx + 11, by + 10, 8, 2); ctx.fillStyle = '#22382a'; ctx.fillRect(bx + 11, by + 11, 3, 2); ctx.fillRect(bx + 16, by + 14, 3, 2); }
-      else if (h < 0.21) { ctx.fillStyle = '#2c1e18'; ctx.fillRect(bx + 6, by + 15, 18, 4); ctx.fillStyle = '#5a4434'; ctx.fillRect(bx + 22, by + 15, 2, 4); ctx.fillStyle = '#3a5a2a'; ctx.fillRect(bx + 10, by + 14, 5, 1); }
-    } else if (t.b === 5) {     // Verlassenes Anwesen: verwilderter Garten
-      ctx.fillStyle = '#2a3a22'; const gx = bx + (f * 24 | 0) + 3, gy = by + (g2 * 24 | 0); ctx.fillRect(gx, gy, 1, 3); ctx.fillRect(gx + 2, gy + 1, 1, 2); ctx.fillRect(gx - 2, gy + 1, 1, 2);
-      if (h < 0.1) { ctx.fillStyle = '#14141a'; for (let i = 0; i < 5; i++) { ctx.fillRect(bx + 2 + i * 7, by + 8, 1, 10); ctx.fillRect(bx + 1 + i * 7, by + 7, 3, 1); } ctx.fillRect(bx, by + 11, T, 1); ctx.fillRect(bx, by + 16, T, 1); }
-      else if (h < 0.2) { ctx.fillStyle = '#1c2e1a'; ctx.fillRect(bx + 10, by + 12, 10, 6); ctx.fillStyle = '#8a0f1e'; ctx.fillRect(bx + 12, by + 13, 2, 2); ctx.fillRect(bx + 16, by + 15, 2, 2); ctx.fillRect(bx + 18, by + 12, 1, 1); }
-      else if (h < 0.3) { ctx.fillStyle = '#3a3640'; ctx.fillRect(bx + (f * 22 | 0), by + (g2 * 22 | 0) + 4, 3, 2); ctx.fillRect(bx + (g2 * 22 | 0) + 6, by + (f * 20 | 0), 2, 2); }
-    } else {                    // Sumpf: Tümpel, Schilf, Irrlichter
-      if (h < 0.22) { ctx.fillStyle = '#0a2c2e'; ctx.beginPath(); ctx.ellipse(bx + 16, by + 16, 11 + f * 3, 6 + g2 * 3, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#1e5450'; const sh = (clock * 6 + h * 40 | 0) % 8; ctx.fillRect(bx + 9 + sh, by + 14, 4, 1); ctx.fillRect(bx + 18 - sh, by + 18, 3, 1); if (f > 0.5) { ctx.fillStyle = '#2e6a3a'; ctx.fillRect(bx + 11, by + 16, 4, 3); ctx.fillStyle = '#e85ab0'; ctx.fillRect(bx + 12, by + 16, 1, 1); } if (g2 > 0.5) { const bb = (clock * 0.8 + h * 9) % 1; ctx.fillStyle = '#4aa89a'; ctx.fillRect(bx + 20, by + 18 - bb * 6, 1, 1); } }
-      else if (h < 0.34) { ctx.fillStyle = '#3c5c2c'; const gx = bx + (f * 22 | 0) + 4, gy = by + (g2 * 18 | 0) + 4; ctx.fillRect(gx, gy, 1, 6); ctx.fillRect(gx + 2, gy + 2, 1, 4); ctx.fillRect(gx - 2, gy + 1, 1, 5); ctx.fillStyle = '#5a3a22'; ctx.fillRect(gx, gy - 2, 1, 2); }
-      else if (h < 0.37 && Q >= 1) { const wy = by + 14 + Math.sin(clock * 1.5 + h * 60) * 4, wx = bx + 16 + Math.cos(clock * 1.1 + h * 60) * 5; ctx.fillStyle = '#b8ffe8'; ctx.fillRect(snap(wx), snap(wy), 1.5, 1.5); light(wx, wy, 16, '#2fe08a', h); }
+  if (glOk) {
+    const c0 = Math.floor((cx - 64) / CHPX), c1 = Math.floor((cx + VW + 64) / CHPX), r0 = Math.floor((cy - 16) / CHPX), r1 = Math.floor((cy + VH + 112) / CHPX);
+    for (let cj = r0; cj <= r1; cj++) for (let ci = c0; ci <= c1; ci++) {
+      const c = chunkAt(ci, cj); gChunk(c.tex, c.x, c.y, CHPX);
+      if (Q >= 2) { const L = c.lights; for (let i = 0; i < L.length; i += 5) light(L[i], L[i + 1], L[i + 2], L[i + 3], L[i + 4]); }
+      for (const o of c.objs) objs.push(o);
+    }
+    glTex(glTexA);
+    // Blutspuren, Kürbismatsch, Knochen
+    for (const d of decals) {
+      const al = Math.min(d.k ? 0.85 : 0.6, (1 - d.t / 16) * (d.k ? 0.85 : 0.6));
+      if (d.k === 'bones') { const q = d.r / 6, bx = snap(d.x), by = snap(d.y); gRect(d.c, bx - 4 * q, by, 5 * q, q, al); gRect(d.c, bx + q, by - 3 * q + d.sd * 2, q, 4 * q, al); gRect(d.c, bx - 2 * q + d.sd * 3, by + 2 * q, 4 * q, q, al); gRect(d.c, bx + 3 * q, by + q, 2 * q, 2 * q, al); continue; }
+      gDisc(d.c, d.x, d.y, d.r, d.r, al); gDisc(d.c, d.x + d.r * (d.sd - 0.5) * 2.4, d.y + d.r * 0.6, d.r * 0.5, d.r * 0.5, al); gDisc(d.c, d.x - d.r * d.sd, d.y - d.r * 0.7, d.r * 0.35, d.r * 0.35, al);
+      if (d.k === 'mush') { gRect('#ffc94a', snap(d.x - d.r * 0.4), snap(d.y), 1, 1, al); gRect('#ffc94a', snap(d.x + d.r * 0.3), snap(d.y - d.r * 0.3), 1, 1, al); gRect('#ffc94a', snap(d.x + d.r * d.sd * 0.5), snap(d.y + d.r * 0.4), 1, 1, al); }
     }
   }
   objs.sort((a, b) => a.y - b.y);
-  // Blutspuren
-  for (const d of decals) {
-    ctx.globalAlpha = Math.min(d.k ? 0.85 : 0.6, (1 - d.t / 16) * (d.k ? 0.85 : 0.6)); ctx.fillStyle = d.c;
-    if (d.k === 'bones') { const z = d.r / 6, bx = snap(d.x), by = snap(d.y); ctx.fillRect(bx - 4 * z, by, 5 * z, z); ctx.fillRect(bx + 1 * z, by - 3 * z + d.sd * 2, z, 4 * z); ctx.fillRect(bx - 2 * z + d.sd * 3, by + 2 * z, 4 * z, z); ctx.fillRect(bx + 3 * z, by + z, 2 * z, 2 * z); continue; }
-    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, TAU); ctx.arc(d.x + d.r * (d.sd - 0.5) * 2.4, d.y + d.r * 0.6, d.r * 0.5, 0, TAU); ctx.arc(d.x - d.r * d.sd, d.y - d.r * 0.7, d.r * 0.35, 0, TAU); ctx.fill();
-    if (d.k === 'mush') { ctx.fillStyle = '#ffc94a'; ctx.fillRect(snap(d.x - d.r * 0.4), snap(d.y), 1, 1); ctx.fillRect(snap(d.x + d.r * 0.3), snap(d.y - d.r * 0.3), 1, 1); ctx.fillRect(snap(d.x + d.r * d.sd * 0.5), snap(d.y + d.r * 0.4), 1, 1); }
-  }
-  ctx.globalAlpha = 1;
   // Häuser, Bäume und Co.: was hinter dem Schnitter steht, kommt zuerst
-  for (const o of objs) if (o.y <= py + 3) drawObj(o);
+  for (const o of objs) if (o.y <= py + 3) drawObjC(o);
 
   if (inGame) {
     // Arena im Bosskampf: Flammenring, außen abgedunkelt
@@ -1682,31 +1844,30 @@ function draw() {
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       glow(P.x, P.y, n.r * 1.4, NC(), 0.3 * (1 - q));
     }
-    // Aufsammelbares
-    for (const p of picks) {
-      if (p.x < cx - 8 || p.x > cx + VW + 8 || p.y < cy - 8 || p.y > cy + VH + 8) continue;
-      const bob = Math.sin(clock * 5 + p.ph);
-      if (p.k === 'soul') { if (Q >= 2) glow(p.x, p.y, p.v >= 5 ? 10 : 7, p.v >= 5 ? C.glow : '#f02238', 0.4 + bob * 0.1); spr(p.v >= 5 ? SP.bigsoul : SP.soul, p.x, p.y + bob, p.v >= 5 ? 1.4 : 1, false, false); }
-      else if (p.k === 'heart') { glow(p.x, p.y, 10, '#f02238', 0.5); spr(SP.heart, p.x, p.y + bob, 1, false, false); }
-      else { glow(p.x, p.y, 26 + bob * 3, C.glow, 0.7); spr(SP.chest, p.x, p.y + bob, 1.4, false, false); }
-    }
-    // Gegner
-    for (const e of enemies) {
-      const m = 12 * e.sc;
-      if (e.x < cx - m || e.x > cx + VW + m || e.y < cy - m || e.y > cy + VH + m) continue;
-      if (e.boss) { ctx.globalAlpha = 0.25; ctx.fillStyle = e.aura; ctx.beginPath(); ctx.ellipse(e.x, e.y + 16, 30, 12, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; glow(e.x, e.y, 54 + Math.sin(clock * 4) * 4, e.aura, 0.3); }
-      else if (e.elite) glow(e.x, e.y, 14, C.glow, 0.35);
-      else if (e.mut && Q >= 2) glow(e.x, e.y, 11, '#7dff3a', 0.22);
-      else if (e.sc === 1) { ctx.globalAlpha = 0.3; ctx.fillStyle = '#000'; ctx.fillRect(snap(e.x - 4), snap(e.y + e.r), 8, 1.5); ctx.globalAlpha = 1; }
-      if (e.t === 'ghost') ctx.globalAlpha = e.mode === 'fade' ? 0.25 : 0.85;
-      if (e.boss && e.mode === 'tele') { ctx.globalAlpha = 0.35; ctx.strokeStyle = C.blood; ctx.lineWidth = 14; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.dx * 150, e.y + e.dy * 150); ctx.stroke(); ctx.globalAlpha = 1; }
-      const fl = e.flash > 0 || (e.boss && e.mode === 'tele' && (clock * 12 | 0) % 2 === 0);
-      const bob = e.t === 'bat' ? Math.sin(clock * 14 + e.ph) * 1.2 : e.t === 'ghost' ? Math.sin(clock * 4 + e.ph) * 1.5 : 0;
-      spr(SP[e.sp || e.t], e.x, e.y + bob, e.sc, e.x > P.x, fl);
-      ctx.globalAlpha = 1;
-      if (e.boss && e.kind < 2) { const bx = snap(e.x), by = snap(e.y - (e.kind ? 30 : 24)); ctx.fillStyle = C.glow; ctx.fillRect(bx - 9, by, 18, 3); ctx.fillRect(bx - 9, by - 4, 3, 4); ctx.fillRect(bx - 1, by - 5, 3, 5); ctx.fillRect(bx + 6, by - 4, 3, 4); ctx.fillStyle = C.blood; ctx.fillRect(bx, by, 1, 2); }
-      if (e.elite) { ctx.fillStyle = C.glow; ctx.fillRect(snap(e.x) - 1, snap(e.y - e.r - 6), 2, 2); }
-      if (e.slowT > 0) { ctx.fillStyle = '#8fdcff'; ctx.fillRect(snap(e.x) - 3, snap(e.y + e.r + 1), 6, 1); }
+    // Aufsammelbares und Gegner: ein Schub Vierecke in WebGL
+    if (glOk) {
+      for (const p of picks) {
+        if (p.x < cx - 8 || p.x > cx + VW + 8 || p.y < cy - 8 || p.y > cy + VH + 8) continue;
+        const bob = Math.sin(clock * 5 + p.ph);
+        if (p.k === 'soul') { if (Q >= 2) glow(p.x, p.y, p.v >= 5 ? 10 : 7, p.v >= 5 ? C.glow : '#f02238', 0.4 + bob * 0.1); gSprite(p.v >= 5 ? SP.bigsoul : SP.soul, p.x, p.y + bob, p.v >= 5 ? 1.4 : 1, false, false, 1); }
+        else if (p.k === 'heart') { glow(p.x, p.y, 10, '#f02238', 0.5); gSprite(SP.heart, p.x, p.y + bob, 1, false, false, 1); }
+        else { glow(p.x, p.y, 26 + bob * 3, C.glow, 0.7); gSprite(SP.chest, p.x, p.y + bob, 1.4, false, false, 1); }
+      }
+      for (const e of enemies) {
+        const m = 12 * e.sc;
+        if (e.x < cx - m || e.x > cx + VW + m || e.y < cy - m || e.y > cy + VH + m) continue;
+        if (e.boss) { gDisc(e.aura, e.x, e.y + 16, 30, 12, 0.25); glow(e.x, e.y, 54 + Math.sin(clock * 4) * 4, e.aura, 0.3); }
+        else if (e.elite) glow(e.x, e.y, 14, C.glow, 0.35);
+        else if (e.mut && Q >= 2) glow(e.x, e.y, 11, '#7dff3a', 0.13);
+        else if (e.sc === 1) gRect('#000000', snap(e.x - 4), snap(e.y + e.r), 8, 1.5, 0.3);
+        if (e.boss && e.mode === 'tele') { ctx.globalAlpha = 0.35; ctx.strokeStyle = C.blood; ctx.lineWidth = 14; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.dx * 150, e.y + e.dy * 150); ctx.stroke(); ctx.globalAlpha = 1; }
+        const fl = e.flash > 0 || (e.boss && e.mode === 'tele' && (clock * 12 | 0) % 2 === 0);
+        const bob = e.t === 'bat' ? Math.sin(clock * 14 + e.ph) * 1.2 : e.t === 'ghost' ? Math.sin(clock * 4 + e.ph) * 1.5 : 0;
+        gSprite(SP[e.sp || e.t], e.x, e.y + bob, e.sc, e.x > P.x, fl, e.t === 'ghost' ? (e.mode === 'fade' ? 0.25 : 0.85) : 1);
+        if (e.boss && e.kind < 2) { const bx = snap(e.x), by = snap(e.y - (e.kind ? 30 : 24)); gRect(C.glow, bx - 9, by, 18, 3, 1); gRect(C.glow, bx - 9, by - 4, 3, 4, 1); gRect(C.glow, bx - 1, by - 5, 3, 5, 1); gRect(C.glow, bx + 6, by - 4, 3, 4, 1); gRect(C.blood, bx, by, 1, 2, 1); }
+        if (e.elite) gRect(C.glow, snap(e.x) - 1, snap(e.y - e.r - 6), 2, 2, 1);
+        if (e.slowT > 0) gRect('#8fdcff', snap(e.x) - 3, snap(e.y + e.r + 1), 6, 1, 1);
+      }
     }
     // Essenzsauger: schwebende Kugel mit Saugfäden zu den Opfern
     if (lv.sauger) {
@@ -1893,7 +2054,7 @@ function draw() {
   }
   // ... und was vor ihm steht, verdeckt ihn
   let hidden = false;
-  for (const o of objs) if (o.y > py + 3) { drawObj(o); const bx = BOXES[o.k]; if (bx && Math.abs(o.x - px) < bx[0] + 5 && o.y - py < bx[1] * 2 + 34) hidden = true; }
+  for (const o of objs) if (o.y > py + 3) { drawObjC(o); const bx = BOXES[o.k]; if (bx && Math.abs(o.x - px) < bx[0] + 5 && o.y - py < bx[1] * 2 + 34) hidden = true; }
   // Steht der Schnitter hinter einem Gebäude, scheint er als Umriss durch
   if (hidden) { ctx.globalAlpha = 0.55; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(sk.sp, px + q[0], py + q[1], 1, P.flip, true); ctx.globalAlpha = 0.75; spr(sk.sp, px, py, 1, P.flip, false); ctx.globalAlpha = 1; }
   if (inGame) {
@@ -1901,10 +2062,12 @@ function draw() {
     ctx.globalCompositeOperation = add;
     for (const r of rings) { const q = r.t / r.d, e = 1 - Math.pow(1 - q, 2); ctx.globalAlpha = 1 - q; ctx.strokeStyle = r.c; ctx.lineWidth = r.w * (1 - q) + 0.6; ctx.beginPath(); ctx.arc(r.x, r.y, 2 + r.max * e, 0, TAU); ctx.stroke(); }
     ctx.globalCompositeOperation = 'source-over';
-    for (const p of parts) { if (p.add) continue; ctx.globalAlpha = 1 - p.t / p.d; ctx.fillStyle = p.c; ctx.fillRect(snap(p.x), snap(p.y), p.s, p.s); }
-    ctx.globalCompositeOperation = add;
-    for (const p of parts) { if (!p.add) continue; const f = 1 - p.t / p.d; ctx.globalAlpha = f; ctx.fillStyle = p.c; const z = p.s * (0.5 + f * 0.7); ctx.fillRect(snap(p.x), snap(p.y), z, z); }
-    ctx.globalCompositeOperation = 'source-over';
+    // Partikel in WebGL: erst die deckenden, dann alle Leuchtflecken, dann die leuchtenden Partikel
+    if (glOk) {
+      for (const p of parts) { if (p.add) continue; gRect(p.c, snap(p.x), snap(p.y), p.s, p.s, 1 - p.t / p.d); }
+      glGlows();
+      for (const p of parts) { if (!p.add) continue; const f = 1 - p.t / p.d, q = p.s * (0.5 + f * 0.7); gRectAdd(p.c, snap(p.x), snap(p.y), q, q, f); }
+    }
     ctx.globalAlpha = 1; ctx.textAlign = 'center';
     for (const n of nums) { const pop = 1 + Math.max(0, 0.12 - n.t) * 5; ctx.globalAlpha = 1 - n.t / 0.6; ctx.font = (n.c ? '800 ' + (10 * pop).toFixed(1) + 'px ' : '700 ' + (8 * pop).toFixed(1) + 'px ') + '"Barlow",sans-serif'; ctx.fillStyle = C.void; ctx.fillText(n.v, n.x + 0.7, n.y + 0.7); ctx.fillStyle = n.c ? C.glow : C.bone; ctx.fillText(n.v, n.x, n.y); }
     ctx.globalAlpha = 1;
@@ -1945,8 +2108,8 @@ function draw() {
     let dx = joy.x - joy.ox, dy = joy.y - joy.oy; const d = Math.hypot(dx, dy); if (d > 42) { dx *= 42 / d; dy *= 42 / d; }
     ctx.fillStyle = C.blood; ctx.beginPath(); ctx.arc(joy.ox + dx, joy.oy + dy, 16, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
   }
+  glEnd();
 }
-
 /* ---------- HUD ---------- */
 function set(id, prop, v) { const key = id + prop; if (hudCache[key] !== v) { hudCache[key] = v; const el = $(id); if (prop === 'text') el.textContent = v; else if (prop === 'class') el.className = v; else el.style[prop] = v; } }
 function fmt(t) { return (t / 60 | 0) + ':' + String(t % 60 | 0).padStart(2, '0'); }
@@ -2235,12 +2398,12 @@ syncSet();
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.12.2' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.13.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
 
-let last = 0, fpsN = 0, fpsT = 0, slowMo = 1, benchRec = null, benchOn = false;
+let last = 0, fpsN = 0, fpsT = 0, slowMo = 1, benchRec = null, benchOn = false, benchT = {u: 0, d: 0, n: 0};
 function frame(ts) {
   requestAnimationFrame(frame);
   const cap = FPSV[opt.fps];
@@ -2250,8 +2413,11 @@ function frame(ts) {
   if (benchOn) benchDrive();
   if (opt.showFps) { fpsN++; fpsT += raw; if (fpsT >= 0.5) { $('fps').textContent = Math.round(fpsN / fpsT) + ' FPS'; fpsN = 0; fpsT = 0; } }
   if (W !== cv.clientWidth || H !== cv.clientHeight) resize();
+  const t0 = benchRec ? performance.now() : 0;
   if (state === 'play') update(dt * slowMo); else if (state === 'menu') { menuT += dt; P.walk += dt * 6; }
+  const t1 = benchRec ? performance.now() : 0;
   draw();
+  if (benchRec) { benchT.u += t1 - t0; benchT.d += performance.now() - t1; benchT.n++; }
 }
 reset(); resize(); toMenu(); requestAnimationFrame(frame);
 /* ---------- Entwicklerwerkzeuge ---------- */
@@ -2301,13 +2467,13 @@ if (DEV) window.__dev = {
     bossKills = o.mut ? 4 : 0; wave = (o.wave || 24) - 1; waveT = 0; nextWave();
     benchOn = o.enemies || 380; benchRec = null;
   },
-  benchStart() { benchRec = []; },
+  benchStart() { benchRec = []; benchT = {u: 0, d: 0, n: 0}; },
   // Ergebnis: Bilder pro Sekunde im Schnitt, schwächste 1 % und längstes Einzelbild
   benchResult() {
     const r = (benchRec || []).slice(5).sort((a, b) => a - b); if (!r.length) return null;
     const sum = r.reduce((a, b) => a + b, 0), worst = r.slice(Math.floor(r.length * 0.99));
     return {frames: r.length, avgFps: +(1000 / (sum / r.length)).toFixed(1), low1Fps: +(1000 / (worst.reduce((a, b) => a + b, 0) / worst.length)).toFixed(1), maxMs: +r[r.length - 1].toFixed(1),
-      medianMs: +r[r.length >> 1].toFixed(2), enemies: enemies.length, parts: parts.length, w: cv.width, h: cv.height, scale: S};
+      medianMs: +r[r.length >> 1].toFixed(2), updateMs: +(benchT.u / benchT.n).toFixed(2), drawMs: +(benchT.d / benchT.n).toFixed(2), enemies: enemies.length, parts: parts.length, w: cv.width, h: cv.height, scale: S};
   },
   benchStop() { benchOn = false; benchRec = null; keys.clear(); },
 };
