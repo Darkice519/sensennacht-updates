@@ -164,8 +164,40 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .cpanel .mbtns{justify-content:flex-start}
 .cpanel .cta,.cpanel .alt{font-size:16px;padding:10px 14px}
 .cab{display:flex;flex-wrap:wrap;gap:8px}
+#bNews.neu::after{content:"Neu";margin-left:8px;font-size:12px;font-weight:800;color:var(--void);background:var(--glow);padding:2px 6px}
+/* Neuigkeiten */
+.news{display:grid;gap:14px;width:min(100%,820px);text-align:left}
+.news article{background:var(--coal);border:2px solid var(--gore);border-left-width:6px;padding:12px 16px}
+.news article.neu{border-color:var(--glow)}
+.news h4{margin:0 0 6px;font-size:20px;font-weight:800;color:var(--glow)}
+.news ul{margin:0;padding-left:20px;line-height:1.5;font-size:17px}
+/* Gerätewahl im Browser und Handy-Modus */
+.devs{display:flex;flex-wrap:wrap;justify-content:center;gap:18px}
+.devs button{display:grid;gap:8px;justify-items:center;min-width:230px;padding:22px 26px}
+.devs small{font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ash)}
+body.handy{font-size:16px}
+body.handy .keys{display:none}
+body.handy .cta,body.handy .alt{font-size:16px;padding:10px 14px}
+body.handy #menu{gap:6px;padding:10px 12px;align-content:start;grid-template-rows:auto auto auto}
+body.handy .mtop,body.handy .mbot{grid-template-columns:1fr;justify-items:center;gap:8px}
+body.handy .mtop::before{display:none}
+body.handy .mtop h1{font-size:clamp(34px,9vw,60px)}
+body.handy .mside{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}
+body.handy .mside .alt{min-width:0;font-size:14px;padding:8px 10px}
+body.handy .mtop .coins,body.handy .mbr{justify-self:center}
+body.handy .mbl{justify-items:center;text-align:center}
+body.handy .hero canvas{height:min(200px,26vh)}
+body.handy .hname{font-size:30px}
+body.handy .arrow{width:46px;height:64px;font-size:24px}
+body.handy .cta.big{font-size:20px;padding:16px 26px}
+body.handy .dbtn{min-width:76px;padding:6px 8px;font-size:14px}
+body.handy .ov h2{font-size:40px}
+body.handy .card{flex-basis:150px}.handy .card .nm{font-size:18px}.handy .card .ds{font-size:14px}.handy .card .ico2{width:52px;height:52px}
+body.handy .panel{transform:scale(.8)}body.handy .hl{transform-origin:top left}body.handy .hc{transform-origin:top center}body.handy .hr{transform-origin:top right}
 /* Hauptmenü: links oben die Nebenknöpfe, in der Mitte die Figur, unten Schwierigkeit und rechts unten Spielen */
-#menu{grid-template-rows:auto 1fr auto;align-content:stretch;justify-items:stretch;gap:10px;padding:22px 28px;background:radial-gradient(ellipse at 50% 55%,rgba(8,4,5,.55) 0,rgba(8,4,5,.92) 70%)}
+#menu{grid-template-rows:auto 1fr auto;align-content:stretch;justify-items:stretch;gap:10px;padding:22px 28px;background:radial-gradient(circle at 50% 46%,#3a1119 0,#1c0a10 26%,#0d0608 58%,#080405 100%)}
+#menu::before{content:"";position:absolute;left:50%;top:46%;width:min(46vh,420px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 42% 40%,rgba(255,201,74,.16),rgba(240,34,56,.10) 55%,rgba(240,34,56,0) 70%);pointer-events:none}
+#menu>*{position:relative}
 #menu[hidden]{display:none}
 .mtop{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:16px}
 .mtop h1{font-size:clamp(48px,7vw,104px)}
@@ -262,6 +294,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
         <button class="alt" id="bShop" type="button">Kisten</button>
         <button class="alt" id="bInv" type="button">Inventar</button>
         <button class="alt" id="bCodex" type="button">Waffenkunde</button>
+        <button class="alt" id="bNews" type="button">Neuigkeiten</button>
         <button class="alt" id="bSet" type="button">Einstellungen</button>
         <button class="alt" id="bUnlock" type="button" hidden>Test: Alles freischalten</button>
         <button class="alt" id="bExit" type="button" hidden>Beenden</button>
@@ -291,6 +324,21 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
       </div>
       <div class="mbr"><button class="cta big" id="bStart" type="button">Starte in die Nacht</button></div>
     </div>
+  </section>
+
+  <section id="device" class="ov" hidden>
+    <h2>Wie spielst du?</h2>
+    <p>Wähle dein Gerät. Du kannst das später in den Einstellungen ändern.</p>
+    <div class="devs">
+      <button class="cta" id="bDevPc" type="button"><span>PC</span><small>Tastatur, große Anzeige</small></button>
+      <button class="alt" id="bDevHandy" type="button"><span>Handy</span><small>Finger auf dem Bildschirm, kompakte Anzeige</small></button>
+    </div>
+  </section>
+
+  <section id="news" class="ov" hidden>
+    <h2>Neuigkeiten</h2>
+    <div class="news" id="newsList"></div>
+    <button class="alt" id="bNewsBack" type="button">Zurück</button>
   </section>
 
   <section id="shop" class="ov" hidden>
@@ -342,6 +390,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
       <div id="oUrow" hidden><label class="chk"><input type="checkbox" id="oU"> VSync aus (mehr Bilder als der Monitor hat, braucht einen Neustart)</label>
         <button class="alt" id="bRestart" type="button" hidden>Jetzt neu starten</button></div>
       <label class="opt"><span>Lautstärke <b id="oVv">70 %</b></span><input type="range" id="oV" min="0" max="10" step="1"></label>
+      <label class="opt" id="oDrow"><span>Gerät</span><select id="oD"><option value="pc">PC (Tastatur)</option><option value="handy">Handy (Finger)</option></select></label>
       <label class="chk"><input type="checkbox" id="oS"> Bildschirmwackeln</label>
       <label class="chk"><input type="checkbox" id="oC"> FPS-Zähler anzeigen</label>
     </div>
@@ -696,7 +745,7 @@ function drawGun(P, pal) {
   P.r(10, 20, 4, 1, g); P.r(13, 20, 1, 3, g); P.r(15, 20, 3, 4, g); P.p(15, 20, lite(g, 0.3));
 }
 /* ---------- Sammlung: Klassen, ihr Aussehen und ihre Waffen ---------- */
-const RAR = {g:{n:'Gewöhnlich', c:'var(--bone)', w:55}, s:{n:'Selten', c:'var(--ember)', w:30}, e:{n:'Episch', c:'var(--epic)', w:12}, l:{n:'Legendär', c:'var(--glow)', w:3}};
+const RAR = {g:{n:'Gewöhnlich', c:'var(--bone)', w:55}, s:{n:'Selten', c:'#4aa3ff', w:30}, e:{n:'Episch', c:'var(--epic)', w:12}, l:{n:'Legendär', c:'var(--glow)', w:3}};
 const pc = x => Math.round(x * 100), dec = x => x.toFixed(1).replace('.', ',');
 // d(m): Beschreibung für den Stufen-Multiplikator m (Stufe 1 = 1, Stufe 5 = 2)
 const SKINS = {
@@ -850,9 +899,9 @@ save.skin = save.eq[save.cls].skin; save.scythe = save.eq[save.cls].w;
 function setClass(c) { save.cls = c; save.skin = save.eq[c].skin; save.scythe = save.eq[c].w; sk = SKINS[save.skin]; sc = SCY[save.scythe]; }
 if (!save.lvls || typeof save.lvls !== 'object') save.lvls = {};
 save.coins = Math.max(0, Math.round(+save.coins || 0));
-const opt = save.opt = Object.assign({q:2, fpsN:-1, res:'nativ', vol:0.7, shake:true, showFps:false}, save.opt || {});
+const opt = save.opt = Object.assign({dev:'', q:2, fpsN:-1, res:'nativ', vol:0.7, shake:true, showFps:false}, save.opt || {});
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
-const ilvl = id => Math.min(MAXL, Math.max(1, save.lvls[id] | 0)), mult = id => 1 + 0.25 * (ilvl(id) - 1), upCost = id => 80 * ilvl(id);
+const ilvl = id => Math.min(MAXL, Math.max(1, save.lvls[id] | 0)), mult = id => 1 + 0.25 * (ilvl(id) - 1), RUP = {u: 1, g: 1, s: 1.5, e: 2.25, l: 3.5}, upCost = id => Math.round(80 * ilvl(id) * RUP[(SKINS[id] || SCY[id]).r || 'u'] / 10) * 10;
 let sk = SKINS[save.skin], sc = SCY[save.scythe];
 // Schwierigkeit: Leben, Schaden und Tempo der Gegner, wie dicht sie kommen und wie viele Seelensplitter es gibt.
 // Eine Stufe gilt als geschafft, wenn alle Bosse einmal besiegt sind. Das schaltet die nächste frei.
@@ -921,7 +970,7 @@ const UP = [
   {id:'brand', c:'dauer', cls:['bow'], w:1, max:6, n:'Brandflasche', neu:'Du wirfst eine Brandflasche auf die nächste Gruppe. Wo sie zerspringt, brennt der Boden.', plus:'Das Feuer brennt länger und heißer.'},
   {id:'seuche', c:'dauer', cls:['saw'], w:1, max:6, n:'Seuchenwolke', neu:'Eine Wolke aus Fäulnis hängt um dich. Wer hineinläuft, nimmt ständig Schaden und wird langsamer.', plus:'Größere Wolke, mehr Schaden.'},
   {id:'infekt', c:'dauer', cls:['saw'], max:6, n:'Ansteckung', plus:'Besiegte Gegner platzen mit 6 % höherer Chance und treffen alle Umstehenden. Mehr Schaden.'},
-  {id:'orbital', c:'fern', cls:['ray'], w:1, max:6, n:'Orbitalschlag', neu:'Dein Mutterschiff feuert alle paar Sekunden einen Strahl auf den nächsten Gegner. Doppelter Schaden gegen Bosse.', plus:'Größerer Einschlag, mehr Schaden.'},
+  {id:'orbital', c:'fern', cls:['ray'], w:1, max:6, n:'Orbitalschlag', neu:'Dein Mutterschiff feuert alle paar Sekunden einen Strahl auf den nächsten Gegner. Bosse haben Vorrang und nehmen doppelten Schaden.', plus:'Größerer Einschlag, mehr Schaden.'},
   {id:'schild', c:'leben', cls:['ray'], max:5, n:'Energieschild', plus:'Ein Schild fängt einen Treffer ab und lädt dann nach. Jede Stufe lädt 2 Sekunden schneller (Stufe 1: 13 Sekunden).'},
   {id:'rausch', c:'schaden', cls:['bow'], max:5, n:'Adrenalin', plus:'Jeder Sieg gibt kurz +0,6 % Schaden und etwas Tempo, bis zu 20-mal. Ohne Siege verfliegt es.'},
   {id:'krit', c:'schaden', cls:['bow'], max:5, n:'Scharfes Auge', plus:'+6 % Chance auf Volltreffer.'},
@@ -1791,10 +1840,10 @@ function weapons(dt) {
   if (lv.orbital) {
     cd.orbital -= dt;
     if (cd.orbital <= 0) {
-      const t = nearest(P.x, P.y, 200);
+      const t = boss && !boss.dead && Math.hypot(boss.x - P.x, boss.y - P.y) < 280 ? boss : nearest(P.x, P.y, 200);
       if (!t) cd.orbital = 0.4; else {
         cd.orbital = 3.6 * st.cd; const L = lv.orbital;
-        for (let i = 0; i < (dark.orbital ? 3 : 1); i++) volleys.push({x: t.x + (i ? rnd(-50, 50) : 0), y: t.y + (i ? rnd(-50, 50) : 0), r: (22 + 3 * L) * st.area, t: -i * 0.25, d: 0.5, dmg: (20 + 9 * L) * st.dmg * (dark.orbital ? 1.3 : 1), sd: Math.random(), orb: true});
+        for (let i = 0; i < (dark.orbital ? 3 : 1); i++) volleys.push({x: t.x + (i ? rnd(-50, 50) : 0), y: t.y + (i ? rnd(-50, 50) : 0), r: (34 + 4 * L) * st.area, t: -i * 0.25, d: 0.5, dmg: (20 + 9 * L) * st.dmg * (dark.orbital ? 1.3 : 1), sd: Math.random(), orb: true});
         beep(1400, 0.3, 'sine', 0.03, -900);
       }
     }
@@ -2452,7 +2501,7 @@ function draw() {
   ctx.clearRect(0, 0, cv.width, cv.height);
   const inGame = state !== 'menu';
   let px = P.x, py = P.y;
-  if (!inGame) { px = menuT * 9; py = Math.sin(menuT * 0.3) * 20; }
+  if (!inGame) { px = 0; py = 0; }
   // Kamera hängt fest an der gerasterten Spielerposition, damit die Figur nicht zittert
   px = snap(px); py = snap(py);
   const sh = (reduceMotion || !opt.shake) ? 0 : shake;
@@ -2833,7 +2882,7 @@ function hud() {
   set('moon', 'background', 'conic-gradient(var(--blood) ' + p + '%, var(--coal) 0)');
   if (boss) set('bossfill', 'width', Math.max(0, boss.hp / boss.maxHp * 100).toFixed(1) + '%');
 }
-const SCREENS = ['menu', 'shop', 'inv', 'opening', 'settings', 'codex', 'levelup', 'pause', 'win', 'over'];
+const SCREENS = ['device', 'news', 'menu', 'shop', 'inv', 'opening', 'settings', 'codex', 'levelup', 'pause', 'win', 'over'];
 function show(id, on) { $(id).hidden = !on; }
 function only(id) { SCREENS.forEach(s => show(s, s === id)); }
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
@@ -2849,6 +2898,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.19.0');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -2975,7 +3025,7 @@ function openInv(tab) {
       const t = el('div', 'item' + (on ? ' on' : '') + (has ? '' : ' locked'));
       const ic = el('div', 'ico'); ic.append(icon(it.sp, isSkin ? 5 : 4));
       const rar = el('span', 'rar', it.r ? RAR[it.r].n : 'Standard'); rar.style.color = it.r ? RAR[it.r].c : 'var(--ash)';
-      t.append(ic, rar, el('span', 'nm', it.n), el('span', 'stat', isSkin ? 'Schaden aller Waffen +' + pc(SKD[it.r || 'u']) + ' %' : ({saw: 'Schaden pro Sekunde ', bow: 'Bolzenschaden ', ray: 'Strahlschaden '}[it.type] || 'Hiebschaden ') + Math.round(({saw: 28, bow: 41, ray: 4}[it.type] || 17) * RDM[it.r || 'u'] * (1 + 0.08 * ((has ? L : 1) - 1)))));
+      t.append(ic, rar, el('span', 'nm', it.n), el('span', 'stat', !has && !isSkin ? '???' : isSkin ? 'Schaden aller Waffen +' + pc(SKD[it.r || 'u']) + ' %' : ({saw: 'Schaden pro Sekunde ', bow: 'Bolzenschaden ', ray: 'Strahlschaden '}[it.type] || 'Hiebschaden ') + Math.round(({saw: 28, bow: 41, ray: 4}[it.type] || 17) * RDM[it.r || 'u'] * (1 + 0.08 * ((has ? L : 1) - 1)))));
       if (has) {
         const extra = L > 1 ? (isSkin ? ' Dazu +' + 6 * (L - 1) + ' Leben.' : '') : '';
         t.append(el('span', 'lvl', 'Stufe ' + L + ' / ' + MAXL), el('span', 'ds', it.d(mult(id)) + extra));
@@ -2988,7 +3038,7 @@ function openInv(tab) {
           row.append(up);
         } else row.append(el('span', 'lvl', 'Maximal'));
         t.append(row);
-      } else t.append(el('span', 'ds', it.d(1)), el('span', 'dim', 'Noch in der Kiste'));
+      } else t.append(el('span', 'ds', isSkin ? it.d(1) : 'Was diese Waffe kann, erfährst du erst, wenn du sie besitzt.'), el('span', 'dim', 'Noch in der Kiste'));
       box.append(t);
     }
   }
@@ -3053,6 +3103,32 @@ function showPerks() {
   }
   $('perksHead').textContent = 'Deine Gaben in dieser Nacht (' + have.length + ')';
 }
+/* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
+// Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
+const NEWS = [
+  ['0.19.0', ['Neuigkeiten: Hier liest du ab jetzt, was sich geändert hat.', 'Im Browser wählst du beim ersten Start PC oder Handy. Der Handy-Modus hat eine kompakte Anzeige.', 'Das Hauptmenü hat einen festen Hintergrund, die Karte wandert nicht mehr dahinter.', 'Orbitalschlag: deutlich größere Fläche, Bosse haben Vorrang.', 'Aufwerten kostet bei selteneren Teilen mehr (Selten x1,5, Episch x2,25, Legendär x3,5).', 'Die Seltenheit "Selten" ist jetzt blau.', 'Waffen, die du noch nicht besitzt, verraten nicht mehr, was sie können.']],
+  ['0.18.5', ['Mensch, Zombie und Alien halten ihre Waffe mit einer Hand, der andere Arm hängt an der Figur.', 'Waffen stehen in acht festen Richtungen, passend zur Blickrichtung.', 'Der Reaper ist größer, schwebt über dem Boden und hält die Sense vor sich.', 'Waffen in der Hand sind kleiner, Wurfsensen werden nicht mehr überstrahlt.']],
+  ['0.18.0', ['Alle Figuren und Waffen neu gezeichnet: mehr Details, dunkler Umriss.', 'Alien: Kampfdrohne statt Geschosse. Mensch: Wurfmesser mit Luftschweif und neue Gabe Brandflasche.', 'Totenglocke: Glocke kündigt sich über dem Kopf an, dafür schwächer.', 'Zombie: Ansteckung hat 6 Stufen. Jede Klasse hat eigene Kisten.', 'Der Schnitter heißt jetzt Reaper, die Geisterkanone ist ein Blaster.']],
+  ['0.17.0', ['Vier Klassen: Reaper, Mensch, Zombie und Alien, jede mit eigener Waffe, eigenem Aussehen und eigenen Gaben.', 'Neue Gaben: Totenglocke, Adrenalin, Scharfes Auge, Seuchenwolke, Ansteckung, Orbitalschlag, Energieschild.', 'Neues Hauptmenü mit der Figur in der Mitte, Inventar mit einem Reiter je Klasse.']],
+  ['0.16.0', ['Vier Schwierigkeitsgrade: Leicht, Normal, Schwer, Hardcore. Schwerere Stufen geben mehr Seelensplitter.', 'Sieg, wenn alle 6 Bosse besiegt sind, danach freies Spiel oder zurück ins Menü.', 'Gaben tragen den Stil der Waffe, zum Beispiel Frost an Wurfsensen.', 'Schadenszahlen, Ringe und Hiebe zeichnet jetzt die Grafikkarte: fast doppelt so viele Bilder pro Sekunde.']],
+  ['0.15.0', ['Waffenkunde mit Vorschau jeder Gabe im Spiel.', 'Die Pause zeigt alle Gaben der laufenden Runde.', 'Figur schaut in acht Richtungen, Gegner haben Laufbilder, jede Waffe eigene Partikel.']],
+  ['0.14.0', ['Auflösung, Bildrate und VSync einstellbar, der Monitor wird erkannt.', 'Eigene Treffertöne für die Gaben, Sensen-Symbol für das Spiel.']],
+  ['0.13.0', ['Sensennacht läuft als eigenes Programm für Windows und aktualisiert sich selbst.', 'Die Grafikkarte zeichnet Boden, Gegner und Partikel: dreimal so viele Bilder pro Sekunde.']],
+];
+function openNews() {
+  only('news'); const box = $('newsList'); box.innerHTML = '';
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.19.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.19.0'; persist();
+}
+// Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
+function setDevice(d, quiet) {
+  opt.dev = d === 'handy' ? 'handy' : 'pc'; if (document.body && document.body.classList) document.body.classList.toggle('handy', opt.dev === 'handy');
+  persist(); resize(); if (!quiet) toMenu();
+}
+$('bNews').addEventListener('click', openNews);
+$('bNewsBack').addEventListener('click', toMenu);
+$('bDevPc').addEventListener('click', () => setDevice('pc'));
+$('bDevHandy').addEventListener('click', () => { try { const r = document.documentElement; if (r.requestFullscreen) r.requestFullscreen().catch(() => {}); } catch (e) {} setDevice('handy'); });
 /* ---------- Einstellungen ---------- */
 let setFrom = 'menu', monHz = 60, monW = 0, monH = 0, hullUncapped = false, hullWant = null;
 // Bildrate: -1 = dem Monitor folgen, 0 = unbegrenzt, sonst eine feste Zahl
@@ -3083,6 +3159,7 @@ function syncSet() {
   const canHull = !!(APP && APP.setUncapped), over = opt.fpsN === 0 || opt.fpsN > monHz + 1;
   show('oUrow', canHull); if (canHull) { $('oU').checked = hullWant == null ? hullUncapped : hullWant; show('bRestart', hullWant != null && hullWant !== hullUncapped); }
   $('oFd').textContent = !over ? '' : canHull ? (hullUncapped ? 'VSync ist aus, die Zahl gilt.' : 'Mehr als ' + monHz + ' Bilder pro Sekunde gehen erst mit "VSync aus".') : 'Im Browser sind höchstens ' + monHz + ' Bilder pro Sekunde möglich.';
+  show('oDrow', !APP); $('oD').value = opt.dev || 'pc';
   Q = opt.q; PM = PMUL[Q]; show('fps', !!opt.showFps);
 }
 function openSet(from) { setFrom = from; only('settings'); syncSet(); }
@@ -3092,6 +3169,7 @@ function readSet() {
   persist(); syncSet();
 }
 function bindSet() {
+  $('oD').addEventListener('change', () => setDevice($('oD').value));
   for (const id of ['oQ', 'oV', 'oS', 'oC', 'oR']) { $(id).addEventListener('input', readSet); $(id).addEventListener('change', readSet); }
   $('oF').addEventListener('input', () => { opt.fpsN = FPSL[Math.min(6, Math.max(0, +$('oF').value | 0))]; persist(); syncSet(); });
   $('oFn').addEventListener('change', () => { const v = Math.round(+$('oFn').value); if (v >= 10) opt.fpsN = Math.min(1000, v); persist(); syncSet(); });
@@ -3276,13 +3354,13 @@ const MI = {
   book:   ['.xxxxxxx.','xx.....xx','xx.xxx.xx','xx.....xx','xx.xxx.xx','xx.....xx','xx.....xx','xxxxxxxxx','.xxxxxxx.'],
   skip:   ['.........','x...x....','.x...x...','..x...x..','...x...x.','..x...x..','.x...x...','x...x....','.........'],
 };
-const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross', bCodex:'book', bCodexBack:'back', bFree:'play', bWinMenu:'home', bCls:'play'};
+const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross', bCodex:'book', bCodexBack:'back', bFree:'play', bWinMenu:'home', bCls:'play', bNews:'book', bNewsBack:'back'};
 for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(MI[BTN[id]], {x: b.className === 'cta' ? C.void : C.bone}), 3)); }
 
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.18.5' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.19.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
@@ -3305,7 +3383,7 @@ function frame(ts) {
   draw();
   if (benchRec) { benchT.u += t1 - t0; benchT.d += performance.now() - t1; benchT.n++; }
 }
-reset(); resize(); toMenu(); detectMonitor(); requestAnimationFrame(frame);
+reset(); resize(); toMenu(); if (!APP) { if (opt.dev) setDevice(opt.dev, true); else only('device'); } detectMonitor(); requestAnimationFrame(frame);
 /* ---------- Entwicklerwerkzeuge ---------- */
 // Nur im Entwicklermodus (#dev) erreichbar. Damit lassen sich Wellen, Bosse, Ausbaustufen und
 // Messungen von außen steuern (Testskripte, Balance-Vergleich, Leistungstest).
