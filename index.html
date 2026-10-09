@@ -160,6 +160,10 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .opt b{color:var(--glow)}
 .opt small{color:var(--ash);font-weight:500;font-size:16px;min-height:2.6em}
 .opt input{width:100%;height:28px;accent-color:var(--blood)}
+.opt select,.opt input[type=number]{font:inherit;font-weight:700;color:var(--bone);background:var(--coal);border:2px solid var(--gore);padding:8px 10px;height:auto}
+.opt .num{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600;color:var(--ash)}
+.opt .num input{width:120px}
+#oUrow{display:grid;gap:10px}
 .chk{display:flex;align-items:center;gap:12px;font-weight:600;cursor:pointer}
 .chk input{width:22px;height:22px;accent-color:var(--blood)}
 #biome{font-size:15px;font-weight:600;color:var(--ash);letter-spacing:.06em;text-transform:uppercase}
@@ -265,7 +269,11 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
     <h2>Einstellungen</h2>
     <div class="opts">
       <label class="opt"><span>Grafik <b id="oQv">Hoch</b></span><input type="range" id="oQ" min="0" max="3" step="1"><small id="oQd"></small></label>
-      <label class="opt"><span>Bilder pro Sekunde <b id="oFv">Unbegrenzt</b></span><input type="range" id="oF" min="0" max="5" step="1"></label>
+      <label class="opt"><span>Auflösung</span><select id="oR"><option value="nativ">Nativ</option></select><small id="oMon"></small></label>
+      <div class="opt"><span>Bilder pro Sekunde <b id="oFv">Monitor</b></span><input type="range" id="oF" min="0" max="6" step="1" aria-label="Bilder pro Sekunde, Stufen">
+        <label class="num">Eigener Wert <input type="number" id="oFn" min="10" max="1000" step="1" inputmode="numeric"></label><small id="oFd"></small></div>
+      <div id="oUrow" hidden><label class="chk"><input type="checkbox" id="oU"> VSync aus (mehr Bilder als der Monitor hat, braucht einen Neustart)</label>
+        <button class="alt" id="bRestart" type="button" hidden>Jetzt neu starten</button></div>
       <label class="opt"><span>Lautstärke <b id="oVv">70 %</b></span><input type="range" id="oV" min="0" max="10" step="1"></label>
       <label class="chk"><input type="checkbox" id="oS"> Bildschirmwackeln</label>
       <label class="chk"><input type="checkbox" id="oC"> FPS-Zähler anzeigen</label>
@@ -442,7 +450,9 @@ const MAXL = 5;
 const RDM = {u:1, g:1.2, s:1.5, e:1.9, l:2.4}, SKD = {u:0, g:0.1, s:0.2, e:0.3, l:0.4};
 
 // Testspielstand: Link mit #test am Ende. Eigener Speicherplatz, der echte Spielstand bleibt unberührt.
-const TEST = typeof location !== 'undefined' && location.hash === '#test', KEY = TEST ? 'sensennacht.test' : 'sensennacht.save';
+const HASH = typeof location !== 'undefined' ? location.hash : '', TEST = HASH === '#test';
+// Entwicklermodus (#dev) und Testlink (#test) haben je einen eigenen Spielstand, der normale bleibt unberührt
+const KEY = TEST ? 'sensennacht.test' : HASH === '#dev' ? 'sensennacht.dev' : 'sensennacht.save';
 let save = {coins:100, skins:['schnitter'], scythes:['rost'], skin:'schnitter', scythe:'rost', best:null, lvls:{}, opt:{}};
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === 'object') Object.assign(save, s); } catch (e) {}
 try { if (!save.best && !TEST) save.best = JSON.parse(localStorage.getItem('sensennacht.best')); } catch (e) {}
@@ -451,7 +461,7 @@ if (!SKINS[save.skin]) save.skin = 'schnitter';
 if (!SCY[save.scythe]) save.scythe = 'rost';
 if (!save.lvls || typeof save.lvls !== 'object') save.lvls = {};
 save.coins = Math.max(0, Math.round(+save.coins || 0));
-const opt = save.opt = Object.assign({q:2, fps:5, vol:0.7, shake:true, showFps:false}, save.opt || {});
+const opt = save.opt = Object.assign({q:2, fpsN:-1, res:'nativ', vol:0.7, shake:true, showFps:false}, save.opt || {});
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 const ilvl = id => Math.min(MAXL, Math.max(1, save.lvls[id] | 0)), mult = id => 1 + 0.25 * (ilvl(id) - 1), upCost = id => 80 * ilvl(id);
 let sk = SKINS[save.skin], sc = SCY[save.scythe];
@@ -554,8 +564,10 @@ const keys = new Set();
 let joy = null;
 
 function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const nat = Math.min(window.devicePixelRatio || 1, 3);
   W = cv.clientWidth; H = cv.clientHeight;
+  // gewählte Auflösung: es wird mit weniger Bildpunkten gezeichnet und auf die Fenstergröße gestreckt
+  dpr = nat; if (opt.res && opt.res !== 'nativ') { const rh = +String(opt.res).split('x')[1]; if (rh > 0 && H > 0) dpr = Math.max(0.25, Math.min(nat, rh / H)); }
   cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr));
   glc.width = cv.width; glc.height = cv.height;
   S = Math.max(2, Math.floor(Math.min(W, H) / 230));
@@ -590,19 +602,19 @@ function recompute() {
 }
 
 /* ---------- Ton ---------- */
-let ac = null, muted = false, lastHit = 0;
+let ac = null, acOut = null, muted = false, lastHit = 0;
 try { muted = localStorage.getItem('sensennacht.mute') === '1'; } catch (e) {}
-function audioOn() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); }
+function audioOn() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); acOut = ac.createDynamicsCompressor(); acOut.threshold.value = -20; acOut.ratio.value = 8; acOut.attack.value = 0.003; acOut.release.value = 0.12; acOut.connect(ac.destination); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); }
 function beep(f, d, type, vol, slide, delay) {
   if (muted || !ac || opt.vol <= 0) return;
   const t = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
   o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
   if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
   g.gain.setValueAtTime(Math.max(0.0002, (vol || 0.04) * opt.vol * 1.5), t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.02);
+  o.connect(g); g.connect(acOut || ac.destination); o.start(t); o.stop(t + d + 0.02);
 }
 const sfx = {
-  hit() { if (time - lastHit > 0.05) { lastHit = time; beep(rnd(150, 210), 0.05, 'square', 0.025, -80); } },
+  hit() { if (clock - lastHit > 0.05) { lastHit = clock; beep(rnd(150, 210), 0.05, 'square', 0.025, -80); } },
   pick() { beep(520 + Math.min(pickCombo, 14) * 45, 0.06, 'triangle', 0.05, 120); },
   hurt() { beep(120, 0.22, 'sawtooth', 0.07, -70); },
   level() { [392, 494, 587, 784].forEach((f, i) => beep(f, 0.12, 'square', 0.045, 0, i * 0.07)); },
@@ -612,7 +624,30 @@ const sfx = {
   over() { [330, 262, 196, 131].forEach((f, i) => beep(f, 0.3, 'sawtooth', 0.06, -20, i * 0.22)); },
   box(good) { [262, 330, 392, 523, good ? 784 : 440].forEach((f, i) => beep(f, 0.1, 'square', 0.05, 0, i * 0.08)); },
 };
-
+// Treffertöne der Gaben: Tonhöhe, Gleiten, Dauer, Wellenform, Lautstärke, Mindestabstand in Sekunden.
+// Jede Gabe hat ihren eigenen Klang in einer eigenen Tonlage. Damit im Endgame nichts übereinanderliegt,
+// hat jede ihren Mindestabstand, und insgesamt erklingen höchstens drei Gabentöne in 90 Millisekunden.
+const TONES = {
+  kreis:  [920, 380, 0.05, 'triangle', 0.016, 0.08],
+  wurf:   [430, -170, 0.07, 'square', 0.012, 0.09],
+  licht:  [660, 280, 0.055, 'triangle', 0.015, 0.08],
+  sauger: [250, 70, 0.04, 'sine', 0.013, 0.16],
+  disc:   [1280, -380, 0.04, 'square', 0.01, 0.07],
+  spur:   [170, -50, 0.07, 'sawtooth', 0.008, 0.32],
+  kugel:  [1500, -620, 0.035, 'sawtooth', 0.008, 0.14],
+  gfalle: [330, -130, 0.08, 'sine', 0.013, 0.26],
+  nova:   [115, -65, 0.32, 'sine', 0.07, 0.3],
+};
+const toneLast = {}, toneRecent = [];
+function tone(id) {
+  lastHit = clock;                              // der allgemeine Trefferton schweigt, wenn eine Gabe ihren eigenen hat
+  const s = TONES[id]; if (!s || muted || !ac) return;
+  if (clock - (toneLast[id] || -9) < s[5]) return;
+  while (toneRecent.length && clock - toneRecent[0] > 0.09) toneRecent.shift();
+  if (toneRecent.length >= 3) return;
+  toneLast[id] = clock; toneRecent.push(clock);
+  const v = rnd(0.95, 1.06); beep(s[0] * v, s[2], s[3], s[4], s[1] * v);
+}
 /* ---------- WebGL-Zeichner ---------- */
 // Alles, was in großer Zahl vorkommt (Boden, Blutspuren, Seelen, Gegner, Partikel, Leuchten), zeichnet die Grafikkarte:
 // der Boden als vorgebackene Kacheln, der Rest in einem einzigen Schub aus Vierecken.
@@ -728,7 +763,7 @@ function glGlows() {
 }
 function glEnd() { if (!glOk) return; glGlows(); glFlush(); }
 /* ---------- Effekte ---------- */
-const QN = ['Niedrig', 'Mittel', 'Hoch', 'Ultra'], PMUL = [0.35, 0.65, 1, 1.7], FPSV = [30, 60, 90, 120, 144, 0];
+const QN = ['Niedrig', 'Mittel', 'Hoch', 'Ultra'], PMUL = [0.35, 0.65, 1, 1.7];
 const QD = ['Wenige Partikel, kein Leuchten. Für schwache Rechner.', 'Leuchten und Schweife, etwas weniger Partikel.', 'Alle Effekte: Leuchten, Blutspuren, Kerzen und Glut in der Luft.', 'Maximale Partikel, Nachbilder und zusätzliche Lichteffekte.'];
 let Q = opt.q, PM = PMUL[Q];
 // Leuchtfleck vormerken; gezeichnet wird er gesammelt in WebGL (siehe 05-webgl.js)
@@ -766,7 +801,7 @@ function crescent(cx, cy, r, a0, a1, w, c, al, p) {
 function spawnR() { return Math.hypot(VW, VH) / 2 + 18; }
 function addEnemy(t, x, y, o) {
   const b = TYPES[t], hs = 1 + 0.18 * (wave - 1) + Math.max(0, wave - 10) * 0.15;
-  const e = {t, x, y, hp: b.hp * hs, spd: b.spd * (1 + Math.min(0.5, wave * 0.015)) * rnd(0.9, 1.1), dmg: b.dmg + wave * 0.6, r: b.r, xp: b.xp,
+  const e = {t, x, y, hp: b.hp * hs * 0.95, spd: b.spd * (1 + Math.min(0.5, wave * 0.015)) * rnd(0.9, 1.1), dmg: b.dmg + wave * 0.6, r: b.r, xp: b.xp,
     sc: 1, kx: 0, ky: 0, flash: 0, orb: 0, ph: rnd(0, TAU), boss: false, dead: false, burnT: 0, burnD: 0, slowT: 0};
   const m = mutL(); if (m) { e.mut = m; e.hp *= 1 + 0.9 * m; e.dmg *= 1.3; e.spd *= 1.08; e.xp *= 2; e.sp = 'm_' + t; }
   if (o) Object.assign(e, o);
@@ -1117,7 +1152,7 @@ function weapons(dt) {
         if (e.dead || e.orb > 0) continue;
         const dx = e.x - bx, dy = e.y - by, rr = e.r + 6 * st.area;
         if (dx * dx + dy * dy < rr * rr) {
-          e.orb = 0.45; const d = Math.hypot(e.x - P.x, e.y - P.y) || 1; hit(e, dmg, (e.x - P.x) / d * 50, (e.y - P.y) / d * 50);
+          e.orb = 0.45; tone('kreis'); const d = Math.hypot(e.x - P.x, e.y - P.y) || 1; hit(e, dmg, (e.x - P.x) / d * 50, (e.y - P.y) / d * 50);
           fx(bx, by, 3, {c: [sc.t, '#ffffff'], a: a + 1.57, sp: 0.6, v0: 40, v1: 110, d0: 0.12, d1: 0.28, s: 1.5, add: true});
         }
       }
@@ -1201,7 +1236,7 @@ function weapons(dt) {
       for (const e of enemies) { if (e.dead) continue; const d = Math.hypot(e.x - o[0], e.y - o[1]) - e.r; if (d < R) c.push([d, e]); }
       c.sort((a, b) => a[0] - b[0]); drain = c.slice(0, (1 + L) * (dk ? 2 : 1)).map(x => x[1]);
       for (const e of drain) {
-        sucking = true; hit(e, dmg, 0, 0, true); sucking = false;
+        tone('sauger'); sucking = true; hit(e, dmg, 0, 0, true); sucking = false;
         if (Math.random() < 0.4 * PM) fx(e.x, e.y, 1, {c: dk ? [DK, '#e0b0ff'] : [C.blood, '#ff7a86'], a: Math.atan2(o[1] - e.y, o[0] - e.x), sp: 0.2, v0: 80, v1: 130, d0: 0.2, d1: 0.32, s: 1.5, add: true});
       }
       if (dk && drain.length) P.hp = Math.min(st.maxHp, P.hp + 0.3);
@@ -1299,7 +1334,7 @@ function update(dt) {
     if (t.ret) { const dx = P.x - t.x, dy = P.y - t.y, d = Math.hypot(dx, dy) || 1; t.vx = dx / d * 200; t.vy = dy / d * 200; if (d < 8 || t.t > 3.5) t.done = true; }
     t.x += t.vx * dt; t.y += t.vy * dt;
     const rr = 9 * st.area;
-    for (const e of enemies) { if (e.dead || t.seen.has(e)) continue; const dx = e.x - t.x, dy = e.y - t.y, r = rr + e.r; if (dx * dx + dy * dy < r * r) { t.seen.add(e); hit(e, t.dmg, t.vx * 0.25, t.vy * 0.25); } }
+    for (const e of enemies) { if (e.dead || t.seen.has(e)) continue; const dx = e.x - t.x, dy = e.y - t.y, r = rr + e.r; if (dx * dx + dy * dy < r * r) { t.seen.add(e); tone('wurf'); hit(e, t.dmg, t.vx * 0.25, t.vy * 0.25); } }
   }
   throws = throws.filter(t => !t.done);
   // Geschosse und Klingenwellen
@@ -1318,7 +1353,7 @@ function update(dt) {
       if (e.dead || w.seen.has(e)) continue;
       const dx = e.x - w.x, dy = e.y - w.y, r = e.r + hr;
       if (dx * dx + dy * dy < r * r) {
-        w.seen.add(e); hit(e, w.dmg, w.vx * 0.2, w.vy * 0.2);
+        w.seen.add(e); if (!w.big) tone('licht'); hit(e, w.dmg, w.vx * 0.2, w.vy * 0.2);
         if (!w.big) {
           // kleiner Platzer: trifft auch die Nachbarn
           for (const o of enemies) { if (o.dead || o === e) continue; const ox = o.x - e.x, oy = o.y - e.y, rr = 18 + o.r; if (ox * ox + oy * oy < rr * rr) hit(o, w.dmg * 0.45, ox, oy, true); }
@@ -1335,7 +1370,7 @@ function update(dt) {
     if (n.ch > 0) {
       n.ch -= dt;
       if (Math.random() < 0.8 * PM) { const a = rnd(0, TAU), d0 = n.max * 0.5; fx(P.x + Math.cos(a) * d0, P.y + Math.sin(a) * d0, 1, {c: [NC(), '#ffffff'], a: a + Math.PI, sp: 0.1, v0: d0 * 2.5, v1: d0 * 3, d0: 0.2, d1: 0.3, s: 1.5, add: true}); }
-      if (n.ch <= 0) { shake = Math.max(shake, 3.5); fx(P.x, P.y, 30, {c: [NC(), '#ffffff', C.blood], v0: 90, v1: 240, d0: 0.25, d1: 0.5, s: 2, add: true}); ring(P.x, P.y, n.max * 0.6, '#ffffff', 0.25, 2); decal(P.x, P.y, n.max * 0.45, '#2a060c'); }
+      if (n.ch <= 0) { tone('nova'); shake = Math.max(shake, 3.5); fx(P.x, P.y, 30, {c: [NC(), '#ffffff', C.blood], v0: 90, v1: 240, d0: 0.25, d1: 0.5, s: 2, add: true}); ring(P.x, P.y, n.max * 0.6, '#ffffff', 0.25, 2); decal(P.x, P.y, n.max * 0.45, '#2a060c'); }
       continue;
     }
     n.r += n.max / 0.62 * dt;
@@ -1371,7 +1406,7 @@ function update(dt) {
       o.tk = 0.22; const c = [];
       for (const e of enemies) { if (e.dead) continue; const q = Math.hypot(e.x - o.x, e.y - o.y) - e.r; if (q < o.r) c.push([q, e]); }
       c.sort((a, b) => a[0] - b[0]); o.tg = c.slice(0, o.n).map(x => x[1]);
-      for (const e of o.tg) hit(e, o.dmg, 0, 0, true);
+      if (o.tg.length) tone('kugel'); for (const e of o.tg) hit(e, o.dmg, 0, 0, true);
     }
   }
   orbs = orbs.filter(o => o.t < 3.2);
@@ -1383,7 +1418,7 @@ function update(dt) {
       const dx = v.x - e.x, dy = v.y - e.y, dl = Math.hypot(dx, dy) || 1;
       if (dl > v.r + e.r) continue;
       if (!e.boss) { e.kx += dx / dl * 520 * dt; e.ky += dy / dl * 520 * dt; }
-      if (tick) hit(e, v.dps * 0.25, 0, 0, true);
+      if (tick) { tone('gfalle'); hit(e, v.dps * 0.25, 0, 0, true); }
     }
     if (Math.random() < 0.5 * PM) { const a = rnd(0, TAU); fx(v.x + Math.cos(a) * v.r, v.y + Math.sin(a) * v.r, 1, {c: [sc.t, '#ffffff'], a: a + Math.PI, sp: 0.2, v0: v.r * 2, v1: v.r * 2.6, d0: 0.2, d1: 0.3, s: 1.5, add: true}); }
   }
@@ -1399,14 +1434,14 @@ function update(dt) {
     for (const e of enemies) {
       if (e.dead || d.seen.has(e)) continue;
       const dx = e.x - d.x, dy = e.y - d.y, r = e.r + 10;
-      if (dx * dx + dy * dy < r * r) { d.seen.add(e); hit(e, d.dmg, d.vx * 0.2, d.vy * 0.2); fx(e.x, e.y, 5, {c: [C.glow, '#ffffff', C.blood], v0: 40, v1: 130, d0: 0.12, d1: 0.3, s: 1.5, add: true}); ring(e.x, e.y, 12, C.glow, 0.25, 2); d.tg = null; if (--d.left <= 0) d.t = 9; break; }
+      if (dx * dx + dy * dy < r * r) { d.seen.add(e); tone('disc'); hit(e, d.dmg, d.vx * 0.2, d.vy * 0.2); fx(e.x, e.y, 5, {c: [C.glow, '#ffffff', C.blood], v0: 40, v1: 130, d0: 0.12, d1: 0.3, s: 1.5, add: true}); ring(e.x, e.y, 12, C.glow, 0.25, 2); d.tg = null; if (--d.left <= 0) d.t = 9; break; }
     }
   }
   discs = discs.filter(d => d.t < 2.6);
   // Benzinspur
   for (const f of fires) {
     f.t += dt; f.tk -= dt;
-    if (f.tk <= 0) { f.tk = 0.25; for (const e of enemies) { if (e.dead) continue; const dx = e.x - f.x, dy = e.y - f.y, r = f.r + e.r; if (dx * dx + dy * dy < r * r) hit(e, f.dps * 0.25, 0, 0, true); } }
+    if (f.tk <= 0) { f.tk = 0.25; for (const e of enemies) { if (e.dead) continue; const dx = e.x - f.x, dy = e.y - f.y, r = f.r + e.r; if (dx * dx + dy * dy < r * r) { tone('spur'); hit(e, f.dps * 0.25, 0, 0, true); } } }
     if (Math.random() < 0.18 * PM) fx(f.x + rnd(-5, 5), f.y, 1, {c: dark.spur ? [DK, '#e0b0ff'] : [C.ember, C.glow, '#ff3a1a'], a: -1.57, sp: 0.4, v0: 12, v1: 38, d0: 0.25, d1: 0.5, s: 2, add: true});
   }
   fires = fires.filter(f => f.t < f.d);
@@ -2247,16 +2282,65 @@ function openInv() {
 }
 
 /* ---------- Einstellungen ---------- */
-let setFrom = 'menu';
+let setFrom = 'menu', monHz = 60, monW = 0, monH = 0, hullUncapped = false, hullWant = null;
+// Bildrate: -1 = dem Monitor folgen, 0 = unbegrenzt, sonst eine feste Zahl
+const FPSL = [30, 60, 90, 120, 144, -1, 0];
+const capFps = () => opt.fpsN < 0 ? 0 : opt.fpsN;
+const fpsLabel = () => opt.fpsN < 0 ? 'Monitor (' + monHz + ' Hz)' : opt.fpsN === 0 ? 'Unbegrenzt' : opt.fpsN + ' FPS';
+
+// Auflösungen zur Auswahl: die eigene des Monitors und übliche kleinere im selben Seitenverhältnis
+function resList() {
+  const list = [['nativ', 'Nativ' + (monW ? ' (' + monW + ' x ' + monH + ')' : '')]];
+  if (monH) for (const h of [2160, 1440, 1080, 900, 720, 540]) if (h < monH) { const w = Math.round(h * monW / monH / 2) * 2; list.push([w + 'x' + h, w + ' x ' + h]); }
+  return list;
+}
 function syncSet() {
-  $('oQ').value = opt.q; $('oF').value = opt.fps; $('oV').value = Math.round(opt.vol * 10); $('oS').checked = !!opt.shake; $('oC').checked = !!opt.showFps;
+  $('oQ').value = opt.q; $('oV').value = Math.round(opt.vol * 10); $('oS').checked = !!opt.shake; $('oC').checked = !!opt.showFps;
   $('oQv').textContent = QN[opt.q]; $('oQd').textContent = QD[opt.q];
-  $('oFv').textContent = FPSV[opt.fps] ? FPSV[opt.fps] + ' FPS' : 'Unbegrenzt';
   $('oVv').textContent = Math.round(opt.vol * 100) + ' %';
+  // Bildrate: Regler auf die nächste Stufe, das Zahlenfeld zeigt den genauen Wert
+  let pos = FPSL.indexOf(opt.fpsN);
+  if (pos < 0) { pos = 0; for (let i = 0; i < 5; i++) if (Math.abs(FPSL[i] - opt.fpsN) < Math.abs(FPSL[pos] - opt.fpsN)) pos = i; }
+  $('oF').value = pos; $('oFv').textContent = fpsLabel(); $('oFn').value = opt.fpsN > 0 ? opt.fpsN : opt.fpsN < 0 ? monHz : '';
+  // Auflösung
+  const sel = $('oR'), list = resList();
+  if (sel.options && (sel.options.length !== list.length || sel.options[0].textContent !== list[0][1])) { sel.innerHTML = ''; for (const [v, t] of list) { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.append(o); } }
+  sel.value = list.some(l => l[0] === opt.res) ? opt.res : 'nativ';
+  $('oMon').textContent = monW ? 'Erkannt: ' + monW + ' x ' + monH + ', ' + monHz + ' Hz. Gezeichnet wird gerade in ' + cv.width + ' x ' + cv.height + '.' : '';
+  // Nur in der Exe: mehr Bilder als der Monitor hat gehen erst ohne VSync, und das braucht einen Neustart
+  const canHull = !!(APP && APP.setUncapped), over = opt.fpsN === 0 || opt.fpsN > monHz + 1;
+  show('oUrow', canHull); if (canHull) { $('oU').checked = hullWant == null ? hullUncapped : hullWant; show('bRestart', hullWant != null && hullWant !== hullUncapped); }
+  $('oFd').textContent = !over ? '' : canHull ? (hullUncapped ? 'VSync ist aus, die Zahl gilt.' : 'Mehr als ' + monHz + ' Bilder pro Sekunde gehen erst mit "VSync aus".') : 'Im Browser sind höchstens ' + monHz + ' Bilder pro Sekunde möglich.';
   Q = opt.q; PM = PMUL[Q]; show('fps', !!opt.showFps);
 }
 function openSet(from) { setFrom = from; only('settings'); syncSet(); }
-function readSet() { opt.q = Math.min(3, Math.max(0, +$('oQ').value | 0)); opt.fps = Math.min(5, Math.max(0, +$('oF').value | 0)); opt.vol = Math.min(1, Math.max(0, $('oV').value / 10)); opt.shake = $('oS').checked; opt.showFps = $('oC').checked; persist(); syncSet(); }
+function readSet() {
+  opt.q = Math.min(3, Math.max(0, +$('oQ').value | 0)); opt.vol = Math.min(1, Math.max(0, $('oV').value / 10)); opt.shake = $('oS').checked; opt.showFps = $('oC').checked;
+  if ($('oR').value && $('oR').value !== opt.res) { opt.res = $('oR').value; resize(); }
+  persist(); syncSet();
+}
+function bindSet() {
+  for (const id of ['oQ', 'oV', 'oS', 'oC', 'oR']) { $(id).addEventListener('input', readSet); $(id).addEventListener('change', readSet); }
+  $('oF').addEventListener('input', () => { opt.fpsN = FPSL[Math.min(6, Math.max(0, +$('oF').value | 0))]; persist(); syncSet(); });
+  $('oFn').addEventListener('change', () => { const v = Math.round(+$('oFn').value); if (v >= 10) opt.fpsN = Math.min(1000, v); persist(); syncSet(); });
+  $('oU').addEventListener('change', () => { hullWant = $('oU').checked; APP.setUncapped(hullWant); syncSet(); });
+  $('bRestart').addEventListener('click', () => APP.restart());
+}
+// Monitor erkennen: die Exe fragt Windows, im Browser wird die Bildfolge gemessen
+function detectMonitor() {
+  const dp = window.devicePixelRatio || 1;
+  if (typeof screen !== 'undefined' && screen.width) { monW = Math.round(screen.width * dp); monH = Math.round(screen.height * dp); }
+  if (APP && APP.info) APP.info().then(i => { if (i && i.hz) { monHz = Math.round(i.hz); if (i.w) { monW = i.w; monH = i.h; } hullUncapped = !!i.uncapped; syncSet(); } }).catch(() => {});
+  let n = 0, lastT = 0; const d = [];
+  const tick = t => {
+    if (lastT) d.push(t - lastT); lastT = t;
+    if (++n < 60) { requestAnimationFrame(tick); return; }
+    d.sort((a, b) => a - b); const hz = 1000 / d[d.length >> 1]; let best = Math.round(hz);
+    for (const k of [50, 60, 75, 90, 100, 120, 144, 165, 170, 180, 200, 240, 280, 360]) if (Math.abs(k - hz) / k < 0.04) best = k;
+    if (!(APP && APP.setUncapped)) { monHz = best; syncSet(); }
+  };
+  requestAnimationFrame(tick);
+}
 
 /* ---------- Rundenablauf ---------- */
 function start() {
@@ -2376,7 +2460,6 @@ $('bUnlock').addEventListener('click', () => {
 });
 $('bSetP').addEventListener('click', () => openSet('pause'));
 $('bSetBack').addEventListener('click', () => { if (setFrom === 'pause' && state === 'pause') only('pause'); else toMenu(); });
-for (const id of ['oQ', 'oF', 'oV', 'oS', 'oC']) { $(id).addEventListener('input', readSet); $(id).addEventListener('change', readSet); }
 $('bSkip').addEventListener('click', () => { if (skipFn) skipFn(); });
 $('bOpDone').addEventListener('click', openShop);
 const MI = {
@@ -2393,21 +2476,22 @@ const MI = {
 };
 const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross'};
 for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(MI[BTN[id]], {x: b.className === 'cta' ? C.void : C.bone}), 3)); }
-syncSet();
 
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.13.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.14.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
+bindSet(); syncSet();
 
 let last = 0, fpsN = 0, fpsT = 0, slowMo = 1, benchRec = null, benchOn = false, benchT = {u: 0, d: 0, n: 0};
 function frame(ts) {
+  // Bildraten-Grenze: zu frühe Bilder auslassen. Ohne VSync kurz schlafen, statt im Leerlauf zu kreisen.
+  const cap = capFps(), rest = cap ? 1000 / cap - 0.5 - (ts - last) : 0;
+  if (rest > 0) { if (rest > 3 && hullUncapped) setTimeout(() => requestAnimationFrame(frame), rest - 2); else requestAnimationFrame(frame); return; }
   requestAnimationFrame(frame);
-  const cap = FPSV[opt.fps];
-  if (cap && ts - last < 1000 / cap - 1.5) return;
   const raw = (ts - last) / 1000 || 0, dt = Math.min(0.05, raw); last = ts; clock += dt;
   if (benchRec) benchRec.push(raw * 1000);
   if (benchOn) benchDrive();
@@ -2419,7 +2503,7 @@ function frame(ts) {
   draw();
   if (benchRec) { benchT.u += t1 - t0; benchT.d += performance.now() - t1; benchT.n++; }
 }
-reset(); resize(); toMenu(); requestAnimationFrame(frame);
+reset(); resize(); toMenu(); detectMonitor(); requestAnimationFrame(frame);
 /* ---------- Entwicklerwerkzeuge ---------- */
 // Nur im Entwicklermodus (#dev) erreichbar. Damit lassen sich Wellen, Bosse, Ausbaustufen und
 // Messungen von außen steuern (Testskripte, Balance-Vergleich, Leistungstest).
@@ -2459,7 +2543,7 @@ if (DEV) window.__dev = {
   // Leistungstest starten: Endgame-Szene mit fester Gegnerzahl und allen Gaben der Waffe auf Maximum
   bench(o) {
     o = o || {};
-    opt.q = o.q == null ? 2 : o.q; opt.fps = 5; Q = opt.q; PM = PMUL[Q];
+    opt.q = o.q == null ? 2 : o.q; opt.fpsN = 0; Q = opt.q; PM = PMUL[Q];
     if (o.weapon) { save.scythe = o.weapon; }
     start();
     for (const u of UP) if (fitsW(u)) lv[u.id] = u.max;
