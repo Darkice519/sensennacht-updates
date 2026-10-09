@@ -960,6 +960,7 @@ function wGhost(G, f, p, big) {
   if (f === 3 || f === 4 || f === 7 || big) for (const k of [0, 2]) { const s = k ? 1 : -1, x = H[k], y = H[k + 1], dy = f === 3 || f === 7 ? -1 : 1; for (const o of [-0.9, 0, 0.9]) G.limb(x + o, y, x + o + s * 0.4 * (f === 4 ? 2 : 0), y + dy * 1.9, 0.35, 0.2, lite(p.w, 0.4), 0.9); }
 }
 function wSkel(G, f, p, big) {
+  if (!big) { G.sx = G.sy = 1.2; G.py = 27.4; }
   const lx = [0, 0, 0, -0.8, 1, 0, 0, 0.6][f], steel = '#c8c8d8', cx = 15.5 + lx;
   // Arm mit Waffe: Ellbogen, Hand, Waffenende
   const A = [[21.5, 16, 22.5, 18.8, 25.6, 9.4], [21.6, 15.8, 22.9, 18.4, 26, 9.2], [21.4, 16.2, 22.2, 19, 25.2, 9.6], [22.4, 9.4, 21, 6.2, 27.4, 0.8], [22.6, 14.6, 25.2, 17.4, 29.6, 22.4], [22, 9, 20.4, 6.6, 29.4, 8.6], [22.6, 9, 22.2, 5, 22.6, -3], [23.5, 12.6, 26.4, 12.4, 33, 12.2]][f];
@@ -1043,9 +1044,22 @@ function wSoul(G, a, b) { G.ox = -3; G.oy = -5; G.poly([4.8, 9, 8, 1.6, 9.4, 5, 
 function wHeart(G) { G.ox = -3; G.oy = -5; G.ell(5.3, 6.2, 3.1, 3.1, '#f02238'); G.ell(10.7, 6.2, 3.1, 3.1, '#f02238'); G.poly([2.4, 7.4, 13.6, 7.4, 8, 13.8], '#f02238', 0.2); G.poly([8, 7.4, 13.6, 7.4, 8, 13.8], '#f02238', -0.3); G.ell(4.6, 5.2, 1.1, 0.9, '#ffffff', 0.9); }
 function wChest(G) { G.ox = -3; G.oy = -5; G.cyl(1.6, 7, 14.4, 13.6, '#8a0f1e'); G.ell(8, 7, 6.4, 3.6, '#8a0f1e'); G.box(1.6, 6.6, 12.8, 1, '#ffc94a', 0.2); G.box(3.4, 3.8, 1.2, 9.8, '#ffc94a', 0.2); G.box(11.4, 3.8, 1.2, 9.8, '#ffc94a', -0.3); G.box(1.6, 12.8, 12.8, 0.8, '#ffc94a', -0.3); G.box(7, 6.2, 2, 2.6, '#ffc94a', 0.7); G.box(7.6, 7.2, 0.8, 1, '#2a1216', -0.8); }
 {
+  // Geschosse, Flammen und Geräte. Weiße Bilder (Kugel, Punkt, Flamme) werden beim Zeichnen eingefärbt.
+  const S0 = G => { G.ox = -3; G.oy = -5; };
+  SP.orb = wesen(1, G => { S0(G); G.ell(7, 7, 5, 5, '#ffffff'); G.ell(5.3, 5.1, 1.5, 1.2, '#ffffff', 0.9); }, 14);
+  SP.pdot = wesen(1, G => { S0(G); G.ell(3, 3, 2.2, 2.2, '#ffffff'); }, 6);
+  SP.bone = wesen(1, G => { S0(G); G.limb(5, 15, 24, 15, 1.2, 1.2, '#f2e9dd'); G.ell(4.4, 13.7, 1.7, 1.7, '#f2e9dd'); G.ell(4.4, 16.3, 1.7, 1.7, '#f2e9dd'); G.poly([23.4, 12.2, 29.6, 15, 23.4, 17.8], '#ffffff', 0.2); G.poly([23.4, 15, 29.6, 15, 23.4, 17.8], '#c8c8d8', 0.2); }, 30);
+  [[0, 0], [-1.6, 0.8], [1.5, -0.6]].forEach((o, i) => { SP['flame' + i] = wesen(1, G => { S0(G); G.poly([3.5, 13, 2.6, 9 + o[1], 5 + o[0] * 0.4, 5.5, 6, 8.4, 8 + o[0], 1.6 - o[1], 10.6, 6.5, 11.8 + o[0] * 0.5, 4.6 + o[1], 13.4, 9.5, 12.5, 13, 8, 14.6], '#ffffff', -0.3); G.poly([5.6, 13, 5, 10.2, 7 + o[0] * 0.4, 7.6, 8 + o[0] * 0.6, 5.2, 9.6, 8.6, 11, 10.6, 10.4, 13, 8, 13.8], '#ffffff', 0.9); }, 16); });
+  SP.mine = wesen(1, G => { S0(G); for (const a of [[2, 6, 4, 8], [12, 6, 10, 8], [1.4, 10, 3.4, 9.4], [12.6, 10, 10.6, 9.4]]) G.limb(a[0], a[1], a[2], a[3], 0.5, 0.5, '#77717e'); G.ell(7, 9, 5, 3.4, '#3a3640'); G.box(5.4, 5, 3.2, 1.8, '#55505a', 0.2); G.box(5.4, 5, 3.2, 0.6, '#77717e', 0.7); }, 14);
+  SP.vort = wesen(1, G => { S0(G); G.cyl(2, 7, 14, 12.4, '#34343e'); G.box(4, 7, 2, 5.4, '#ffc94a', 0.2); G.box(8, 7, 2, 5.4, '#ffc94a', 0.2); G.box(12, 7, 1.6, 5.4, '#ffc94a', -0.3); G.box(4.6, 4.6, 6.8, 2.4, '#c8c8d8', 0.2); G.box(4.6, 4.6, 6.8, 0.8, '#ffffff', 0.9); }, 16);
+  SP.bottle = wesen(1, G => { S0(G); G.cyl(4.6, 5.4, 9.4, 12.8, '#5a8a4a'); G.box(6, 2.8, 2, 2.8, '#5a8a4a', -0.3); G.box(6.2, 1, 1.6, 2, '#f2e9dd', 0.2); G.box(5.4, 6.4, 0.8, 4, '#ffffff', 0.9); }, 14);
+  SP.potion = wesen(1, G => { S0(G); G.ell(7, 9.4, 3.9, 3.9, '#7dff3a'); G.box(6, 3.4, 2, 2.8, '#d8ccb8', 0.2); G.box(5.4, 2.4, 3.2, 1.1, '#6a4426', 0.2); G.ell(5.6, 8, 0.9, 0.9, '#ffffff', 0.9); }, 14);
+  SP.bell = wesen(1, G => { S0(G); G.ell(10, 3.2, 1.3, 1.3, '#c9a43a'); G.poly([6, 14, 6.6, 8, 8, 5, 10, 4, 12, 5, 13.4, 8, 14, 14, 15.8, 15.8, 4.2, 15.8], '#ffc94a', 0.2); G.poly([11, 4.4, 12, 5, 13.4, 8, 14, 14, 15.8, 15.8, 11.6, 15.8], '#ffc94a', -0.3); G.poly([6.6, 13.6, 7.2, 8.2, 8.4, 5.8, 8.6, 13.6], '#ffffff', 0.9); G.box(4.2, 14.8, 11.6, 1, '#c9a43a', -0.3); G.ell(10, 17.2, 1.4, 1.4, '#8a6a2a'); }, 20);
+  for (const k of [0, 1]) SP[k ? 'drone_2' : 'drone'] = wesen(1, G => { S0(G); for (const r of [[4, 6], [16, 6], [4, 14], [16, 14]]) { G.limb(10, 10, r[0], r[1], 0.5, 0.5, '#55606e'); G.ell(r[0], r[1], k ? 1.6 : 3.2, 0.9, k ? '#ffffff' : '#b0b4bc', 0.2); } G.ell(10, 10, 4.2, 2.8, '#b0b4bc'); G.box(8.8, 9.2, 2.4, 1.6, '#6fd0ff', 0.2); G.box(8.8, 9.2, 1, 0.7, '#ffffff', 0.9); }, 20);
   SP.soul = wesen(1, G => wSoul(G, C.blood, '#ff7a86'), 16); SP.bigsoul = wesen(1, G => wSoul(G, C.ember, C.glow), 16); SP.heart = wesen(1, wHeart, 16); SP.chest = wesen(1, wChest, 16);
   const mkSet = (key, fn, pal, u, n) => { const fr = []; for (let i = 0; i < n; i++) { const s = wesen(u, G => fn(G, i, pal, u > 1)); if (i) SP[key + '_f' + i] = s; fr.push(s); } fr[0].fr = fr; SP[key] = fr[0]; };
   const set = (key, fn, pal) => mkSet(key, fn, pal, 1, 5), boss = (key, fn, pal) => mkSet(key, fn, pal, 4, 8);
+  set('pjPumpkin', wPumpkin, {o: '#e8581c', y: C.glow, g: '#7a8f4a'}); set('pjGhost', wGhost, {w: '#b8ffe8', r: '#12f0c0', k: '#0c2a24'}); set('pjCrow', wBat, {d: '#4a5a9a', y: '#6fd0ff'});
   set('bat', wBat, {d: '#c22a40', y: C.glow}); set('pumpkin', wPumpkin, {o: '#e8501f', y: C.glow, g: '#5a7a34'});
   set('ghost', wGhost, {w: '#ded3d6', r: C.blood, k: '#1a1014'}); set('skel', wSkel, {w: C.bone, r: C.blood, k: '#14080a'});
   set('m_bat', wBat, {d: '#4aa832', y: '#e040ff'}); set('m_pumpkin', wPumpkin, {o: '#6a2a8a', y: '#7dff3a', g: '#2a1a3a'});
@@ -1609,6 +1623,8 @@ function gNum(v, x, y, h, c, al) {
 }
 // Figur aus dem Atlas, um ihren Mittelpunkt, wie spr() auf der 2D-Ebene
 function gSprite(sp, x, y, s, flip, flash, al) { if (sp.z) s *= sp.z; const w = sp.w * s, h = sp.h * s; gq(flash ? sp.fuv : sp.uv, snap(x - w / 2), snap(y - h / 2), w, h, al, al, al, al, 0, flip); }
+// eingefärbtes Bild um seinen Mittelpunkt (s = Größe, add = leuchtend)
+function gTint(sp, x, y, s, c, al, add) { const v = rgb(c), z = s * (sp.z || 1), w = sp.w * z, h = sp.h * z; gq(sp.uv, snap(x - w / 2), snap(y - h / 2), w, h, v[0] * al, v[1] * al, v[2] * al, add ? 0 : al, 0, false); }
 function gRect(c, x, y, w, h, al) { const v = rgb(c); gq(atlas.white, x, y, w, h, v[0] * al, v[1] * al, v[2] * al, al, 0, false); }
 function gRectAdd(c, x, y, w, h, al) { const v = rgb(c); gq(atlas.white, x, y, w, h, v[0] * al, v[1] * al, v[2] * al, 0, 0, false); }
 function gDisc(c, x, y, rx, ry, al) { const v = rgb(c); gq(UV_DISC, x - rx, y - ry, rx * 2, ry * 2, v[0] * al, v[1] * al, v[2] * al, al, 1, false); }
@@ -1622,7 +1638,7 @@ function glGlows() {
 }
 function glEnd() { if (!glOk) return; glGlows(); glFlush(); }
 /* ---------- Effekte ---------- */
-const QN = ['Niedrig', 'Mittel', 'Hoch', 'Ultra'], PMUL = [0.35, 0.65, 1, 1.7];
+const QN = ['Niedrig', 'Mittel', 'Hoch', 'Ultra'], PMUL = [0.45, 0.85, 1.3, 2.2];
 const QD = ['Wenige Partikel, kein Leuchten. Für schwache Rechner.', 'Leuchten und Schweife, etwas weniger Partikel.', 'Alle Effekte: Leuchten, Blutspuren, Kerzen und Glut in der Luft.', 'Maximale Partikel, Nachbilder und zusätzliche Lichteffekte.'];
 let Q = opt.q, PM = PMUL[Q];
 // Leuchtfleck vormerken; gezeichnet wird er gesammelt in WebGL (siehe 05-webgl.js)
@@ -1632,7 +1648,7 @@ function glow(x, y, r, c, a) {
 }
 // Partikelschub: o = {c, a, sp, v0, v1, d0, d1, s, g, add, j}
 function fx(x, y, n, o) {
-  n = Math.max(1, Math.round(n * PM)); const cap = 700 * PM, j = o.j || 0, spr2 = o.sp || 0.5;
+  n = Math.max(1, Math.round(n * PM)); const cap = 620 * PM, j = o.j || 0, spr2 = o.sp || 0.5;
   for (let i = 0; i < n && parts.length < cap; i++) {
     const a = o.a != null ? o.a + rnd(-spr2, spr2) : rnd(0, TAU), v = rnd(o.v0 || 20, o.v1 || 70);
     parts.push({x: x + rnd(-j, j), y: y + rnd(-j, j), vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, d: rnd(o.d0 || 0.25, o.d1 || 0.55) * 1.3, c: Array.isArray(o.c) ? o.c[Math.random() * o.c.length | 0] : o.c, s: o.s || 2, g: o.g || 0, add: !!o.add});
@@ -2515,7 +2531,8 @@ function update(dt) {
   for (const z of zones) {
     z.t += dt;
     if (!z.hit && z.t >= z.d) {
-      z.hit = true; if (z.k === 'potion') pools.push({x: z.x, y: z.y, r: z.r, t: 0, d: 4.5, tk: 0}); shake = Math.max(shake, 4); beep(60, 0.3, 'sawtooth', 0.07, -20);
+      z.hit = true; { const c = zcol(z); ring(z.x, z.y, z.r * 1.25, c, 0.4, 4); ring(z.x, z.y, z.r * 0.7, '#ffffff', 0.25, 2); fx(z.x, z.y, 10 + z.r * 0.3, {c: z.k === 'bone' ? ['#f2e9dd', '#d8ccb8'] : [c, C.glow, '#ffffff'], v0: 30, v1: 60 + z.r * 2.2, d0: 0.2, d1: 0.5, s: 2, add: z.k !== 'bone', g: z.k === 'bone' ? 120 : 0}); if (z.k === 'bomb' || z.k === 'slam') decal(z.x, z.y, z.r * 0.45, '#1a0c06'); }
+      if (z.k === 'potion') pools.push({x: z.x, y: z.y, r: z.r, t: 0, d: 4.5, tk: 0}); shake = Math.max(shake, 4); beep(60, 0.3, 'sawtooth', 0.07, -20);
       fx(z.x, z.y, 18, {c: [zcol(z), C.glow, '#ffffff'], v0: 30, v1: 150, d0: 0.2, d1: 0.5, s: 2, add: true}); ring(z.x, z.y, z.r * 1.5, zcol(z), 0.35, 4); decal(z.x, z.y, z.r * 0.7, '#1a0c06');
       if (Math.hypot(P.x - z.x, P.y - z.y) < z.r + 3) { hurt(z.dmg); if (state !== 'play') return; }
     }
@@ -2632,7 +2649,7 @@ function drawObj(o) {
       R(D, x - 4, y - 11, 8, 11); R('#5a3a22', x - 3, y - 10, 6, 10); R(C.glow, x + 1, y - 5, 1, 1);
       win(x0 + 5, y - 14, 7, 7, lit); win(x0 + w - 12, y - 14, 7, 7, lit && h > 0.5);
       if (v === 1) { win(x0 + 5, y0 + 4, 7, 7, h > 0.6); win(x0 + 17, y0 + 4, 7, 7, lit); win(x0 + w - 12, y0 + 4, 7, 7, false); }
-      if (v === 3) { spr(SP.pjPumpkin, x + 11, y - 3, 0.5, false, false); light(x + 11, y - 3, 12, '#ff8a2a', h); }
+      if (v === 3) { spr(SP.pjPumpkin, x + 11, y - 4, 0.28, false, false); light(x + 11, y - 3, 12, '#ff8a2a', h); }
     }
   } else if (o.k === 'church') {
     const x0 = x - 25, y0 = y - 34;
@@ -2714,7 +2731,7 @@ function drawObj(o) {
   } else if (o.k === 'hedge') {
     R('#1c2e1a', x - 9, y - 9, 18, 9); R('#2a4226', x - 8, y - 9, 16, 2); R('#8a0f1e', x - 5, y - 6, 1.5, 1.5); R('#8a0f1e', x + 3, y - 4, 1.5, 1.5);
   } else if (o.k === 'scare') {
-    R('#3a2a1a', x - 1, y - 18, 2, 18); R('#3a2a1a', x - 8, y - 14, 16, 2); R('#5c2c24', x - 4, y - 13, 8, 8); R('#3a1a16', x - 4, y - 6, 2, 3); R('#3a1a16', x + 1, y - 6, 3, 2); spr(SP.pjPumpkin, x, y - 19, 0.7, false, false);
+    R('#3a2a1a', x - 1, y - 18, 2, 18); R('#3a2a1a', x - 8, y - 14, 16, 2); R('#5c2c24', x - 4, y - 13, 8, 8); R('#3a1a16', x - 4, y - 6, 2, 3); R('#3a1a16', x + 1, y - 6, 3, 2); spr(SP.pjPumpkin, x, y - 20, 0.38, false, false);
   } else if (o.k === 'hay') {
     R('#8c6c2c', x - 7, y - 8, 14, 8); R('#aa863c', x - 6, y - 8, 12, 1); R('#6c501e', x - 7, y - 6, 14, 1); R('#6c501e', x - 7, y - 3, 14, 1);
   } else if (o.k === 'barrel') {
@@ -2736,7 +2753,7 @@ function drawTile(tx, ty, objs) {
     else if (h < 0.315) { ctx.fillStyle = '#8a7c70'; const gx = bx + (f * 22 | 0) + 2, gy = by + (g2 * 22 | 0) + 2; ctx.fillRect(gx, gy, 5, 1); ctx.fillRect(gx - 1, gy - 1, 1, 3); ctx.fillRect(gx + 5, gy - 1, 1, 3); }
     else if (h < 0.4) { ctx.fillStyle = '#14141a'; for (let i = 0; i < 5; i++) { ctx.fillRect(bx + 2 + i * 7, by + 9, 1, 9); ctx.fillRect(bx + 1 + i * 7, by + 8, 3, 1); } ctx.fillRect(bx, by + 12, T, 1); }
   } else if (t.b === 2) {     // Kürbisfeld: Furchen, Kürbisse, Ranken
-    if (h < 0.16) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + 9, by + 12, 6, 1); ctx.fillRect(bx + 8, by + 13, 2, 2); spr(SP.pjPumpkin, bx + 17, by + 12, 0.7, h < 0.08, false); }
+    if (h < 0.16) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + 9, by + 12, 6, 1); ctx.fillRect(bx + 8, by + 13, 2, 2); spr(SP.pjPumpkin, bx + 17, by + 10, 0.38, h < 0.08, false); }
     else if (h < 0.26) { ctx.fillStyle = '#3a5a22'; ctx.fillRect(bx + (f * 20 | 0) + 4, by + 9, 5, 1); ctx.fillRect(bx + (f * 20 | 0) + 6, by + 8, 1, 3); }
     else if (h < 0.38) { for (let i = 0; i < 3; i++) { const sx2 = bx + 5 + i * 10; ctx.fillStyle = '#5a6a2a'; ctx.fillRect(sx2, by + 2, 1, 12); ctx.fillRect(sx2 - 2, by + 6, 2, 1); ctx.fillRect(sx2 + 1, by + 9, 2, 1); ctx.fillStyle = '#c9a43a'; ctx.fillRect(sx2, by + 3, 1, 3); } }
     else if (h < 0.43) { ctx.fillStyle = '#4a3220'; for (let i = 0; i < 3; i++) ctx.fillRect(bx + 3 + i * 12, by + 8, 2, 9); ctx.fillRect(bx, by + 10, T, 1); ctx.fillRect(bx, by + 14, T, 1); }
@@ -3009,8 +3026,8 @@ function draw() {
     // Giftpfützen
     for (const p of pools) {
       const fd = Math.min(1, (p.d - p.t) * 1.5);
-      ctx.globalAlpha = 0.55 * fd; ctx.fillStyle = '#2a6a1a'; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r * 0.7, 0, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#7dff3a'; ctx.globalAlpha = 0.5 * fd; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * 0.6, p.r * 0.4, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      gDisc('#143a12', p.x, p.y, p.r * 1.06, p.r * 0.76, 0.5 * fd); gDisc('#2a6a1a', p.x, p.y, p.r, p.r * 0.7, 0.6 * fd); gDisc('#7dff3a', p.x - p.r * 0.1, p.y - p.r * 0.06, p.r * 0.62, p.r * 0.4, 0.45 * fd);
+      for (let i = 0; i < 3; i++) { const u = (clock * 0.9 + i * 0.37 + p.x * 0.01) % 1, bx = p.x + (hash(i, p.x | 0) - 0.5) * p.r * 1.2, by = p.y + (hash(p.y | 0, i) - 0.5) * p.r * 0.7; gRing('#b8ffd8', bx, by, 0.6 + u * 2.2, 0.6, (1 - u) * 0.7 * fd, false); }
       glow(p.x, p.y, p.r * 1.5, '#7dff3a', 0.3 * fd);
     }
     // Lichtstrahlen: erst eine dünne Warnlinie, dann der Strahl
@@ -3028,8 +3045,20 @@ function draw() {
     }
     for (const z of zones) {
       if (z.t < 0) continue;
-      if (z.hit) { const q = (z.t - z.d) / 0.25; ctx.globalAlpha = 1 - q; ctx.fillStyle = C.glow; ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; glow(z.x, z.y, z.r * 2.4, '#ff8a1a', 0.8 * (1 - q)); }
-      else { const q = z.t / z.d; ctx.globalAlpha = 0.25; ctx.fillStyle = zcol(z); ctx.beginPath(); ctx.arc(z.x, z.y, z.r * q, 0, TAU); ctx.fill(); ctx.globalAlpha = 0.9; ctx.strokeStyle = (clock * 10 | 0) % 2 ? C.glow : zcol(z); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; if (z.k === 'bone') { ctx.fillStyle = '#f2e9dd'; ctx.fillRect(snap(z.x) - 1, snap(z.y - (1 - q) * 50) - 4, 2, 8); ctx.fillRect(snap(z.x) - 2, snap(z.y - (1 - q) * 50) - 5, 4, 2); } else if (z.k === 'potion') { const by = snap(z.y - (1 - q) * 46); ctx.fillStyle = '#7dff3a'; ctx.fillRect(snap(z.x) - 2, by - 3, 4, 5); ctx.fillStyle = '#d8ccb8'; ctx.fillRect(snap(z.x) - 1, by - 5, 2, 2); } else if (z.k === 'bomb') spr(SP.pjPumpkin, z.x, z.y - (1 - q) * 40, 0.8, false, false); }
+      const zc = zcol(z);
+      if (z.hit) { const q = (z.t - z.d) / 0.25; gDisc('#ffffff', z.x, z.y, z.r, z.r, 0.8 * (1 - q) * (1 - q)); gDisc(zc, z.x, z.y, z.r * (1 + q * 0.15), z.r * (1 + q * 0.15), 0.7 * (1 - q)); gRing(C.glow, z.x, z.y, z.r * (1 + q * 0.3), 3 * (1 - q) + 0.5, 1 - q, ga); glow(z.x, z.y, z.r * 2.4, zc, 0.8 * (1 - q)); }
+      else {
+        const q = z.t / z.d, bl = (clock * 10 | 0) % 2, sx = snap(z.x), fy = z.y - (1 - q) * (1 - q) * 70;
+        gDisc(zc, z.x, z.y, z.r, z.r, 0.1 + q * 0.1); gDisc(zc, z.x, z.y, z.r * q, z.r * q, 0.22 + q * 0.12);
+        gRing('#0c0709', z.x, z.y, z.r + 0.8, 2.6, 0.55, false); gRing(bl ? C.glow : zc, z.x, z.y, z.r, 1.3, 0.95, false);
+        for (let i = 0; i < 3; i++) { const a = clock * 2.2 + i * TAU / 3 + z.x; gCrescent(z.x, z.y, z.r * 0.8, a, a + 1.1, 1.6, zc, 0.5 + q * 0.4, 1, ga); }
+        gDisc('#000000', z.x, z.y, 2 + q * 4, 1 + q * 2, 0.25 + q * 0.3);
+        if (z.k === 'bone') gRot(SP.bone.uv, sx, fy - 6, 1.5708, 15, 15, 7.5, 7.5, 1, 1);
+        else if (z.k === 'potion') { gSprite(SP.potion, z.x, fy - 4, 1.1, false, false, 1); glow(z.x, fy - 4, 8, '#7dff3a', 0.6); }
+        else if (z.k === 'bomb') { const sp = SP.pjPumpkin.fr[(clock * 8 | 0) % 3], zz = 0.26, w = sp.w * zz; gq(sp.uv, snap(z.x - w / 2), snap(fy - 5 - w / 2), w, w, 1, 1, 1, 1, 0, false); glow(z.x, fy - 5, 9, '#ff8a1a', 0.6); }
+        else if (z.k === 'holy') { gRectAdd('#ffc94a', z.x - 0.6 - q, z.y - 90, 1.2 + q * 2, 90, 0.3 + q * 0.5); glow(z.x, z.y, z.r * (0.6 + q), '#ffc94a', 0.3 + q * 0.3); }
+        else if (z.k === 'slam') { gRing(zc, z.x, z.y, z.r * (1 - q), 2, 0.6, ga); }
+      }
     }
     // Blutnova
     for (const n of novas) {
@@ -3120,26 +3149,29 @@ function draw() {
     }
     // Geisterfalle: gelb-schwarzer Kasten mit drehendem Sog
     for (const v of vorts) {
-      if (v.t < 0) { const f = 1 + v.t / 0.35, x = v.sx + (v.x - v.sx) * f, y = v.sy + (v.y - v.sy) * f - Math.sin(f * Math.PI) * 16; ctx.fillStyle = '#14141a'; ctx.fillRect(snap(x) - 3, snap(y) - 2, 6, 4); continue; }
+      if (v.t < 0) { const f = 1 + v.t / 0.35, x = v.sx + (v.x - v.sx) * f, y = v.sy + (v.y - v.sy) * f - Math.sin(f * Math.PI) * 16; gSprite(SP.vort, x, y, 0.9, false, false, 1); continue; }
       const fd = Math.min(1, (v.d - v.t) * 3, v.t * 5), cV = dark.gfalle ? DK : sc.t;
       glow(v.x, v.y, v.r * 1.5, cV, 0.35 * fd);
       ctx.globalCompositeOperation = add; ctx.strokeStyle = cV; ctx.lineWidth = 1.5;
       for (let i = 0; i < 4; i++) { ctx.globalAlpha = 0.55 * fd; ctx.beginPath(); for (let k = 0; k <= 12; k++) { const f = k / 12, a = clock * 5 + i * TAU / 4 + f * 2.6, rr = v.r * (1 - f); ctx.lineTo(v.x + Math.cos(a) * rr, v.y + Math.sin(a) * rr * 0.85); } ctx.stroke(); }
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-      const x = snap(v.x), y = snap(v.y);
-      ctx.fillStyle = '#14141a'; ctx.fillRect(x - 5, y - 2, 10, 5); ctx.fillStyle = C.glow; ctx.fillRect(x - 4, y - 1, 2, 3); ctx.fillRect(x, y - 1, 2, 3); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 3, y - 4, 6, 2);
+      gSprite(SP.vort, v.x, v.y, 1.1, false, false, 1); gTint(SP.orb, v.x, v.y - 5, 0.45 + Math.sin(clock * 12) * 0.08, cV, fd, true);
+
     }
     // Benzinspur
     for (const f of fires) {
       const fd = Math.min(1, (f.d - f.t) * 2), fc = sc.th.fire, fdk = dark.spur || dark.brand, c1 = fdk ? DK : fc ? fc[0] : C.ember, fl = Math.sin(clock * 18 + f.sd * 40);
       glow(f.x, f.y, f.r * 1.9, c1, 0.4 * fd);
-      ctx.globalAlpha = fd; ctx.fillStyle = c1; ctx.fillRect(snap(f.x - 5), snap(f.y - 4 - (fl > 0 ? 1 : 0)), 10, 6); ctx.fillStyle = fdk ? '#e0b0ff' : fc ? fc[1] : C.glow; ctx.fillRect(snap(f.x - 1 + fl), snap(f.y - 4), 2, 3); ctx.globalAlpha = 1;
+      { const c2 = fdk ? '#e0b0ff' : fc ? fc[1] : C.glow, k = (clock * 11 + f.sd * 9) | 0;
+        gDisc('#1a0c06', f.x, f.y + 2, f.r * 0.7, f.r * 0.3, 0.35 * fd);
+        gTint(SP['flame' + (k + 1) % 3], f.x - 4.5, f.y - 2, 0.8, c1, fd); gTint(SP['flame' + (k + 2) % 3], f.x + 4.5, f.y - 1.5, 0.7, c1, fd);
+        gTint(SP['flame' + k % 3], f.x, f.y - 4, 1.15, c1, fd); gTint(SP['flame' + (k + 1) % 3], f.x, f.y - 2.6, 0.62, c2, fd); }
     }
     // Sprengfallen
     for (const tr of traps) {
       const fl = Math.min(1, tr.t / 0.3), x = snap(tr.sx + (tr.x - tr.sx) * fl), y = snap(tr.sy + (tr.y - tr.sy) * fl - Math.sin(fl * Math.PI) * 14), armed = tr.t >= 0.4, bl = armed && (clock * 4 | 0) % 2;
-      ctx.fillStyle = '#14141a'; ctx.fillRect(x - 4, y - 2, 8, 4); ctx.fillStyle = '#55505a'; ctx.fillRect(x - 3, y - 3, 6, 1); ctx.fillRect(x - 5, y, 1, 2); ctx.fillRect(x + 4, y, 1, 2);
-      ctx.fillStyle = bl ? (dark.falle ? DK : C.blood) : '#3a1014'; ctx.fillRect(x - 1, y - 2, 2, 2); if (bl) glow(x, y - 1, 7, dark.falle ? DK : '#f02238', 0.6);
+      if (fl >= 1) gDisc('#000000', x, y + 2.5, 5, 1.6, 0.35); gSprite(SP.mine, x, y - 1, 1.15, false, false, 1);
+      gRect(bl ? (dark.falle ? DK : C.blood) : '#3a1014', x - 0.75, y - 3.9, 1.5, 1, 1); if (bl) glow(x, y - 3, 8, dark.falle ? DK : '#f02238', 0.7);
     }
     // Pfeilhagel: kurzer Zielkreis, dann fallen die Pfeile
     for (const v of volleys) {
@@ -3172,7 +3204,7 @@ function draw() {
       const cO = dark.kugel ? DK : sc.t, pu = Math.sin(clock * 20 + o.sd) * 1.2;
       for (const e of o.tg) if (!e.dead) zap([o.x, o.y, e.x, e.y], o.sd, cO, 0.8, 1.2);
       glow(o.x, o.y, 20 + pu * 2, cO, 0.8);
-      ctx.fillStyle = cO; ctx.beginPath(); ctx.arc(o.x, o.y, 5 + pu * 0.4, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(o.x, o.y, 2.6, 0, TAU); ctx.fill();
+      gTint(SP.orb, o.x, o.y, 1.7 + pu * 0.1, cO, 1); gTint(SP.orb, o.x, o.y, 0.85, '#ffffff', 0.95, true); for (let i = 0; i < 3; i++) { const a = clock * 9 + i * 2.1 + o.sd; gCrescent(o.x, o.y, 7.5 + pu, a, a + 1.2, 1.2, '#ffffff', 0.7, 1, ga); }
     }
     // Strahl der Geisterkanone
     if (beam) { const b = beam, f = b.end > 0 ? b.end / 0.12 : 1, cR = col('sense'); for (const h of b.heads) { const p = h.pts.slice(-6); p.push(h.x, h.y); zap(p, b.sd + h.pts[0], cR, f, 1.6); glow(h.x, h.y, 11, cR, 0.9 * f); ctx.fillStyle = '#ffffff'; ctx.globalAlpha = f; ctx.beginPath(); ctx.arc(h.x, h.y, 2.2, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; } }
@@ -3228,11 +3260,13 @@ function draw() {
       }
       const pj = sk.pj, pu = Math.sin(clock * 30 + w.ph) > 0 ? 1 : 0;
       glow(w.x, w.y, 10 + pu * 2, pj.c1, 0.7);
-      if (pj.sp) spr(SP[pj.sp], w.x, w.y, pj.z, w.vx < 0, false);
-      else { const sx = snap(w.x), sy = snap(w.y); ctx.fillStyle = pj.c1; ctx.fillRect(sx - 2 - pu, sy - 1, 4 + pu * 2, 2); ctx.fillRect(sx - 1, sy - 2 - pu, 2, 4 + pu * 2); ctx.fillStyle = pj.c2; ctx.fillRect(sx - 1, sy - 1, 2, 2); }
+      { const sp = Math.hypot(w.vx, w.vy) || 1, ux = w.vx / sp, uy = w.vy / sp; gLine(w.x, w.y, w.x - ux * 13, w.y - uy * 13, 3, 0, pj.c1, 0.45, ga); gLine(w.x, w.y, w.x - ux * 7, w.y - uy * 7, 1.2, 0, pj.c2, 0.7, ga);
+        if (pj.sp) { const F = SP[pj.sp].fr, s2 = F[pj.sp === 'pjCrow' ? [0, 1, 2, 1][(clock * 12 + w.ph | 0) & 3] : 0], zz = pj.z * 0.42, ww = s2.w * zz; gq(s2.uv, snap(w.x - ww / 2), snap(w.y - ww / 2), ww, ww, 1, 1, 1, 1, 0, w.vx < 0); }
+        else { gTint(SP.orb, w.x, w.y, 0.75 + pu * 0.08, pj.c1, 1); gTint(SP.orb, w.x - 0.3, w.y - 0.3, 0.38, pj.c2, 1, true); } }
+
     }
     // Brandflaschen im Flug
-    for (const b of bottles) { const f = Math.min(1, b.t / 0.45), x = b.sx + (b.x - b.sx) * f, y = b.sy + (b.y - b.sy) * f - Math.sin(f * Math.PI) * 24; gRect('#0c0709', snap(x) - 2, snap(y) - 3, 4, 6, 1); gRect('#5a8a4a', snap(x) - 1, snap(y) - 2, 2, 4, 1); gRect(C.glow, snap(x) - 1, snap(y) - 5, 2, 2, 1); glow(x, y - 4, 8, C.ember, 0.7); }
+    for (const b of bottles) { const f = Math.min(1, b.t / 0.45), x = b.sx + (b.x - b.sx) * f, y = b.sy + (b.y - b.sy) * f - Math.sin(f * Math.PI) * 24; gDisc('#000000', b.sx + (b.x - b.sx) * f, b.sy + (b.y - b.sy) * f + 6, 3, 1.2, 0.3); gRot(SP.bottle.uv, x, y, b.t * 13, 7, 7, 3.5, 3.5, 1, 1); gTint(SP.flame0, x, y - 5, 0.45, C.ember, 1); glow(x, y - 4, 9, C.ember, 0.7); }
     // Kampfdrohnen: beim Start ein kleiner werdender Ring, dann Flug mit Schatten und Schüssen
     for (const d of drones) {
       const cD = dark.licht ? DK : sk.pj.c1, al = d.t < 0 ? 1 + d.t / 0.7 : Math.min(1, (3.8 - d.t) * 3), bob = Math.sin(clock * 9 + d.ph) * 0.8;
@@ -3254,9 +3288,14 @@ function draw() {
       glow(b.x + ux * 2, b.y + uy * 2, 12, cS, 0.8);
     }
     for (const b of bolts) {
-      glow(b.x, b.y, 9, b.c || '#f02238', 0.55);
-      if (b.bone != null) { ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.bone); ctx.fillStyle = C.void; ctx.fillRect(-7, -2, 14, 4); ctx.fillStyle = b.c; ctx.fillRect(-6, -1, 12, 2); ctx.fillRect(4, -2, 3, 4); ctx.restore(); continue; }
-      ctx.fillStyle = C.void; ctx.fillRect(snap(b.x) - 3, snap(b.y) - 3, 6, 6); ctx.fillStyle = (clock * 10 | 0) % 2 ? '#fff' : (b.c || C.blood); ctx.fillRect(snap(b.x) - 2, snap(b.y) - 2, 4, 4);
+      const c = b.c || '#f02238', sp = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / sp, uy = b.vy / sp, pu = Math.sin(clock * 14 + b.x * 0.3) * 0.08;
+      glow(b.x, b.y, b.hm ? 14 : 10, c, 0.6);
+      if (b.bone != null) { gLine(b.x - ux * 4, b.y - uy * 4, b.x - ux * 20, b.y - uy * 20, 2.6, 0, '#ffffff', 0.35, ga); gRot(SP.bone.uv, b.x, b.y, b.bone, 15, 15, 7.5, 7.5, 1, 1); continue; }
+      gLine(b.x, b.y, b.x - ux * 12, b.y - uy * 12, 4.2, 0, c, 0.5, ga); gLine(b.x, b.y, b.x - ux * 7, b.y - uy * 7, 1.6, 0, '#ffffff', 0.5, ga);
+      if (b.hm) { for (let i = 0; i < 3; i++) { const a = clock * 6 + i * TAU / 3; gCrescent(b.x, b.y, 6.5, a, a + 1.3, 1.4, c, 0.8, 1, ga); } }
+      gTint(SP.orb, b.x, b.y, (b.hm ? 1.25 : 0.95) + pu, c, 1); gTint(SP.orb, b.x - 0.4, b.y - 0.4, (b.hm ? 0.6 : 0.46) + pu, '#ffffff', 0.9, true);
+
+
     }
   }
 
@@ -3291,7 +3330,7 @@ function draw() {
     else if (!inGame || !swings.length) { ctx.save(); { const hx = Math.abs(Math.cos(P.face)) > 0.92 ? 2.8 : 3.8; ctx.translate(px + (P.flip ? -hx : hx), py + 1.5 + bob); } if (P.flip) ctx.scale(-1, 1); ctx.rotate(1); ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
     if (sc.type && aimK >= 5) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
-    if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
+    if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -5.5 * bs, -5 * bs, 11 * bs, 11 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
     if (lv.schild && shieldT <= 0) gRing('#6fd0ff', px, py - 1, 11 + Math.sin(clock * 5) * 0.6, 1.2, 0.75, ga);
     if (inGame && P.hp < st.maxHp) { ctx.fillStyle = C.void; ctx.fillRect(px - 10, py + 10, 20, 4); ctx.fillStyle = C.blood; ctx.fillRect(px - 9, py + 11, Math.max(0, Math.round(18 * P.hp / st.maxHp)), 2); }
   }
@@ -3306,9 +3345,9 @@ function draw() {
     for (const r of rings) { const q = r.t / r.d, e = 1 - Math.pow(1 - q, 2); gRing(r.c, r.x, r.y, 2 + r.max * e, r.w * (1 - q) + 0.6, 1 - q, ga); }
     // Partikel in WebGL: erst die deckenden, dann alle Leuchtflecken, dann die leuchtenden Partikel
     if (glOk) {
-      for (const p of parts) { if (p.add) continue; gRect(p.c, snap(p.x), snap(p.y), p.s, p.s, 1 - p.t / p.d); }
+      for (const p of parts) { if (p.add) continue; const f = 1 - p.t / p.d; gTint(SP.pdot, p.x, p.y, p.s * (0.3 + 0.22 * f), p.c, Math.min(1, f * 2.5)); }
       glGlows();
-      for (const p of parts) { if (!p.add) continue; const f = 1 - p.t / p.d, q = p.s * (0.5 + f * 0.7); gRectAdd(p.c, snap(p.x), snap(p.y), q, q, f); }
+      for (const p of parts) { if (!p.add) continue; const f = 1 - p.t / p.d, q = p.s * (0.3 + f * 0.4); gLine(p.x, p.y, p.x - p.vx * 0.04, p.y - p.vy * 0.04, q, 0, p.c, f, true); gRectAdd(p.c, snap(p.x - q / 2), snap(p.y - q / 2), q, q, f); if (f > 0.55) gRectAdd('#ffffff', snap(p.x - q / 4), snap(p.y - q / 4), q / 2, q / 2, (f - 0.55) * 1.6); }
     }
     // Schadenszahlen aus vorgebackenen Ziffern
     for (const n of nums) { const pop = 1 + Math.max(0, 0.12 - n.t) * 5; gNum(n.v, n.x, n.y - 3, (n.c ? 14.5 : n.s ? 9.4 : 11.6) * pop, n.c ? C.glow : n.s ? '#ffc8a0' : C.bone, Math.min(1, (1 - n.t / 0.6) * 1.6)); }
@@ -3379,7 +3418,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
-  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.21.0');
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.22.0');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -3587,6 +3626,7 @@ function showPerks() {
 /* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
 // Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
 const NEWS = [
+  ['0.22.0', ['Geschosse der Bosse sind neu: schattierte Kugeln mit Leuchtschweif und Knochenspeere statt leuchtender Blöcke.', 'Einschlagzonen der Bosse haben einen klaren Rand mit drehenden Bögen, das Geschoss fällt sichtbar herab und schlägt mit Funken ein.', 'Partikel sind feiner: Funken ziehen einen kleinen Schweif, Blut und Splitter sind runde, schattierte Tupfer. Es fliegen mehr davon.', 'Neu gemalt: Feuer (Benzinspur, Brandflasche), Sprengfalle, Schwerkraftfalle, Kugelblitz, Irrlichter und die Geschosse der Gewänder, Brandflasche, Drohne und Glocke.', 'Skelette sind größer.']],
   ['0.21.0', ['Alle Gegner und Bosse sind neu gemalt, in doppelter Auflösung und mit Schattierung.', 'Gegner holen sichtbar aus und schlagen dann zu: Fledermäuse beißen, Kürbisse springen dich an, Skelette schwingen ihre Keule. Schaden gibt es nur noch beim Zuschlag, nicht mehr durch bloßes Berühren.', 'Bosse kündigen jeden Angriff mit einer eigenen Haltung an: Arm hoch und Licht an der Hand für Würfe und Schüsse, ein Ring am Boden für Großangriffe.', 'Bosse schlagen im Nahkampf zu. Ein roter Fächer am Boden zeigt, wohin.', 'Neuer Boden: Kopfsteinpflaster, Ackerfurchen, Gras und Kiesel, die Gebiete gehen fließend ineinander über.', 'Gebäude, Bäume und Dinge haben Umriss, Schattierung und Muster (Schindeln, Bretter, Mauerwerk).', 'Seelen, Herzen und Truhen sind neu gemalt.', 'Schadenszahlen: Auch Dauerschaden (Seuchenwolke, Feuer, Kugelblitz, Essenzsauger ...) zeigt jetzt Zahlen, klein und orange.']],
   ['0.20.0', ['Balance: Die Armbrust war viel zu stark und ist schwächer. Die geheime Stufe gibt ihr +50 % Schaden und zwei Bolzen mehr statt doppelt so viele.', 'Reaper: Sensenhieb, Seelenkreis, Wurfsense und Essenzsauger machen mehr Schaden.', 'Zombie: +60 Leben, heilt 1 Leben pro Sekunde, nimmt 25 % weniger Schaden. Die Säge ist stärker, Zähes Fleisch schützt doppelt so gut.', 'Alien: Der Blaster trifft Bosse dreifach. Kugelblitz, Schwerkraftfalle, Orbitalschlag und Drohne sind stärker.', 'Hardcore ist etwas milder: Gegner halten weniger aus, treffen schwächer, Herzen fallen öfter.', 'Alle Kisten kosten jetzt 100 Seelensplitter.', 'Handy-Modus: eigene Anordnung für Quer- und Hochformat, schmale Anzeige im Spiel.']],
   ['0.19.0', ['Neuigkeiten: Hier liest du ab jetzt, was sich geändert hat.', 'Im Browser wählst du beim ersten Start PC oder Handy. Der Handy-Modus hat eine kompakte Anzeige.', 'Das Hauptmenü hat einen festen Hintergrund, die Karte wandert nicht mehr dahinter.', 'Orbitalschlag: deutlich größere Fläche, Bosse haben Vorrang.', 'Aufwerten kostet bei selteneren Teilen mehr (Selten x1,5, Episch x2,25, Legendär x3,5).', 'Die Seltenheit "Selten" ist jetzt blau.', 'Waffen, die du noch nicht besitzt, verraten nicht mehr, was sie können.']],
@@ -3600,8 +3640,8 @@ const NEWS = [
 ];
 function openNews() {
   only('news'); const box = $('newsList'); box.innerHTML = '';
-  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.21.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
-  save.seenVer = '0.21.0'; persist();
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.22.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.22.0'; persist();
 }
 // Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
 function setDevice(d, quiet) {
@@ -3706,7 +3746,7 @@ function openLevelUp() {
       const u = o.u, cur = lv[u.id], to = Math.min(u.max, cur + (o.rare ? 2 : 1)), isPj = u.id === 'licht';
       b.className = 'card' + (o.dark ? ' dark' : o.rare ? ' rare' : ''); b.style.cssText = '--cat:' + (o.dark ? DK : CAT[u.c].c);
       if (u.id === 'sense') ico.append(icon(sc.sp, 4));
-      else if (isPj && sk.pj.sp) ico.append(icon(SP[sk.pj.sp], 5));
+      else if (isPj && sk.pj.sp) ico.append(icon(SP[sk.pj.sp], 4));
       else ico.append(icon(u.ic, 6));
       b.append(el('span', 'cat', o.dark ? 'Dunkle Stufe' : CAT[u.c].n), el('span', 'k', String(i + 1)), ico, el('span', 'nm', isPj ? sk.pj.n : u.id === 'sense' ? sc.n : altN(u)),
         el('span', 'lv', o.dark ? 'Geheim · nur 2 pro Runde' : (cur === 0 ? (u.w ? 'Neue Waffe' : 'Neue Gabe') : 'Stufe ' + cur + ' → ' + to) + (o.rare ? ' · zählt doppelt' : '')),
@@ -3843,7 +3883,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.21.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.22.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
