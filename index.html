@@ -175,25 +175,6 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .devs{display:flex;flex-wrap:wrap;justify-content:center;gap:18px}
 .devs button{display:grid;gap:8px;justify-items:center;min-width:230px;padding:22px 26px}
 .devs small{font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ash)}
-body.handy{font-size:16px}
-body.handy .keys{display:none}
-body.handy .cta,body.handy .alt{font-size:16px;padding:10px 14px}
-body.handy #menu{gap:6px;padding:10px 12px;align-content:start;grid-template-rows:auto auto auto}
-body.handy .mtop,body.handy .mbot{grid-template-columns:1fr;justify-items:center;gap:8px}
-body.handy .mtop::before{display:none}
-body.handy .mtop h1{font-size:clamp(34px,9vw,60px)}
-body.handy .mside{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}
-body.handy .mside .alt{min-width:0;font-size:14px;padding:8px 10px}
-body.handy .mtop .coins,body.handy .mbr{justify-self:center}
-body.handy .mbl{justify-items:center;text-align:center}
-body.handy .hero canvas{height:min(200px,26vh)}
-body.handy .hname{font-size:30px}
-body.handy .arrow{width:46px;height:64px;font-size:24px}
-body.handy .cta.big{font-size:20px;padding:16px 26px}
-body.handy .dbtn{min-width:76px;padding:6px 8px;font-size:14px}
-body.handy .ov h2{font-size:40px}
-body.handy .card{flex-basis:150px}.handy .card .nm{font-size:18px}.handy .card .ds{font-size:14px}.handy .card .ico2{width:52px;height:52px}
-body.handy .panel{transform:scale(.8)}body.handy .hl{transform-origin:top left}body.handy .hc{transform-origin:top center}body.handy .hr{transform-origin:top right}
 /* Hauptmenü: links oben die Nebenknöpfe, in der Mitte die Figur, unten Schwierigkeit und rechts unten Spielen */
 #menu{grid-template-rows:auto 1fr auto;align-content:stretch;justify-items:stretch;gap:10px;padding:22px 28px;background:radial-gradient(circle at 50% 46%,#3a1119 0,#1c0a10 26%,#0d0608 58%,#080405 100%)}
 #menu::before{content:"";position:absolute;left:50%;top:46%;width:min(46vh,420px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 42% 40%,rgba(255,201,74,.16),rgba(240,34,56,.10) 55%,rgba(240,34,56,0) 70%);pointer-events:none}
@@ -255,6 +236,102 @@ body.handy .panel{transform:scale(.8)}body.handy .hl{transform-origin:top left}b
   .card{flex-basis:100%;max-width:380px;padding:12px}.card .k{display:none}.card .ds{font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}.box.shake canvas,#reveal.burst,.rattle,.rise,.res,.low .hp{animation:none}}
+/* Handy-Modus: eigene Anordnung. Quer: Knöpfe links, Figur in der Mitte, Stufe und Start rechts. Hoch: alles untereinander. */
+body.handy{font-size:15px}
+body.handy .keys,body.handy #loadout,body.handy #diffInfo{display:none}
+body.handy .cta,body.handy .alt{font-size:15px;padding:10px 14px}
+body.handy .ov{gap:10px;padding:12px}
+body.handy .ov h2{font-size:34px}
+body.handy .ov .dim{font-size:13px}
+body.handy #menu{gap:6px 12px;padding:10px 14px;overflow:hidden auto}
+body.handy #menu::before{width:min(60vh,60vw)}
+body.handy .mtop,body.handy .mbot{display:contents}
+body.handy .mtop>*,body.handy .mbot>*{position:relative}
+body.handy .mtop::before{display:none}
+body.handy .mtop h1{font-size:clamp(30px,7vw,46px)}
+body.handy .mside{position:static;gap:6px}
+body.handy .mside .alt{min-width:0;font-size:14px;padding:9px 12px;justify-content:center}
+body.handy .coins{font-size:17px}
+body.handy .hname{font-size:26px}
+body.handy .hero{gap:4px}
+body.handy .arrow{width:44px;height:64px;font-size:22px}
+body.handy .diffs{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+body.handy .dbtn{min-width:0;padding:6px 6px;font-size:14px}
+body.handy .dbtn small{font-size:11px}
+body.handy .mbc{width:100%}
+body.handy .cta.big{font-size:18px;padding:16px 12px;width:100%;white-space:normal}
+body.handy .mbl{justify-items:center;text-align:center;gap:2px}
+@media (orientation:landscape){
+  body.handy #menu{grid-template-columns:minmax(150px,auto) 1fr minmax(190px,26vw);grid-template-rows:auto 1fr auto;align-content:stretch;align-items:start;justify-items:stretch}
+  body.handy .mside{grid-column:1;grid-row:1 / 4;flex-direction:column;align-items:stretch}
+  body.handy .mtop h1{grid-column:2;grid-row:1;justify-self:center}
+  body.handy .mtop .coins{grid-column:3;grid-row:1;justify-self:end}
+  body.handy .mhero{grid-column:2;grid-row:2;gap:10px;align-self:center}
+  body.handy .hero canvas{height:min(42vh,240px)}
+  body.handy .mbl{grid-column:2;grid-row:3}
+  body.handy .mbc{grid-column:3;grid-row:2;align-self:end}
+  body.handy .mbr{grid-column:3;grid-row:3;justify-self:stretch}
+}
+@media (orientation:portrait){
+  body.handy #menu{grid-template-columns:1fr;grid-template-rows:none;align-content:start;justify-items:center;gap:10px}
+  body.handy .mtop h1{order:1}
+  body.handy .mtop .coins{order:2;justify-self:center}
+  body.handy .mside{order:3;display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+  body.handy .mhero{order:4;gap:8px}
+  body.handy .hero canvas{height:min(30vh,240px)}
+  body.handy .mbc{order:5}
+  body.handy .diffs{grid-template-columns:repeat(4,1fr)}
+  body.handy #diffInfo{display:block}
+  body.handy .mbr{order:6;justify-self:stretch}
+  body.handy .mbl{order:7}
+  body.handy .cards{flex-direction:column;align-items:center}
+  body.handy .card{width:100%;max-width:380px}
+}
+/* Anzeige im Spiel: eine schmale Zeile oben */
+body.handy #hud{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);padding:6px 8px;gap:6px}
+body.handy .panel{padding:4px 6px;gap:3px;border-width:1px;background:rgba(8,4,5,.6)}
+body.handy .hl{grid-column:auto;width:min(100%,230px)}
+body.handy .hl .lab:first-child,body.handy #biome{display:none}
+body.handy .hp{height:18px;border-width:2px}body.handy #hptxt{font-size:13px}
+body.handy .lab{font-size:11px}body.handy .xp{height:8px;border-width:1px}
+body.handy #wave{font-size:17px}body.handy .sub{font-size:13px;gap:6px}body.handy #moon{width:12px;height:12px}
+body.handy .hc{min-width:0;justify-self:center}
+body.handy #kills{font-size:14px}
+body.handy .btns button{height:34px;min-width:40px;font-size:13px}
+body.handy #boss{width:min(44vw,300px)}body.handy #bossname{font-size:14px}body.handy #boss .bar{height:10px}
+body.handy #banner{font-size:clamp(28px,7vw,48px);top:24%}body.handy #banner small{font-size:13px}
+/* Gabenwahl, Kisten und Inventar */
+body.handy .cards{gap:8px}
+body.handy .card{flex:1 1 0;max-width:260px;padding:0 0 10px;gap:4px;border-width:2px}
+body.handy .card .cat{font-size:11px;padding:3px 4px}
+body.handy .card .ico2{width:48px;height:48px;margin-top:4px}
+body.handy .card .nm{font-size:16px;margin:2px 6px 0}body.handy .card .lv{font-size:11px;margin-inline:6px}body.handy .card .ds{font-size:13px;line-height:1.3;margin-inline:6px}
+body.handy .card .k{display:none}
+body.handy .items{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+body.handy .item{padding:8px 6px}body.handy .item .nm{font-size:16px}body.handy .item .ds{font-size:13px}
+body.handy .box{width:180px;padding:10px 8px;gap:6px}body.handy .box .nm{font-size:17px}body.handy .box .ds{font-size:13px}
+body.handy .stats{font-size:16px}
+body.handy .hero{min-width:0}body.handy .hero p{max-width:100%}body.handy #clsInfo{font-size:12px;line-height:1.35}
+body.handy .btns button{white-space:nowrap;padding:0 6px;min-width:34px}
+@media (orientation:landscape){
+  body.handy .mtop h1{font-size:clamp(26px,5vw,38px)}
+  body.handy .hero canvas{height:min(34vh,220px)}
+  body.handy .hname{font-size:22px}
+  body.handy #best{display:none}
+}
+@media (orientation:portrait){
+  body.handy #menu{grid-template-columns:minmax(0,1fr)}
+  body.handy .mside{grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.handy .mside .alt{font-size:13px;padding:10px 4px}
+  body.handy .mside .alt canvas{display:none}
+  body.handy .mhero{width:100%}body.handy .hero{flex:1 1 0}
+  body.handy .diffs{grid-template-columns:repeat(4,minmax(0,1fr))}
+  body.handy .dbtn{font-size:13px;padding:6px 2px}
+  body.handy #boss{width:30vw}
+  body.handy .btns{gap:4px}body.handy .btns button{font-size:12px}
+}
+body.handy .hero{grid-template-columns:minmax(0,1fr)}
+body.handy #bNews{position:relative}body.handy #bNews.neu::after{position:absolute;top:-7px;right:-5px;margin:0;font-size:10px;padding:1px 4px}
 </style>
 
 </head>
@@ -804,7 +881,7 @@ const RAY = ['................','................','................','.........
 const SAW = ['................','................','................','...gggg.........','..g....g........','.bbbbbbb........','bbhhbbbb.sesese.','bbbbbbbbwwwwwwws','bkkbbbbbwsssssww','bbbbbbbbwwwwwwws','bbggbbbb.sesese.','.bbbbbb.........','................','................','................','................'];
 const BOW = ['................','................','.........w......','..........ww....','...........ww...','............w...','bbbbbbbbbbbbbe..','gbbbbbbbbbbbeeee','bbbbbbbbbbbbbe..','............w...','...........ww...','..........ww....','.........w......','................','................','................'];
 const WPLUS = {sense: 'Mehr Schaden und Reichweite. Ab Stufe 3 auch nach hinten, ab Stufe 5 ringsum.', saw: 'Mehr Schaden und eine längere Säge. Ab Stufe 3 breiter, ab Stufe 5 läuft die Kette schneller.', bow: 'Mehr Schaden und Durchschlag. Stufe 3 und 5 geben je einen Bolzen mehr.', ray: 'Mehr Schaden, jede zweite Stufe ein Sprung mehr. Ab Stufe 4 lädt sie schneller nach.'};
-const WDK = {sense: 'Doppelter Hiebschaden, +25 % Reichweite, schlägt immer ringsum.', saw: 'Doppelter Schaden, +25 % Länge und eine zweite Säge nach hinten.', bow: 'Doppelter Schaden und doppelt so viele Bolzen.', ray: 'Doppelter Schaden, der Strahl springt doppelt so oft.'};
+const WDK = {sense: 'Doppelter Hiebschaden, +25 % Reichweite, schlägt immer ringsum.', saw: 'Doppelter Schaden, +25 % Länge und eine zweite Säge nach hinten.', bow: '+50 % Schaden und zwei Bolzen mehr.', ray: 'Doppelter Schaden, der Strahl springt doppelt so oft.'};
 const fits = (b, id) => b.own === 'skins' ? SKINS[id].cl === b.tp : wcl(id) === b.tp;
 // Die vier Klassen. Der Schlüssel ist zugleich die Waffenart: Jede Klasse hat ihre eigenen Waffen.
 const CLS = {
@@ -812,7 +889,7 @@ const CLS = {
     pj:{n:'Irrlichter', neu:'Glühende Lichter jagen die nächsten Gegner.', c1:C.ember, c2:C.glow}},
   bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', draw:drawHuman, cw:26, ch:32, hand:'w', arm:'p', sh:[4.6, -2.6], c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
     pj:{n:'Wurfmesser', neu:'Wurfmesser fliegen auf die nächsten Gegner.', c1:'#4a2a1e', c2:'#e6dcd2'}},
-  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', draw:drawZombie, cw:30, ch:34, hand:'g', arm:'g', sh:[5.4, -2.6], c:'#7dff3a', d:'Zäh und langsam: +40 Leben, heilt 0,5 Leben pro Sekunde, läuft aber 10 % langsamer.',
+  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', draw:drawZombie, cw:30, ch:34, hand:'g', arm:'g', sh:[5.4, -2.6], c:'#7dff3a', d:'Zäh und langsam: +60 Leben, heilt 1 Leben pro Sekunde und nimmt 25 % weniger Schaden, läuft aber 10 % langsamer.',
     pj:{n:'Maden', neu:'Maden.', c1:'#7dff3a', c2:'#ffffff'}},
   ray:   {n:'Alien', wn:'Blaster', skin:'grauer', w:'protonen', draw:drawAlien, cw:26, ch:32, hand:'g', arm:'g', sh:[3.4, -1.4], c:'#6fd0ff', d:'Der Sammler: +30 % Sammelradius und +10 % Erfahrung, hat aber 15 Leben weniger.',
     pj:{n:'Kampfdrohne', neu:'Du machst eine Drohne startklar. Sie fliegt über die Gegner, schießt auf alles in ihrer Nähe und verschwindet dann.', c1:'#6fd0ff', c2:'#ffffff'}},
@@ -843,9 +920,9 @@ const BOX = {
   k_saw:   {n:'Frisches Grab', pl:'Frische Gräber', d:'Enthält ein Aussehen für den Zombie.', cost:100, sp:mk(TOMB, {k:'#14180e', d:'#6a6f78', y:'#3a3f48', g:'#4a3420'}), set:SKINS, own:'skins', tp:'saw'},
   k_ray:   {n:'Stasis-Kapsel', pl:'Stasis-Kapseln', d:'Enthält ein Aussehen für das Alien.', cost:100, sp:mk(POD, {k:'#0a0a12', d:'#a8b0b8', y:'#7dff3a'}), set:SKINS, own:'skins', tp:'ray'},
   scy:     {n:'Klingensarg', pl:'Klingensärge', d:'Enthält eine Sense mit eigener Wirkung.', cost:100, sp:SP.coffinScy, set:SCY, own:'scythes', tp:'sense'},
-  bow:     {n:'Waffenkiste', pl:'Waffenkisten', d:'Enthält eine Armbrust: schwere Bolzen auf große Entfernung.', cost:150, sp:mk(CRATE, {k:'#101a14', d:'#3a4a3a', y:'#e6dcd2'}), set:SCY, own:'scythes', tp:'bow'},
-  saw:     {n:'Werkzeuggrab', pl:'Werkzeuggräber', d:'Enthält eine Kettensäge: kurze Reichweite, sehr viel Schaden.', cost:150, sp:mk(TOMB, {k:'#1a1014', d:'#8a3a22', y:'#e6dcd2', g:'#3a2a1a'}), set:SCY, own:'scythes', tp:'saw'},
-  ray:     {n:'Waffenkapsel', pl:'Waffenkapseln', d:'Enthält einen Blaster: schnelle Strahlen, die von Gegner zu Gegner springen.', cost:150, sp:mk(POD, {k:'#14081e', d:'#4a5a7a', y:'#6fd0ff'}), set:SCY, own:'scythes', tp:'ray'},
+  bow:     {n:'Waffenkiste', pl:'Waffenkisten', d:'Enthält eine Armbrust: schwere Bolzen auf große Entfernung.', cost:100, sp:mk(CRATE, {k:'#101a14', d:'#3a4a3a', y:'#e6dcd2'}), set:SCY, own:'scythes', tp:'bow'},
+  saw:     {n:'Werkzeuggrab', pl:'Werkzeuggräber', d:'Enthält eine Kettensäge: kurze Reichweite, sehr viel Schaden.', cost:100, sp:mk(TOMB, {k:'#1a1014', d:'#8a3a22', y:'#e6dcd2', g:'#3a2a1a'}), set:SCY, own:'scythes', tp:'saw'},
+  ray:     {n:'Waffenkapsel', pl:'Waffenkapseln', d:'Enthält einen Blaster: schnelle Strahlen, die von Gegner zu Gegner springen.', cost:100, sp:mk(POD, {k:'#14081e', d:'#4a5a7a', y:'#6fd0ff'}), set:SCY, own:'scythes', tp:'ray'},
 };
 // Partikel jeder Waffe: Farben, Schwerkraft (g, negativ steigt), Größe, Dauer, deckend oder leuchtend, Fleck am Boden
 const WTH = {
@@ -909,7 +986,7 @@ const DIFF = [
   {id:'leicht',   n:'Leicht',   hp:0.7,  dmg:0.7,  spd:0.95, rate:0.85, coin:0.7, heart:1.5, c:'#4ad98a', d:'Gegner halten weniger aus und treffen schwächer. Zum Lernen und Ausprobieren.'},
   {id:'normal',   n:'Normal',   hp:1,    dmg:1,    spd:1,    rate:1,    coin:1,   heart:1,   c:'#ded3d6', d:'Die Nacht, wie sie gedacht ist.'},
   {id:'schwer',   n:'Schwer',   hp:1.5,  dmg:1.25, spd:1.06, rate:1.15, coin:1.6, heart:0.8, c:'#ff6a2a', d:'Gegner sind zäher, schneller und zahlreicher.'},
-  {id:'hardcore', n:'Hardcore', hp:2.2,  dmg:1.6,  spd:1.12, rate:1.3,  coin:2.5, heart:0.4, c:'#f02238', d:'Für ausgebaute Ausrüstung. Jeder Treffer tut weh, Herzen sind selten.'},
+  {id:'hardcore', n:'Hardcore', hp:2,    dmg:1.5,  spd:1.12, rate:1.3,  coin:2.5, heart:0.5, c:'#f02238', d:'Für ausgebaute Ausrüstung. Jeder Treffer tut weh, Herzen sind selten.'},
 ];
 if (!save.won || typeof save.won !== 'object') save.won = {};
 if (TEST) for (const d of DIFF) save.won[d.id] = true;
@@ -972,8 +1049,8 @@ const UP = [
   {id:'infekt', c:'dauer', cls:['saw'], max:6, n:'Ansteckung', plus:'Besiegte Gegner platzen mit 6 % höherer Chance und treffen alle Umstehenden. Mehr Schaden.'},
   {id:'orbital', c:'fern', cls:['ray'], w:1, max:6, n:'Orbitalschlag', neu:'Dein Mutterschiff feuert alle paar Sekunden einen Strahl auf den nächsten Gegner. Bosse haben Vorrang und nehmen doppelten Schaden.', plus:'Größerer Einschlag, mehr Schaden.'},
   {id:'schild', c:'leben', cls:['ray'], max:5, n:'Energieschild', plus:'Ein Schild fängt einen Treffer ab und lädt dann nach. Jede Stufe lädt 2 Sekunden schneller (Stufe 1: 13 Sekunden).'},
-  {id:'rausch', c:'schaden', cls:['bow'], max:5, n:'Adrenalin', plus:'Jeder Sieg gibt kurz +0,6 % Schaden und etwas Tempo, bis zu 20-mal. Ohne Siege verfliegt es.'},
-  {id:'krit', c:'schaden', cls:['bow'], max:5, n:'Scharfes Auge', plus:'+6 % Chance auf Volltreffer.'},
+  {id:'rausch', c:'schaden', cls:['bow'], max:5, n:'Adrenalin', plus:'Jeder Sieg gibt kurz +0,4 % Schaden und etwas Tempo, bis zu 20-mal. Ohne Siege verfliegt es.'},
+  {id:'krit', c:'schaden', cls:['bow'], max:5, n:'Scharfes Auge', plus:'+5 % Chance auf Volltreffer.'},
   {id:'nova', c:'dauer', cls:['sense', 'saw'], w:1, max:6, s:'N', n:'Blutnova',     neu:'Eine Schockwelle aus Blut stößt den Schwarm zurück.', plus:'Größere Welle, mehr Schaden.'},
   {id:'licht', c:'fern', cls:['bow', 'ray'], w:1, max:6, s:'I', n:'Irrlichter',   neu:'Glühende Lichter jagen die nächsten Gegner.', plus:'Ein Geschoss mehr pro Salve, mehr Schaden.'},
   {id:'sauger', c:'dauer', cls:['sense'], w:1, max:6, s:'V', n:'Essenzsauger', neu:'Eine Kugel saugt ständig an den nächsten Gegnern. Wenig Schaden, aber sehr schnell. Tötet sie selbst, fliegt die Essenz sofort zu dir.', plus:'Ein Ziel mehr gleichzeitig, etwas mehr Schaden.'},
@@ -985,7 +1062,7 @@ const UP = [
   {id:'durst', c:'leben', cls:['sense', 'saw'], max:5, s:'D', n:'Blutdurst',    plus:'Heilt dauerhaft 0,6 Lebenspunkte pro Sekunde.'},
   {id:'weite', c:'schaden',  max:5, s:'E', n:'Lange Klinge', plus:'+12 % Reichweite und Größe aller Angriffe.'},
   {id:'gier', c:'nutzen', cls:['sense', 'bow', 'ray'], max:5, s:'G', n:'Gier',         plus:'Seelen geben 20 % mehr Erfahrung.'},
-  {id:'haut', c:'leben', cls:['saw'], max:5, s:'B', n:'Zähes Fleisch',  plus:'Jeder Treffer macht 1,5 weniger Schaden.'},
+  {id:'haut', c:'leben', cls:['saw'], max:5, s:'B', n:'Zähes Fleisch',  plus:'Jeder Treffer macht 3 weniger Schaden.'},
 ];
 UP.forEach(u => { if (ICONS[u.id]) u.ic = mk(ICONS[u.id], {x: CAT[u.c].c, h: '#ffffff'}); });
 // Geheime dunkle Stufe: erscheint erst, wenn eine Gabe voll ausgebaut ist. Höchstens zwei pro Runde.
@@ -999,7 +1076,7 @@ const DKT = {
   sog: 'Sammelradius mal 2,5.', herz: '+150 maximale Lebenspunkte, heilt dich voll.', durst: 'Heilt zusätzlich 3 Lebenspunkte pro Sekunde.',
   brand: 'Größere Feuerfläche, brennt länger, doppelter Schaden.', glocke: 'Doppelter Schaden, +50 % Starre, +20 % Umkreis.', seuche: 'Doppelter Schaden, +30 % Größe.', infekt: 'Platzt fast doppelt so oft, doppelter Schaden.',
   orbital: 'Drei Strahlen hintereinander, +30 % Schaden.', schild: 'Lädt in weniger als der Hälfte der Zeit und stößt beim Brechen alle Gegner zurück.', rausch: 'Baut sich doppelt so schnell auf, bis zu 30-mal.', krit: 'Volltreffer treffen noch einmal härter (+1 auf den Faktor).',
-  weite: '+45 % Reichweite und Größe aller Angriffe.', gier: 'Seelen geben doppelte Erfahrung.', haut: 'Jeder Treffer macht 6 weniger Schaden.',
+  weite: '+45 % Reichweite und Größe aller Angriffe.', gier: 'Seelen geben doppelte Erfahrung.', haut: 'Jeder Treffer macht 10 weniger Schaden.',
 };
 UP.forEach(u => u.dk = DKT[u.id]);
 // Manche Gaben gehören fest zu einer Waffenart
@@ -1036,6 +1113,7 @@ let P, lv, st, zones, enemies, picks, bolts, swings, throws, wisps, novas, parts
 let time, kills, bossKills, level, xp, xpNeed, wave, waveT, spawnAcc, boss, shake, orbA, cd, pickCombo, pickComboT;
 const grid = new Map();
 const keys = new Set();
+let dmgTot = 0, dmgBoss = 0;
 let joy = null, auraT = 0, won = false, winT = 0, paid = false, rush = 0, rushT = 0, shieldT = 0, burstD = 0;
 
 function resize() {
@@ -1071,15 +1149,15 @@ function recompute() {
   st.pick = 26 * (1 + 0.35 * lv.sog) * (D.sog ? 2.5 : 1) * (1 + (sk.pick || 0) * km);
   st.maxHp = Math.round(100 + 25 * lv.herz + (D.herz ? 150 : 0) + (sk.hp || 0) * km + 6 * (kL - 1));
   st.regen = 0.6 * lv.durst + (D.durst ? 3 : 0);
-  st.area = 1 + 0.12 * lv.weite + (D.weite ? 0.45 : 0); st.xp = (1 + 0.2 * lv.gier + (D.gier ? 1 : 0)) * (1 + (sk.xp || 0) * km); st.armor = 1.5 * lv.haut + (D.haut ? 6 : 0);
+  st.area = 1 + 0.12 * lv.weite + (D.weite ? 0.45 : 0); st.xp = (1 + 0.2 * lv.gier + (D.gier ? 1 : 0)) * (1 + (sk.xp || 0) * km); st.armor = 3 * lv.haut + (D.haut ? 10 : 0); st.dr = 1;
   st.dodge = (sk.dodge || 0) * km; st.crit = 0.1 + (sc.crit ? 0.15 * cm : 0); st.critM = sc.crit ? 3 : 2; st.range = 1 + (sc.range || 0) * cm;
   st.sdmg = (1 + 0.08 * (cL - 1)) * RDM[sc.r || 'u']; st.scm = cm;
   // Eigenheiten der Klassen
   st.exec = K === 'sense' ? 0.1 : 0;
   if (K === 'bow') { st.speed *= 1.1; st.dodge += 0.1; st.maxHp -= 10; }
-  if (K === 'saw') { st.speed *= 0.9; st.maxHp += 40; st.regen += 0.5; }
+  if (K === 'saw') { st.speed *= 0.9; st.maxHp += 60; st.regen += 1; st.dr = 0.75; }
   if (K === 'ray') { st.pick *= 1.3; st.xp *= 1.1; st.maxHp -= 15; }
-  st.crit += 0.06 * lv.krit; if (D.krit) st.critM += 1;
+  st.crit += 0.05 * lv.krit; if (D.krit) st.critM += 1;
 }
 
 /* ---------- Ton ---------- */
@@ -1392,7 +1470,8 @@ function banner(big, small) {
 function hit(e, dmg, kx, ky, quiet) {
   if (e.dead) return;
   const crit = Math.random() < st.crit; if (crit) dmg *= st.critM;
-  if (rush) dmg *= 1 + rush * 0.006 * lv.rausch;
+  if (rush) dmg *= 1 + rush * 0.004 * lv.rausch;
+  dmgTot += Math.min(dmg, Math.max(0, e.hp)); if (e.boss) dmgBoss += dmg;
   e.hp -= dmg; if (st.exec && !e.boss && e.hp > 0 && e.hp < e.maxHp * st.exec) e.hp = 0; if (!quiet) e.flash = 0.09;
   if (!quiet) fx(e.x, e.y, crit ? 3 : 1, {c: ['#ffffff', sc.t], v0: 40, v1: 120, d0: 0.1, d1: 0.22, s: 1.5, add: true});
   const kb = e.boss ? 0.08 : e.elite ? 0.4 : 1; e.kx += kx * kb; e.ky += ky * kb;
@@ -1439,7 +1518,7 @@ function hurt(d) {
     if (dark.schild) for (const o of enemies) { if (o.dead) continue; const ox = o.x - P.x, oy = o.y - P.y, dd = Math.hypot(ox, oy) || 1; if (dd < 70) hit(o, 30 * st.dmg, ox / dd * 220, oy / dd * 220, true); }
     return;
   }
-  P.hp -= Math.max(1, d * DF.dmg - st.armor); P.inv = 0.7; shake = Math.max(shake, 4); hurtT = 0.4; sfx.hurt();
+  P.hp -= Math.max(1, d * DF.dmg * st.dr - st.armor); P.inv = 0.7; shake = Math.max(shake, 4); hurtT = 0.4; sfx.hurt();
   fx(P.x, P.y, 10, {c: [C.bone, C.blood], v0: 30, v1: 90, d0: 0.25, d1: 0.45});
   if (P.hp <= 0) { P.hp = 0; gameOver(); }
 }
@@ -1596,7 +1675,7 @@ function senseTick(dt) {
   cd.sense -= dt; if (cd.sense > 0) return;
   cd.sense = 0.8 * st.cd;
   const L = lv.sense, t = nearest(P.x, P.y, 130), aim = t ? Math.atan2(t.y - P.y, t.x - P.x) : P.face;
-  const r = (37 + 3 * L) * st.area * st.range * (dark.sense ? 1.25 : 1), dmg = (12 + 4.4 * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1);
+  const r = (37 + 3 * L) * st.area * st.range * (dark.sense ? 1.25 : 1), dmg = (TUNE.senseDmg0 + TUNE.senseDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1);
   const arcs = (L >= 5 || dark.sense) ? [[aim, Math.PI]] : (L >= 3 || sc.twin) ? [[aim, 1.4], [aim + Math.PI, 1.4]] : [[aim, 1.4]];
   arcs.forEach(([a, hw], i) => swings.push({a, hw, r, t: 0, d: 0.46, rear: i > 0, dmg, seen: new Set()}));
   if (sc.wave) wisps.push({x: P.x, y: P.y, vx: Math.cos(aim) * 150, vy: Math.sin(aim) * 150, t: 0.45, pierce: 99, dmg: dmg * 0.6 * st.scm, seen: new Set(), big: true, a: aim});
@@ -1622,7 +1701,7 @@ function sawTick(dt) {
   turnTo(t ? Math.atan2(t.y - P.y, t.x - P.x) : P.face, dt, 7);
   cd.sense -= dt; sawHit = Math.max(0, sawHit - dt);
   if (cd.sense > 0) return;
-  const tick = (L >= 5 ? 0.085 : 0.11) * Math.max(0.6, st.cd); cd.sense = tick;
+  const tick = (L >= 5 ? 0.085 : 0.11) * Math.max(0.45, st.cd); cd.sense = tick;
   const dmg = (TUNE.sawDmg0 + TUNE.sawDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1) * (1 + rev * TUNE.sawRev); let hits = 0;
   for (const e of enemies) {
     if (e.dead) continue;
@@ -1650,7 +1729,7 @@ function bowTick(dt) {
   cd.sense -= dt; bowLoad = Math.min(1, Math.max(0, 1 - cd.sense / total));
   if (cd.sense > 0 || !t || Math.abs(angd(want, aimA)) > 0.2) return;
   cd.sense = total; bowLoad = 0;
-  const cnt = (1 + (L >= 3 ? 1 : 0) + (L >= 5 ? 1 : 0) + (sc.twin ? 1 : 0)) * (dark.sense ? 2 : 1), dmg = (TUNE.bowDmg0 + TUNE.bowDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1);
+  const cnt = 1 + (L >= 3 ? 1 : 0) + (L >= 5 ? 1 : 0) + (sc.twin ? 1 : 0) + (dark.sense ? 2 : 0), dmg = (TUNE.bowDmg0 + TUNE.bowDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 1.5 : 1);
   for (let i = 0; i < cnt; i++) { const a = aimA + (i - (cnt - 1) / 2) * 0.15, s8 = aimS(); shots.push({x: P.x + gripX(s8) + Math.cos(s8) * 9, y: P.y + gripY(s8) + Math.sin(s8) * 9, vx: Math.cos(a) * 390, vy: Math.sin(a) * 390, a, t: 0, pierce: sc.slow ? 99 : 4 + L, dmg, seen: new Set(), vid: time}); }
   recoil = 1; shake = Math.max(shake, 1.2);
   const mx = P.x + gripX(aimS()) + Math.cos(aimS()) * 11, my = P.y + gripY(aimS()) + Math.sin(aimS()) * 11;
@@ -1659,8 +1738,8 @@ function bowTick(dt) {
 }
 // Geisterkanone: der Strahl wandert sichtbar zum Ziel und springt dann weiter. Solange er unterwegs ist, fällt kein zweiter Schuss.
 let beam = null;
-const TUNE = {sawRev: 0.8, sawBoss: 0.95, sawDmg0: 1.8, sawDmgL: 1.3, bowDmg0: 34, bowDmgL: 10, bowCd: 0.8, senseDmg0: 12, senseDmgL: 5};
-const RAYB = {dmg0: 1.4, dmgL: 3, reach: 92, hop: 60, spd: 260, spdL: 30, cd: 0.28, fall: 0.06, j0: 2, jL: 1, first: 1.6, forkAt: 3};
+const TUNE = {sawRev: 0.8, sawBoss: 1, sawDmg0: 2.3, sawDmgL: 1.6, bowDmg0: 26, bowDmgL: 6.5, bowCd: 0.8, bowSame: 0.25, senseDmg0: 16, senseDmgL: 6, rayBoss: 3};
+const RAYB = {dmg0: 2, dmgL: 4, reach: 92, hop: 60, spd: 260, spdL: 30, cd: 0.28, fall: 0.06, j0: 2, jL: 1, first: 1.6, forkAt: 3};
 // Ein Kopf des Strahls sucht sein nächstes Ziel; alle Köpfe teilen sich die Liste der schon Getroffenen
 function rayHop(b, h) {
   let best = null, bd = b.hop * b.hop;
@@ -1681,8 +1760,8 @@ function rayTick(dt) {
       const dx = h.tg.x - h.x, dy = h.tg.y - h.y, dl = Math.hypot(dx, dy) || 1, sl = b.spd * dt;
       if (dl > sl + h.tg.r) { h.x += dx / dl * sl; h.y += dy / dl * sl; continue; }
       const e = h.tg; h.x = e.x; h.y = e.y; h.pts.push(e.x, e.y);
-      const dmg = b.dmg * (b.n === 0 ? RAYB.first + 0.25 * lv.sense : Math.max(0.4, 1 - h.n * RAYB.fall)); h.n++; b.n++;
-      hit(e, dmg, 0, 0, b.n > 2);
+      const dmg = b.dmg * (b.n === 0 ? RAYB.first + 0.4 * lv.sense : Math.max(0.4, 1 - h.n * RAYB.fall)); h.n++; b.n++;
+      hit(e, dmg * (e.boss ? TUNE.rayBoss : 1), 0, 0, b.n > 2);
       if (!e.dead && sc.slow) e.slowT = 1.2 * st.scm;
       if (e.dead && sc.boom) { for (const o of enemies) { if (o.dead) continue; const ox = o.x - e.x, oy = o.y - e.y, rr = 22 + o.r; if (ox * ox + oy * oy < rr * rr) hit(o, dmg * 0.4 * st.scm, ox, oy, true); } ring(e.x, e.y, 22, sc.t, 0.3, 3); }
       whit(e);
@@ -1733,7 +1812,7 @@ function weapons(dt) {
   // Seelenkreis
   if (lv.kreis) {
     orbA += 2.5 * dt;
-    const L = lv.kreis, n = (L + 1) * (dark.kreis ? 2 : 1), r = (36 + 2 * L) * st.area, dmg = (6 + 2.2 * L) * st.dmg * (dark.kreis ? 1.5 : 1);
+    const L = lv.kreis, n = (L + 1) * (dark.kreis ? 2 : 1), r = (36 + 2 * L) * st.area, dmg = (8 + 3 * L) * st.dmg * (dark.kreis ? 1.5 : 1);
     for (let i = 0; i < n; i++) {
       const a = orbA + i / n * TAU, bx = P.x + Math.cos(a) * r, by = P.y + Math.sin(a) * r;
       if (Q >= 1 && Math.random() < 14 * dt * PM) wfx(bx, by, 1, a - 1.57, 0.4, 2, 14);
@@ -1753,7 +1832,7 @@ function weapons(dt) {
     if (cd.wurf <= 0) {
       cd.wurf = 2 * st.cd;
       const L = lv.wurf, n = (1 + (L / 2 | 0)) * (dark.wurf ? 2 : 1), t = nearest(P.x, P.y, 170), base = t ? Math.atan2(t.y - P.y, t.x - P.x) : P.face;
-      for (let i = 0; i < n; i++) { const a = base + (i - (n - 1) / 2) * 0.45; throws.push({x: P.x, y: P.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, t: 0, ret: false, seen: new Set(), dmg: (14 + 5 * L) * st.dmg * (dark.wurf ? 1.5 : 1), rot: 0, tr: []}); }
+      for (let i = 0; i < n; i++) { const a = base + (i - (n - 1) / 2) * 0.45; throws.push({x: P.x, y: P.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, t: 0, ret: false, seen: new Set(), dmg: (18 + 6.5 * L) * st.dmg * (dark.wurf ? 1.5 : 1), rot: 0, tr: []}); }
       beep(520, 0.12, 'triangle', 0.03, -300);
     }
   }
@@ -1798,7 +1877,7 @@ function weapons(dt) {
       const t = nearest(P.x, P.y, 190);
       if (!t) cd.kugel = 0.4; else {
         cd.kugel = 2.8 * st.cd; const L = lv.kugel, a0 = Math.atan2(t.y - P.y, t.x - P.x);
-        for (let i = 0; i < (dark.kugel ? 2 : 1); i++) { const a = a0 + (i ? 0.7 : 0); orbs.push({x: P.x, y: P.y, vx: Math.cos(a) * 55, vy: Math.sin(a) * 55, t: 0, tk: 0, n: 2 + (L * 0.67 | 0), r: 42 * st.area, dmg: (2.5 + 1.9 * L) * st.dmg * (dark.kugel ? 1.5 : 1), tg: [], sd: Math.random() * 99}); }
+        for (let i = 0; i < (dark.kugel ? 2 : 1); i++) { const a = a0 + (i ? 0.7 : 0); orbs.push({x: P.x, y: P.y, vx: Math.cos(a) * 55, vy: Math.sin(a) * 55, t: 0, tk: 0, n: 2 + (L * 0.67 | 0), r: 42 * st.area, dmg: (3.5 + 2.7 * L) * st.dmg * (dark.kugel ? 1.5 : 1), tg: [], sd: Math.random() * 99}); }
         beep(240, 0.4, 'sawtooth', 0.03, 300);
       }
     }
@@ -1808,7 +1887,7 @@ function weapons(dt) {
     cd.gfalle -= dt;
     if (cd.gfalle <= 0) {
       const t = nearest(P.x, P.y, 160);
-      if (!t) cd.gfalle = 0.5; else { cd.gfalle = 6.5 * st.cd; const L = lv.gfalle; vorts.push({x: t.x, y: t.y, sx: P.x, sy: P.y, t: -0.35, d: dark.gfalle ? 4.4 : 2.4, tk: 0, r: (44 + 4 * L) * st.area, dps: (4 + 3.6 * L) * st.dmg * (dark.gfalle ? 2 : 1)}); beep(500, 0.3, 'triangle', 0.04, -200); }
+      if (!t) cd.gfalle = 0.5; else { cd.gfalle = 6.5 * st.cd; const L = lv.gfalle; vorts.push({x: t.x, y: t.y, sx: P.x, sy: P.y, t: -0.35, d: dark.gfalle ? 4.4 : 2.4, tk: 0, r: (44 + 4 * L) * st.area, dps: (6 + 5.4 * L) * st.dmg * (dark.gfalle ? 2 : 1)}); beep(500, 0.3, 'triangle', 0.04, -200); }
     }
   }
   // Totenglocke (Reaper): die Glocke erscheint über dem Kopf, läutet und lässt nahe Gegner kurz erstarren
@@ -1842,8 +1921,8 @@ function weapons(dt) {
     if (cd.orbital <= 0) {
       const t = boss && !boss.dead && Math.hypot(boss.x - P.x, boss.y - P.y) < 280 ? boss : nearest(P.x, P.y, 200);
       if (!t) cd.orbital = 0.4; else {
-        cd.orbital = 3.6 * st.cd; const L = lv.orbital;
-        for (let i = 0; i < (dark.orbital ? 3 : 1); i++) volleys.push({x: t.x + (i ? rnd(-50, 50) : 0), y: t.y + (i ? rnd(-50, 50) : 0), r: (34 + 4 * L) * st.area, t: -i * 0.25, d: 0.5, dmg: (20 + 9 * L) * st.dmg * (dark.orbital ? 1.3 : 1), sd: Math.random(), orb: true});
+        cd.orbital = 3 * st.cd; const L = lv.orbital;
+        for (let i = 0; i < (dark.orbital ? 3 : 1); i++) volleys.push({x: t.x + (i ? rnd(-50, 50) : 0), y: t.y + (i ? rnd(-50, 50) : 0), r: (34 + 4 * L) * st.area, t: -i * 0.25, d: 0.5, dmg: (28 + 13 * L) * st.dmg * (dark.orbital ? 1.3 : 1), sd: Math.random(), orb: true});
         beep(1400, 0.3, 'sine', 0.03, -900);
       }
     }
@@ -1858,7 +1937,7 @@ function weapons(dt) {
     cd.sauger -= dt;
     if (cd.sauger <= 0) {
       cd.sauger = 0.25 * st.cd;
-      const L = lv.sauger, dk = dark.sauger, R = 68 * st.area, dmg = (1.6 + 0.5 * L) * st.dmg * (dk ? 2 : 1), c = [], o = orbPos();
+      const L = lv.sauger, dk = dark.sauger, R = 68 * st.area, dmg = (2.2 + 0.7 * L) * st.dmg * (dk ? 2 : 1), c = [], o = orbPos();
       for (const e of enemies) { if (e.dead) continue; const d = Math.hypot(e.x - o[0], e.y - o[1]) - e.r; if (d < R) c.push([d, e]); }
       c.sort((a, b) => a[0] - b[0]); drain = c.slice(0, (1 + L) * (dk ? 2 : 1)).map(x => x[1]);
       for (const e of drain) {
@@ -1875,7 +1954,7 @@ function weapons(dt) {
       const t = nearest(P.x, P.y, 230);
       if (!t) cd.licht = 0.4; else {
         cd.licht = 4.5 * st.cd; const L = lv.licht, dk = dark.licht, n = (1 + (L >= 4 ? 1 : 0)) * (dk ? 2 : 1), a0 = Math.atan2(t.y - P.y, t.x - P.x);
-        for (let i = 0; i < n; i++) drones.push({x: P.x, y: P.y - 14, a: a0 + (i - (n - 1) / 2) * 0.55, t: -0.7, st: 0, dmg: (9 + 4.5 * L) * st.dmg * (dk ? 1.5 : 1), zt: 0, zx: 0, zy: 0, ph: rnd(0, TAU), off: (i - (n - 1) / 2) * 12});
+        for (let i = 0; i < n; i++) drones.push({x: P.x, y: P.y - 14, a: a0 + (i - (n - 1) / 2) * 0.55, t: -0.7, st: 0, dmg: (12 + 6 * L) * st.dmg * (dk ? 1.5 : 1), zt: 0, zx: 0, zy: 0, ph: rnd(0, TAU), off: (i - (n - 1) / 2) * 12});
         beep(300, 0.5, 'square', 0.02, 500);
       }
     }
@@ -2156,7 +2235,7 @@ function update(dt) {
       const dx = e.x - b.x, dy = e.y - b.y, r = e.r + 4;
       if (dx * dx + dy * dy < r * r) {
         // Mehrere Bolzen derselben Salve treffen dasselbe Ziel nur noch abgeschwächt; der erste Treffer streut etwas auf die Nachbarn
-        b.seen.add(e); const same = e.lastV === b.vid; e.lastV = b.vid; hit(e, b.dmg * (same ? 0.35 : 1), b.vx * 0.2, b.vy * 0.2);
+        b.seen.add(e); const same = e.lastV === b.vid; e.lastV = b.vid; hit(e, b.dmg * (same ? TUNE.bowSame : 1), b.vx * 0.2, b.vy * 0.2);
         if (!same) for (const o of enemies) { if (o.dead || o === e) continue; const ox = o.x - e.x, oy = o.y - e.y, rr = 15 + o.r; if (ox * ox + oy * oy < rr * rr) hit(o, b.dmg * 0.25, ox, oy, true); }
         if (!e.dead && sc.slow) e.slowT = 2 * st.scm;
         fx(e.x, e.y, 5, {c: [sc.t, '#ffffff', sc.pal.e], a: b.a, sp: 0.6, v0: 50, v1: 160, d0: 0.12, d1: 0.3, s: 1.5, add: true}); ring(e.x, e.y, 11, sc.t, 0.22, 2);
@@ -2898,7 +2977,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
-  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.19.0');
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.20.0');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -3106,6 +3185,7 @@ function showPerks() {
 /* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
 // Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
 const NEWS = [
+  ['0.20.0', ['Balance: Die Armbrust war viel zu stark und ist schwächer. Die geheime Stufe gibt ihr +50 % Schaden und zwei Bolzen mehr statt doppelt so viele.', 'Reaper: Sensenhieb, Seelenkreis, Wurfsense und Essenzsauger machen mehr Schaden.', 'Zombie: +60 Leben, heilt 1 Leben pro Sekunde, nimmt 25 % weniger Schaden. Die Säge ist stärker, Zähes Fleisch schützt doppelt so gut.', 'Alien: Der Blaster trifft Bosse dreifach. Kugelblitz, Schwerkraftfalle, Orbitalschlag und Drohne sind stärker.', 'Hardcore ist etwas milder: Gegner halten weniger aus, treffen schwächer, Herzen fallen öfter.', 'Alle Kisten kosten jetzt 100 Seelensplitter.', 'Handy-Modus: eigene Anordnung für Quer- und Hochformat, schmale Anzeige im Spiel.']],
   ['0.19.0', ['Neuigkeiten: Hier liest du ab jetzt, was sich geändert hat.', 'Im Browser wählst du beim ersten Start PC oder Handy. Der Handy-Modus hat eine kompakte Anzeige.', 'Das Hauptmenü hat einen festen Hintergrund, die Karte wandert nicht mehr dahinter.', 'Orbitalschlag: deutlich größere Fläche, Bosse haben Vorrang.', 'Aufwerten kostet bei selteneren Teilen mehr (Selten x1,5, Episch x2,25, Legendär x3,5).', 'Die Seltenheit "Selten" ist jetzt blau.', 'Waffen, die du noch nicht besitzt, verraten nicht mehr, was sie können.']],
   ['0.18.5', ['Mensch, Zombie und Alien halten ihre Waffe mit einer Hand, der andere Arm hängt an der Figur.', 'Waffen stehen in acht festen Richtungen, passend zur Blickrichtung.', 'Der Reaper ist größer, schwebt über dem Boden und hält die Sense vor sich.', 'Waffen in der Hand sind kleiner, Wurfsensen werden nicht mehr überstrahlt.']],
   ['0.18.0', ['Alle Figuren und Waffen neu gezeichnet: mehr Details, dunkler Umriss.', 'Alien: Kampfdrohne statt Geschosse. Mensch: Wurfmesser mit Luftschweif und neue Gabe Brandflasche.', 'Totenglocke: Glocke kündigt sich über dem Kopf an, dafür schwächer.', 'Zombie: Ansteckung hat 6 Stufen. Jede Klasse hat eigene Kisten.', 'Der Schnitter heißt jetzt Reaper, die Geisterkanone ist ein Blaster.']],
@@ -3117,8 +3197,8 @@ const NEWS = [
 ];
 function openNews() {
   only('news'); const box = $('newsList'); box.innerHTML = '';
-  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.19.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
-  save.seenVer = '0.19.0'; persist();
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.20.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.20.0'; persist();
 }
 // Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
 function setDevice(d, quiet) {
@@ -3360,7 +3440,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.19.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.20.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
@@ -3448,7 +3528,10 @@ if (DEV) window.__dev = {
     luAt = -1e9; choose(best);
   },
   skip() { if (state === 'levelup') { pending.length = 0; show('levelup', false); state = 'play'; } },
-  stats() { return {kills, bossKills, wave, level, time, won, hp: P.hp, state}; },
+  stats() { return {kills, bossKills, wave, level, time, won, hp: P.hp, state, dmgTot, dmgBoss, enemies: enemies.length}; },
+  dummy() { if (boss) boss.hp = boss.maxHp = 1e12; },
+  fits(id) { const u = UP.find(x => x.id === id); return !!u && fitsW(u); },
+  ups() { return UP.filter(fitsW).map(u => [u.id, u.max]); },
   info() { return {picks: picks.length, mag: picks.filter(p => p.mag).length, xp: Math.round(xp), level, enemies: enemies.length, parts: parts.length, state}; },
   // Leistungstest starten: Endgame-Szene mit fester Gegnerzahl und allen Gaben der Waffe auf Maximum
   bench(o) {
