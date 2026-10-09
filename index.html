@@ -423,6 +423,7 @@ const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: r
 const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
 
 /* ---------- Sprites ---------- */
+const WALK = [0, 1, 0, 2];
 function shade(c) { const n = parseInt(c.slice(1), 16); return '#' + [(n >> 16 & 255), (n >> 8 & 255), (n & 255)].map(v => Math.round(v * 0.68).toString(16).padStart(2, '0')).join(''); }
 function mk(rows, pal0) {
   const h = rows.length, w = rows[0].length, pal = Object.assign({}, pal0);
@@ -508,10 +509,11 @@ function lite(c, f) { const n = parseInt(c.slice(1), 16); return '#' + [(n >> 16
 function painted(w, h, fn) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
   const P = {
-    r(x, y, ww, hh, col) { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), ww, hh); },
-    h(y, x0, x1, col) { if (x1 >= x0) { g.fillStyle = col; g.fillRect(x0, y, x1 - x0 + 1, 1); } },
-    p(x, y, col) { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1); },
-    c(x, y) { g.clearRect(x, y, 1, 1); },
+    ox: 0,
+    r(x, y, ww, hh, col) { g.fillStyle = col; g.fillRect(Math.round(x) + P.ox, Math.round(y), ww, hh); },
+    h(y, x0, x1, col) { if (x1 >= x0) { g.fillStyle = col; g.fillRect(x0 + P.ox, y, x1 - x0 + 1, 1); } },
+    p(x, y, col) { g.fillStyle = col; g.fillRect(Math.round(x) + P.ox, Math.round(y), 1, 1); },
+    c(x, y) { g.clearRect(x + P.ox, y, 1, 1); },
     line(x0, y0, x1, y1, col, th) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2 || 1; g.fillStyle = col; for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), th || 1, th || 1); },
   };
   fn(P);
@@ -531,15 +533,16 @@ const bz = (a, b, c, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t *
 const INK = '#0a0607', TOOTH = '#d8ccb8';
 
 // Richtung d: 0 vorn, 1 schräg vorn, 2 Seite, 3 schräg hinten, 4 hinten. Bild t: 0 Stand, 1 und 2 Schritte.
-// Reaper: Kapuze mit Schädel, weite Kutte bis zum Boden, Knochenhände
+// Reaper: Kapuze mit Schädel, lange weite Kutte mit ausgefranstem Saum, Knochenhände. Er schwebt, darum keine Füße.
 function drawReaper(P, d, t, pal) {
+  P.ox = 1;
   const p = pal.p, q = pal.q, w = pal.w, r = pal.r, k = pal.k, pl = lite(p, 0.22), wd = shade(w), side = d === 2, sway = t === 1 ? -1 : t === 2 ? 1 : 0;
-  for (let y = 12; y <= 29; y++) {
-    const hw = (y < 15 ? 6 : y < 20 ? 7 : y < 26 ? 8 : 9) - (side ? 2 : 0), sx = y >= 25 ? sway : 0, x0 = 12 - hw + sx, x1 = 13 + hw + sx;
+  for (let y = 12; y <= 33; y++) {
+    const hw = (y < 15 ? 6 : y < 21 ? 7 : y < 27 ? 8 : y < 31 ? 9 : 10) - (side ? 2 : 0), sx = y >= 28 ? sway : 0, x0 = 12 - hw + sx, x1 = 13 + hw + sx;
     P.h(y, x0, x1, p); P.h(y, x1 - 2, x1, q); P.p(x0 + 1, y, pl);
   }
-  for (let x = 1; x <= 24; x++) if (((x + t * 2) & 3) === 0) { P.c(x, 29); if ((x & 7) === 0) P.c(x, 28); }
-  if (!side) { P.r(12, 15, 1, 14, q); P.r(9, 22, 1, 7, q); P.r(16, 23, 1, 6, q); } else P.r(11, 20, 1, 9, q);
+  for (let x = 0; x <= 25; x++) { const m = (x + t * 2) & 3; if (m === 0) { P.c(x, 33); P.c(x, 32); if ((x & 7) === 0) P.c(x, 31); } else if (m === 1) P.c(x, 33); }
+  if (!side) { P.r(12, 15, 1, 17, q); P.r(9, 22, 1, 10, q); P.r(16, 23, 1, 9, q); P.r(6, 27, 1, 5, q); P.r(19, 28, 1, 4, q); } else { P.r(11, 20, 1, 12, q); P.r(14, 25, 1, 7, q); }
   P.h(19, side ? 8 : 6, side ? 17 : 19, '#6b5c50'); P.h(20, side ? 12 : 13, side ? 13 : 14, '#6b5c50');
   if (side) { P.r(11, 14 + sway, 4, 8, q); P.r(12, 14 + sway, 3, 7, p); P.r(13, 21 + sway, 2, 2, w); }
   else { P.r(4, 14 + sway, 4, 8, pl); P.r(4, 21 + sway, 4, 1, q); P.r(8, 15 + sway, 1, 7, q); P.r(5, 22 + sway, 2, 3, w); P.p(4, 23 + sway, w); P.p(7, 23 + sway, wd); P.r(18, 14 - sway, 4, 8, p); P.r(18, 21 - sway, 4, 1, q); P.r(17, 15 - sway, 1, 7, q); P.r(19, 22 - sway, 2, 3, wd); P.p(21, 23 - sway, wd); P.r(7, 24, 1, 5, q); P.r(18, 25, 1, 4, q); }
@@ -733,7 +736,7 @@ const WDK = {sense: 'Doppelter Hiebschaden, +25 % Reichweite, schlägt immer rin
 const fits = (b, id) => b.own === 'skins' ? SKINS[id].cl === b.tp : wcl(id) === b.tp;
 // Die vier Klassen. Der Schlüssel ist zugleich die Waffenart: Jede Klasse hat ihre eigenen Waffen.
 const CLS = {
-  sense: {n:'Reaper', wn:'Sensen', skin:'schnitter', w:'rost', draw:drawReaper, cw:26, ch:32, hand:'w', c:'#f02238', d:'Der Vollstrecker. Gegner mit weniger als 10 % Leben fallen sofort (Bosse ausgenommen).',
+  sense: {n:'Reaper', wn:'Sensen', skin:'schnitter', w:'rost', draw:drawReaper, cw:28, ch:36, hand:'w', c:'#f02238', d:'Der Vollstrecker. Gegner mit weniger als 10 % Leben fallen sofort (Bosse ausgenommen).',
     pj:{n:'Irrlichter', neu:'Glühende Lichter jagen die nächsten Gegner.', c1:C.ember, c2:C.glow}},
   bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', draw:drawHuman, cw:26, ch:32, hand:'w', c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
     pj:{n:'Wurfmesser', neu:'Wurfmesser fliegen auf die nächsten Gegner.', c1:'#4a2a1e', c2:'#e6dcd2'}},
@@ -754,6 +757,8 @@ const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', tru
 function reaperSprite(moving) {
   // mit Säge, Armbrust und Kanone schaut er dorthin, wohin er zielt; mit der Sense in Laufrichtung
   const d = RDIR[Math.round((sc.type && state !== 'menu' ? aimA : P.face) / (Math.PI / 4)) & 7];
+  // der Reaper schwebt: sein Saum weht ständig, Schritte macht er nicht
+  if (sk.cl === 'sense') return [sk.dir[d[0]][WALK[(clock * 3.2 | 0) & 3]], d[1]];
   return [sk.dir[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
 }
 const wcl = id => SCY[id].type || 'sense';
@@ -1386,7 +1391,6 @@ const SKEL_L = SKEL.slice(0, 9).concat(['w.wWkkWw..', '..wwwwWW..', '.www..ww..'
 const SKEL_R = SKEL.slice(0, 9).concat(['..wWkkWw.w', '..wwwwWW..', '..ww..www.', '.www......']);
 const WITCH_L = WITCH.slice(0, 13).concat(['........pp..']), WITCH_R = WITCH.slice(0, 13).concat(['..pp........']);
 const PRIEST_L = PRIEST.slice(0, 13).concat(['.......kk.']), PRIEST_R = PRIEST.slice(0, 13).concat(['.kk.......']);
-const WALK = [0, 1, 0, 2];
 {
   const alt = new Map([[BAT, [BAT2]], [PUMPKIN, [PUMPKIN2]], [GHOST, [GHOST2]], [SKEL, [SKEL_L, SKEL_R]], [WITCH, [WITCH_L, WITCH_R]], [PRIEST, [PRIEST_L, PRIEST_R]]]);
   for (const k of Object.keys(SP)) { const a = alt.get(SP[k].rows), fr = [SP[k]]; if (a) a.forEach((rows, i) => fr.push(SP[k + '_' + (i + 2)] = mk(rows, SP[k].pal))); SP[k].fr = fr; }
@@ -1572,7 +1576,7 @@ function bowTick(dt) {
   const cnt = (1 + (L >= 3 ? 1 : 0) + (L >= 5 ? 1 : 0) + (sc.twin ? 1 : 0)) * (dark.sense ? 2 : 1), dmg = (TUNE.bowDmg0 + TUNE.bowDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1);
   for (let i = 0; i < cnt; i++) { const a = aimA + (i - (cnt - 1) / 2) * 0.15; shots.push({x: P.x + gripX(a) + Math.cos(a) * 9, y: P.y + gripY(a) + Math.sin(a) * 9, vx: Math.cos(a) * 390, vy: Math.sin(a) * 390, a, t: 0, pierce: sc.slow ? 99 : 4 + L, dmg, seen: new Set(), vid: time}); }
   recoil = 1; shake = Math.max(shake, 1.2);
-  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 14, my = P.y + gripY(aimA) + Math.sin(aimA) * 14;
+  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 11, my = P.y + gripY(aimA) + Math.sin(aimA) * 11;
   wfx(mx, my, 8, aimA, 0.5, 50, 170); ring(mx, my, 12, sc.t, 0.2, 2);
   beep(180, 0.16, 'triangle', 0.05, -120); beep(900, 0.05, 'square', 0.02, -500);
 }
@@ -1614,7 +1618,7 @@ function rayTick(dt) {
   }
   cd.sense -= dt; if (cd.sense > 0 || !t) return;
   aimA = Math.atan2(t.y - P.y, t.x - P.x);
-  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 16, my = P.y + gripY(aimA) + Math.sin(aimA) * 16, left = (RAYB.j0 + (L * RAYB.jL | 0) + (sc.jump || 0)) * (dark.sense ? 2 : 1);
+  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 11.5, my = P.y + gripY(aimA) + Math.sin(aimA) * 11.5, left = (RAYB.j0 + (L * RAYB.jL | 0) + (sc.jump || 0)) * (dark.sense ? 2 : 1);
   beam = {seen: new Set([t]), n: 0, end: 0, sd: Math.random() * 99, spd: RAYB.spd + RAYB.spdL * L, hop: RAYB.hop * (1 + (st.area - 1) * 0.5), forks: 1 + (L >= RAYB.forkAt ? 1 : 0) + (L >= RAYB.forkAt + 2 ? 1 : 0),
     dmg: (RAYB.dmg0 + RAYB.dmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1), heads: [{x: mx, y: my, pts: [mx, my], n: 0, left, tg: t}]};
   recoil = 0.5; wfx(mx, my, 4, aimA, 0.6, 30, 110); beep(rnd(500, 650), 0.12, 'sawtooth', 0.02, 300);
@@ -1646,7 +1650,7 @@ function weapons(dt) {
   auraT -= dt;
   if (auraT <= 0 && Q >= 1 && save.scythe !== 'rost' && (!demoOn || demoOn.ab === 'sense')) {
     auraT = 0.09;
-    if (sc.type) wfx(P.x + gripX(aimA) + Math.cos(aimA) * 12, P.y + gripY(aimA) + Math.sin(aimA) * 12, 1, undefined, 0, 2, 12);
+    if (sc.type) wfx(P.x + gripX(aimA) + Math.cos(aimA) * 9, P.y + gripY(aimA) + Math.sin(aimA) * 9, 1, undefined, 0, 2, 12);
     else wfx(P.x + (P.flip ? -9 : 9) + rnd(-5, 5), P.y - 9 + rnd(-3, 3), 1, undefined, 0, 2, 12);
   }
   // Seelenkreis
@@ -1906,7 +1910,7 @@ function update(dt) {
     if (t.ret) { const dx = P.x - t.x, dy = P.y - t.y, d = Math.hypot(dx, dy) || 1; t.vx = dx / d * 200; t.vy = dy / d * 200; if (d < 8 || t.t > 3.5) t.done = true; }
     t.x += t.vx * dt; t.y += t.vy * dt;
     const rr = 9 * st.area;
-    if (Math.random() < 40 * dt * PM) wfx(t.x, t.y, 1, undefined, 0, 2, 16);
+    if (Math.random() < 16 * dt * PM) wfx(t.x - t.vx * 0.04, t.y - t.vy * 0.04, 1, undefined, 0, 2, 14);
     for (const e of enemies) { if (e.dead || t.seen.has(e)) continue; const dx = e.x - t.x, dy = e.y - t.y, r = rr + e.r; if (dx * dx + dy * dy < r * r) { t.seen.add(e); tone('wurf'); hit(e, t.dmg, t.vx * 0.25, t.vy * 0.25); whit(e, Math.atan2(t.vy, t.vx)); } }
   }
   throws = throws.filter(t => !t.done);
@@ -2391,7 +2395,7 @@ function scytheAt(x, y, ang, z, al) { gRot(sc.sp.uv, x, y, ang + Math.PI / 4, 16
 function weaponAt(x, y, ang, z) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(sc.sp.img, -2.5 * z, -8 * z, 16 * z, 16 * z); ctx.restore(); }
 function spin(sp, x, y, rot, z, al) { gRot(sp.uv, x, y, rot, 16, 16, 8, 8, z, al == null ? 1 : al); }
 // Hände an der Waffe (im gedrehten Bild der Waffe)
-function hands(x0, y0, x1, y1) { ctx.fillStyle = C.void; ctx.fillRect(x0 - 1.4, y0 - 1.4, 2.8, 2.8); ctx.fillRect(x1 - 1.4, y1 - 1.4, 2.8, 2.8); ctx.fillStyle = sk.hand; ctx.fillRect(x0 - 0.9, y0 - 0.9, 1.8, 1.8); ctx.fillRect(x1 - 0.9, y1 - 0.9, 1.8, 1.8); }
+function hands(x0, y0, x1, y1) { ctx.fillStyle = C.void; ctx.fillRect(x0 - 1.1, y0 - 1.1, 2.2, 2.2); ctx.fillRect(x1 - 1.1, y1 - 1.1, 2.2, 2.2); ctx.fillStyle = sk.hand; ctx.fillRect(x0 - 0.6, y0 - 0.6, 1.2, 1.2); ctx.fillRect(x1 - 0.6, y1 - 0.6, 1.2, 1.2); }
 
 function draw() {
   const k = S * dpr, add = Q >= 1 ? 'lighter' : 'source-over', ga = Q >= 1, blade = sc.type ? SCY.rost.sp : sc.sp;
@@ -2613,15 +2617,15 @@ function draw() {
       const n = (lv.kreis + 1) * (dark.kreis ? 2 : 1), r = (36 + 2 * lv.kreis) * st.area, z = 0.62 * st.area;
       for (let i = 0; i < n; i++) {
         const a = orbA + i / n * TAU, bx = P.x + Math.cos(a) * r, by = P.y + Math.sin(a) * r;
-        if (Q >= 1) { gCrescent(P.x, P.y, r + 4 * z, a, a - 1.25, 8 * z, col('kreis'), 0.5, 0.5, true); gCrescent(P.x, P.y, r + 3 * z, a, a - 0.7, 3 * z, sc.pal.e, 0.85, 0.5, true); glow(bx, by, 14 * z + 4, col('kreis'), 0.55); }
+        if (Q >= 1) { gCrescent(P.x, P.y, r + 4 * z, a, a - 1.25, 8 * z, col('kreis'), 0.5, 0.5, true); gCrescent(P.x, P.y, r + 3 * z, a, a - 0.7, 3 * z, sc.pal.e, 0.85, 0.5, true); glow(bx, by, 12 * z + 4, col('kreis'), 0.25); }
         spin(blade, bx, by, orbA * 3 + i, z);
       }
     }
     // Wurfsensen mit Schweif
     for (const t of throws) {
       const z = 0.9 * st.area, len = t.tr.length / 2;
-      for (let j = 0; j < len; j++) { const f = (j + 1) / len; glow(t.tr[j * 2], t.tr[j * 2 + 1], 9 * f * st.area + 2, col('wurf'), 0.4 * f); if (Q >= 2 && j % 3 === 0) spin(blade, t.tr[j * 2], t.tr[j * 2 + 1], t.rot - (len - j) * 0.35, z * f, 0.25 * f); }
-      glow(t.x, t.y, 15 * st.area, col('wurf'), 0.6);
+      for (let j = 0; j < len; j++) { const f = (j + 1) / len; if (j % 2 === 0) glow(t.tr[j * 2], t.tr[j * 2 + 1], 6 * f * st.area + 2, col('wurf'), 0.12 * f); if (Q >= 2 && j % 3 === 0) spin(blade, t.tr[j * 2], t.tr[j * 2 + 1], t.rot - (len - j) * 0.35, z * f, 0.25 * f); }
+      glow(t.x, t.y, 12 * st.area, col('wurf'), 0.22);
       spin(blade, t.x, t.y, t.rot, z);
     }
     // Geschosse und Klingenwellen
@@ -2681,14 +2685,14 @@ function draw() {
   // Spieler
   glow(px, py, 100, '#ffd8a0', 0.2); glow(px, py, 34, '#fff0d0', 0.22);
   if (inGame && !(state === 'play' && P.inv > 0 && (clock * 20 | 0) % 2)) {
-    const bob = (inGame && !P.mv) ? 0 : (((P.walk / 1.7 | 0) & 1) ? -1 : 0);
-    ctx.globalAlpha = 0.4; ctx.fillStyle = '#000'; ctx.fillRect(px - 5, py + 6, 10, 2); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
+    const hov = sk.cl === 'sense', fl = Math.sin(clock * 3.1), bob = hov ? -2.5 + fl * 1.2 : (inGame && !P.mv) ? 0 : (((P.walk / 1.7 | 0) & 1) ? -1 : 0);
+    ctx.globalAlpha = hov ? 0.3 - fl * 0.06 : 0.4; ctx.fillStyle = '#000'; if (hov) ctx.fillRect(px - 4 + fl * 0.6, py + 6, 8 - fl * 1.2, 2); else ctx.fillRect(px - 5, py + 6, 10, 2); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
     ctx.globalAlpha = 0.8; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py + bob - yo + q[1], PZ, RF, true); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
     spr(RS, px, py + bob - yo, PZ, RF, false);
     ctx.globalAlpha = 1;
     if (sc.type === 'saw') {
       // Motorblock sitzt vor dem Körper, die Schiene zeigt nach vorn; die Kette läuft sichtbar um
-      const a = inGame ? aimA : -0.3, jig = inGame ? Math.sin(clock * 80) * (0.25 + rev * 0.35) : 0, z = Math.min(1.75, Math.max(1.05, sawReach() / 16));
+      const a = inGame ? aimA : -0.3, jig = inGame ? Math.sin(clock * 80) * (0.25 + rev * 0.35) : 0, z = Math.min(1.25, Math.max(0.8, sawReach() / 22));
       for (const aa of (dark.sense && inGame) ? [a, a + Math.PI] : [a]) {
         ctx.save(); ctx.translate(px + gripX(aa) + jig, py + gripY(aa) + bob); ctx.rotate(aa); if (Math.cos(aa) < 0) ctx.scale(1, -1);
         ctx.drawImage(sc.sp.img, -4 * z, -8.5 * z, 16 * z, 16 * z);
@@ -2698,14 +2702,14 @@ function draw() {
         ctx.restore();
       }
     } else if (sc.type === 'ray') {
-      const a = inGame ? aimA : -0.3, k = recoil * 2.5, z = 1.2;
+      const a = inGame ? aimA : -0.3, k = recoil * 2.5, z = 0.85;
       ctx.save(); ctx.translate(px + gripX(a), py + gripY(a) + bob); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); ctx.translate(-k, 0);
       ctx.drawImage(sc.sp.img, -3 * z, -8 * z, 16 * z, 16 * z); hands(-0.6 * z, 2.4 * z, 5 * z, 1.2 * z);
       ctx.restore();
-      glow(px + gripX(a) + Math.cos(a) * 16, py + gripY(a) + bob + Math.sin(a) * 16, 6 + recoil * 8, col('sense'), 0.5 + recoil * 0.5);
+      glow(px + gripX(a) + Math.cos(a) * 11.5, py + gripY(a) + bob + Math.sin(a) * 11.5, 5 + recoil * 7, col('sense'), 0.45 + recoil * 0.5);
     } else if (sc.type === 'bow') {
       // Armbrust vor dem Körper, Sehne spannt sich beim Nachladen, Rückstoß beim Schuss
-      const a = inGame ? aimA : -0.3, z = 1.35, ld = inGame ? bowLoad : 1, k = recoil * 3.5;
+      const a = inGame ? aimA : -0.3, z = 0.95, ld = inGame ? bowLoad : 1, k = recoil * 3.5;
       ctx.save(); ctx.translate(px + gripX(a), py + gripY(a) + bob); ctx.rotate(a); ctx.translate(1 - k, 0);
       ctx.drawImage(sc.sp.img, -5 * z, -7.5 * z, 16 * z, 16 * z);
       const tipX = 4.5 * z, tipY = 5.2 * z, nock = (4.5 - 4 * ld) * z;
@@ -2713,10 +2717,10 @@ function draw() {
       if (ld >= 1) { ctx.fillStyle = '#ffffff'; ctx.fillRect(10 * z, -0.5, 1.5, 1); }
       hands(-3.4 * z, 1, 2 * z, 1);
       ctx.restore();
-      if (ld >= 1 && inGame) glow(px + gripX(a) + Math.cos(a) * 16, py + gripY(a) + bob + Math.sin(a) * 16, 6, sc.t, 0.6);
+      if (ld >= 1 && inGame) glow(px + gripX(a) + Math.cos(a) * 11, py + gripY(a) + bob + Math.sin(a) * 11, 5, sc.t, 0.6);
       if (recoil > 0.5) gCrescent(px + Math.cos(a) * 10, py + 2 + Math.sin(a) * 10, 14, a - 0.7, a + 0.7, 5, sc.t, (recoil - 0.5) * 1.6, 1, ga);
     }
-    else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -6 : 6), py + 5 + bob); if (P.flip) ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -6, -15.6, 19.2, 19.2); ctx.restore(); }
+    else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -6 : 6), py + 5 + bob); if (P.flip) ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
     if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
     if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
@@ -2818,7 +2822,7 @@ function drawHero() {
   g.drawImage(sp.img, Math.round(cx - sp.w * sz / 2), base - sp.h * sz + sz, sp.w * sz, sp.h * sz);
   g.save();
   if (!sc.type) { g.translate(cx + 9 * z, cy + 5 * z); g.drawImage(sc.sp.img, -6 * z, -15.6 * z, 19.2 * z, 19.2 * z); }
-  else { g.translate(cx + 5 * z, cy + 3.5 * z); g.rotate(-0.22 + Math.sin(menuT * 1.6) * 0.03); const w = z; g.drawImage(sc.sp.img, -3.5 * w, -8 * w, 16 * w, 16 * w); g.fillStyle = sk.hand; g.fillRect(-1.5 * z, 0.4 * z, 1.8 * z, 1.8 * z); g.fillRect(3.6 * z, 0.3 * z, 1.8 * z, 1.8 * z); }
+  else { g.translate(cx + 5 * z, cy + 3.5 * z); g.rotate(-0.22 + Math.sin(menuT * 1.6) * 0.03); const w = z * 0.8; g.drawImage(sc.sp.img, -3.5 * w, -8 * w, 16 * w, 16 * w); g.fillStyle = sk.hand; g.fillRect(-1.5 * z, 0.4 * z, 1.8 * z, 1.8 * z); g.fillRect(3.6 * z, 0.3 * z, 1.8 * z, 1.8 * z); }
   g.restore();
 }
 let openSeq = 0, skipFn = null;
@@ -3239,7 +3243,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.18.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.18.1' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
