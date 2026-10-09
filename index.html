@@ -561,7 +561,7 @@ function drawReaper(P, d, t, pal) {
   else P.r(12, 3, 1, 11, q);
 }
 // Mensch: zerzaustes Haar, offene Jacke über dem Hemd, Hose und Stiefel
-function drawHuman(P, d, t, pal) {
+function drawHuman(P, d, t, pal, na) {
   const h = pal.h, w = pal.w, r = pal.r, p = pal.p, q = pal.q, a = pal.a, b = pal.b, k = pal.k, wd = shade(w), bd = shade(b), hl = lite(h, 0.22), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
   if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(10 - f, 21, 4, 7, bd); P.r(10 - f, 28, 5, 2, shade(k)); P.r(10 + f, 21, 4, 7, b); P.r(10 + f, 28, 5, 2, k); }
   else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(8, 21, 4, 7 - lL, b); P.r(11, 21, 1, 7 - lL, bd); P.r(7, 28 - lL, 5, 2, k); P.r(14, 21, 4, 7 - lR, b); P.r(17, 21, 1, 7 - lR, bd); P.r(14, 28 - lR, 5, 2, k); }
@@ -570,7 +570,8 @@ function drawHuman(P, d, t, pal) {
   if (!back && !side) { const o = d; P.r(10 + o, 12, 5, 8, a); P.r(10 + o, 13, 1, 7, shade(a)); P.r(9 + o, 12, 1, 8, q); P.r(15 + o, 12, 1, 8, q); P.p(12 + o, 20, '#c8a040'); }
   if (side) { P.r(15, 13, 2, 7, a); P.r(14, 13, 1, 7, q); }
   if (back) { P.r(12, 13, 1, 7, q); P.h(16, x0 + 1, x1 - 2, q); }
-  if (side) { P.r(11 + sw, 13, 3, 7, q); P.r(11 + sw, 13, 2, 7, p); P.r(12 + sw, 20, 2, 2, w); }
+  if (na) { if (!side) { P.r(5, 12, 2, 2, p); P.r(19, 12, 2, 2, q); } }
+  else if (side) { P.r(11 + sw, 13, 3, 7, q); P.r(11 + sw, 13, 2, 7, p); P.r(12 + sw, 20, 2, 2, w); }
   else { P.r(4, 12 + sw, 3, 8, p); P.r(4, 12 + sw, 1, 8, lite(p, 0.15)); P.r(5, 20 + sw, 2, 2, w); P.r(19, 12 - sw, 3, 8, q); P.r(19, 20 - sw, 2, 2, wd); }
   P.r(11, 10, 4, 2, wd);
   const hx = side ? 1 : 0;
@@ -589,7 +590,7 @@ function drawHuman(P, d, t, pal) {
   }
 }
 // Zombie: kahler, schwerer Kopf mit glühenden Augen, zerrissenes Hemd, nackte Füße; größer und breiter als die anderen
-function drawZombie(P, d, t, pal) {
+function drawZombie(P, d, t, pal, na) {
   const g = pal.g, r = pal.r, k = pal.k, p = pal.p, q = pal.q, b = pal.b, gd = shade(g), gl = lite(g, 0.2), bd = shade(b), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
   if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(12 - f, 23, 5, 7, bd); P.r(12 - f, 30, 6, 2, gd); P.r(12 + f, 23, 5, 7, b); P.r(12 + f, 30, 6, 2, g); P.p(13 + f, 29, g); }
   else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(9, 23, 5, 7 - lL, b); P.r(13, 23, 1, 7 - lL, bd); P.r(8, 30 - lL, 6, 2, g); P.r(16, 23, 5, 7 - lR, b); P.r(20, 23, 1, 7 - lR, bd); P.r(16, 30 - lR, 6, 2, gd); P.p(10, 29 - lL, g); P.p(18, 28 - lR, gd); }
@@ -598,7 +599,8 @@ function drawZombie(P, d, t, pal) {
   for (let y = 13; y <= 22; y++) for (let x = x0; x <= x1; x++) { if (y === 22 && (x * 7 + 1) % 3 === 0) continue; if (y === 21 && x % 5 === 0) continue; P.p(x + (y < 18 ? bx : 0), y, x >= x1 - 1 ? q : p); }
   P.h(13, x0 + 1 + bx, x0 + 4 + bx, lite(p, 0.18));
   if (!side) { P.r(x0 + 3 + bx, 17, 2, 2, gd); P.p(x0 + 9, 19, gd); P.p(x0 + 10, 20, gd); }
-  if (side) { P.r(14 + bx, 14, 4, 4, q); P.r(18 + bx, 15 + (t ? 1 : 0), 8, 3, g); P.h(17 + (t ? 1 : 0), 18 + bx, 25 + bx, gd); P.r(25 + bx, 14 + (t ? 1 : 0), 3, 4, g); P.p(27 + bx, 18 + (t ? 1 : 0), gd); }
+  if (na) { if (side) P.r(14 + bx, 14, 4, 4, q); else { P.r(4 + bx, 13, 3, 3, p); P.r(23 + bx, 13, 3, 3, q); } }
+  else if (side) { P.r(14 + bx, 14, 4, 4, q); P.r(18 + bx, 15 + (t ? 1 : 0), 8, 3, g); P.h(17 + (t ? 1 : 0), 18 + bx, 25 + bx, gd); P.r(25 + bx, 14 + (t ? 1 : 0), 3, 4, g); P.p(27 + bx, 18 + (t ? 1 : 0), gd); }
   else { P.r(4 + bx, 13 + sw, 3, 4, p); P.r(4 + bx, 17 + sw, 3, 8, g); P.r(4 + bx, 17 + sw, 1, 8, gl); P.r(3 + bx, 25 + sw, 4, 2, g); P.r(23 + bx, 13 - sw, 3, 4, q); P.r(23 + bx, 17 - sw, 3, 8, gd); P.r(23 + bx, 25 - sw, 4, 2, gd); }
   P.r(12 + bx, 11, 5, 2, gd);
   const hx = bx + (side ? 2 : 0);
@@ -609,7 +611,7 @@ function drawZombie(P, d, t, pal) {
   else { const o = d * 2; P.r(11 + hx + o, 6, 3, 2, k); P.r(11 + hx + o, 6, 2, 2, r); P.r(Math.min(17, 16 + o) + hx, 6, 3 - (o ? 1 : 0), 2, k); P.r(Math.min(17, 16 + o) + hx, 6, 2, 2, r); P.h(5, 11 + hx + o, 13 + hx + o, gd); P.r(12 + hx + o, 9, 6 - (o ? 1 : 0), 2, k); P.p(13 + hx + o, 9, TOOTH); P.p(16 + hx + o, 9, TOOTH); P.p(14 + hx + o, 10, TOOTH); P.p(14 + hx + o, 7, gd); }
 }
 // Alien: großer Kopf mit riesigen dunklen Augen, schmaler Körper im Anzug, dünne Arme mit langen Fingern
-function drawAlien(P, d, t, pal) {
+function drawAlien(P, d, t, pal, na) {
   const g = pal.g, k = pal.k, s = pal.s, a = pal.a, gd = shade(g), gl = lite(g, 0.28), sd = shade(s), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
   if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(11 - f, 22, 3, 6, sd); P.r(11 - f, 28, 5, 2, gd); P.r(11 + f, 22, 3, 6, s); P.r(11 + f, 28, 5, 2, g); }
   else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(9, 22, 3, 6 - lL, s); P.r(8, 28 - lL, 4, 2, g); P.r(14, 22, 3, 6 - lR, s); P.r(16, 22, 1, 6 - lR, sd); P.r(14, 28 - lR, 4, 2, gd); }
@@ -618,7 +620,8 @@ function drawAlien(P, d, t, pal) {
   for (let y = 14; y <= 21; y++) { P.h(y, x0, x1, s); P.p(x1, y, sd); } P.h(14, x0 - 1, x1 + 1, s); P.h(15, x0 - 1, x1 + 1, sd); P.h(21, x0, x1, a); P.p(x0 + 1, 15, lite(s, 0.25)); P.p(x0 + 1, 16, lite(s, 0.25));
   if (back) { P.r(10, 15, 6, 5, sd); P.r(12, 16, 2, 2, a); P.p(11, 15, lite(s, 0.2)); }
   else if (!side) { P.r(12 + d, 16, 2, 2, a); P.p(12 + d, 16, '#ffffff'); P.h(18, 10, 15, sd); }
-  if (side) { P.r(12 + sw, 15, 2, 8, g); P.r(12 + sw, 23, 3, 2, g); P.p(12 + sw, 15, gl); }
+  if (na) {}
+  else if (side) { P.r(12 + sw, 15, 2, 8, g); P.r(12 + sw, 23, 3, 2, g); P.p(12 + sw, 15, gl); }
   else { P.r(6, 15 + sw, 2, 8, g); P.p(6, 15 + sw, gl); P.p(6, 16 + sw, gl); P.r(5, 23 + sw, 3, 2, g); P.p(5, 25 + sw, g); P.p(7, 25 + sw, g); P.r(18, 15 - sw, 2, 8, gd); P.r(18, 23 - sw, 3, 2, gd); P.p(18, 25 - sw, gd); P.p(20, 25 - sw, gd); }
   const hx = side ? 1 : 0;
   for (const [y, a0, a1] of [[0, 10, 15], [1, 8, 17], [2, 7, 18], [3, 6, 19], [4, 6, 19], [5, 6, 19], [6, 6, 19], [7, 7, 18], [8, 7, 18], [9, 8, 17], [10, 9, 16], [11, 10, 15], [12, 11, 14]]) { P.h(y, a0 - (side && y < 8 ? 1 : 0), a1 + hx, g); P.h(y, a1 + hx - 1, a1 + hx, gd); }
@@ -738,11 +741,11 @@ const fits = (b, id) => b.own === 'skins' ? SKINS[id].cl === b.tp : wcl(id) === 
 const CLS = {
   sense: {n:'Reaper', wn:'Sensen', skin:'schnitter', w:'rost', draw:drawReaper, cw:28, ch:36, hand:'w', c:'#f02238', d:'Der Vollstrecker. Gegner mit weniger als 10 % Leben fallen sofort (Bosse ausgenommen).',
     pj:{n:'Irrlichter', neu:'Glühende Lichter jagen die nächsten Gegner.', c1:C.ember, c2:C.glow}},
-  bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', draw:drawHuman, cw:26, ch:32, hand:'w', c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
+  bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', draw:drawHuman, cw:26, ch:32, hand:'w', arm:'p', sh:[4.6, -2.6], c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
     pj:{n:'Wurfmesser', neu:'Wurfmesser fliegen auf die nächsten Gegner.', c1:'#4a2a1e', c2:'#e6dcd2'}},
-  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', draw:drawZombie, cw:30, ch:34, hand:'g', c:'#7dff3a', d:'Zäh und langsam: +40 Leben, heilt 0,5 Leben pro Sekunde, läuft aber 10 % langsamer.',
+  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', draw:drawZombie, cw:30, ch:34, hand:'g', arm:'g', sh:[5.4, -2.6], c:'#7dff3a', d:'Zäh und langsam: +40 Leben, heilt 0,5 Leben pro Sekunde, läuft aber 10 % langsamer.',
     pj:{n:'Maden', neu:'Maden.', c1:'#7dff3a', c2:'#ffffff'}},
-  ray:   {n:'Alien', wn:'Blaster', skin:'grauer', w:'protonen', draw:drawAlien, cw:26, ch:32, hand:'g', c:'#6fd0ff', d:'Der Sammler: +30 % Sammelradius und +10 % Erfahrung, hat aber 15 Leben weniger.',
+  ray:   {n:'Alien', wn:'Blaster', skin:'grauer', w:'protonen', draw:drawAlien, cw:26, ch:32, hand:'g', arm:'g', sh:[3.4, -1.4], c:'#6fd0ff', d:'Der Sammler: +30 % Sammelradius und +10 % Erfahrung, hat aber 15 Leben weniger.',
     pj:{n:'Kampfdrohne', neu:'Du machst eine Drohne startklar. Sie fliegt über die Gegner, schießt auf alles in ihrer Nähe und verschwindet dann.', c1:'#6fd0ff', c2:'#ffffff'}},
 };
 for (const id in SKINS) {
@@ -751,6 +754,7 @@ for (const id in SKINS) {
   if (!k.nc) k.nc = k.cl === 'saw' ? '#c2182e' : cl.c;
   k.hand = k.pal[cl.hand];
   k.dir = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dir[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal))); }); k.sp = k.dir.f[0];
+  if (k.cl !== 'sense') { k.armC = k.pal[cl.arm]; k.dirN = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dirN[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal, true))); }); }
 }
 // Blickrichtung aus der Laufrichtung: acht Richtungen, links ist die gespiegelte rechte Seite
 const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', true], ['bs', true], ['b', false], ['bs', false]];
@@ -759,7 +763,8 @@ function reaperSprite(moving) {
   const d = RDIR[Math.round((sc.type && state !== 'menu' ? aimA : P.face) / (Math.PI / 4)) & 7];
   // der Reaper schwebt: sein Saum weht ständig, Schritte macht er nicht
   if (sk.cl === 'sense') return [sk.dir[d[0]][WALK[(clock * 3.2 | 0) & 3]], d[1]];
-  return [sk.dir[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
+  // im Spiel halten Mensch, Zombie und Alien ihre Waffe mit beiden Armen: Figur ohne hängende Arme
+  return [(state !== 'menu' ? sk.dirN : sk.dir)[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
 }
 const wcl = id => SCY[id].type || 'sense';
 for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } it.sp = painted(32, 32, P => (it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe)(P, it.pal)); }
@@ -2394,7 +2399,21 @@ function scytheAt(x, y, ang, z, al) { gRot(sc.sp.uv, x, y, ang + Math.PI / 4, 16
 // Säge und Armbrust zeigen nach rechts; Griff liegt im Ursprung
 function weaponAt(x, y, ang, z) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(sc.sp.img, -2.5 * z, -8 * z, 16 * z, 16 * z); ctx.restore(); }
 function spin(sp, x, y, rot, z, al) { gRot(sp.uv, x, y, rot, 16, 16, 8, 8, z, al == null ? 1 : al); }
-// Hände an der Waffe (im gedrehten Bild der Waffe)
+// Beide Arme von den Schultern zu den Griffen der Waffe. (gx, gy) ist der Griffpunkt, a die Zielrichtung,
+// h0 und h1 sind die Griffstellen im Bild der Waffe (hinten und vorn), fl spiegelt wie die Waffe selbst.
+function arms(px, py, gx, gy, a, fl, k, h0, h1) {
+  const ca = Math.cos(a), sa = Math.sin(a), fs = fl && ca < 0 ? -1 : 1, fa = Math.round(a / (Math.PI / 4)) * Math.PI / 4, S = CLS[sk.cl].sh;
+  const sx = -Math.sin(fa) * S[0], sy = Math.cos(fa) * 1.1;
+  const pts = [[px + sx, py + S[1] + sy, h0], [px - sx, py + S[1] - sy, h1]];
+  if (sy < 0) pts.reverse();                                    // der hintere Arm zuerst
+  ctx.lineCap = 'round';
+  for (const [x0, y0, h] of pts) {
+    const hx = gx + ca * (h[0] - k) - sa * h[1] * fs, hy = gy + sa * (h[0] - k) + ca * h[1] * fs, ex = (x0 + hx) / 2, ey = (y0 + hy) / 2 + 1.6;
+    for (const [w, c] of [[2.7, '#0c0709'], [1.5, sk.armC]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(ex, ey, hx, hy); ctx.stroke(); }
+    ctx.fillStyle = '#0c0709'; ctx.fillRect(hx - 1.15, hy - 1.15, 2.3, 2.3); ctx.fillStyle = sk.hand; ctx.fillRect(hx - 0.7, hy - 0.7, 1.4, 1.4);
+  }
+  ctx.lineCap = 'butt';
+}
 function hands(x0, y0, x1, y1) { ctx.fillStyle = C.void; ctx.fillRect(x0 - 1.1, y0 - 1.1, 2.2, 2.2); ctx.fillRect(x1 - 1.1, y1 - 1.1, 2.2, 2.2); ctx.fillStyle = sk.hand; ctx.fillRect(x0 - 0.6, y0 - 0.6, 1.2, 1.2); ctx.fillRect(x1 - 0.6, y1 - 0.6, 1.2, 1.2); }
 
 function draw() {
@@ -2698,14 +2717,15 @@ function draw() {
         ctx.drawImage(sc.sp.img, -4 * z, -8.5 * z, 16 * z, 16 * z);
         ctx.fillStyle = sc.pal.e; const run = inGame ? clock * (14 + rev * 26) : 0;
         for (let i = 0; i < 4; i++) { const f = ((run + i * 1.75) % 7); ctx.fillRect((5 + f) * z, -2.5 * z, z * 0.8, z * 0.8); ctx.fillRect((12 - f) * z, 1.7 * z, z * 0.8, z * 0.8); }
-        hands(-3 * z, 0.5 * z, 0.8 * z, -4.4 * z);
         ctx.restore();
+        if (aa === a) arms(px + jig, py + bob, px + gripX(aa) + jig, py + gripY(aa) + bob, aa, true, 0, [-3 * z, 0.5 * z], [0.8 * z, -4.4 * z]);
       }
     } else if (sc.type === 'ray') {
       const a = inGame ? aimA : -0.3, k = recoil * 2.5, z = 0.85;
       ctx.save(); ctx.translate(px + gripX(a), py + gripY(a) + bob); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); ctx.translate(-k, 0);
-      ctx.drawImage(sc.sp.img, -3 * z, -8 * z, 16 * z, 16 * z); hands(-0.6 * z, 2.4 * z, 5 * z, 1.2 * z);
+      ctx.drawImage(sc.sp.img, -3 * z, -8 * z, 16 * z, 16 * z);
       ctx.restore();
+      arms(px, py + bob, px + gripX(a), py + gripY(a) + bob, a, true, k, [-0.6 * z, 2.4 * z], [5 * z, 2 * z]);
       glow(px + gripX(a) + Math.cos(a) * 11.5, py + gripY(a) + bob + Math.sin(a) * 11.5, 5 + recoil * 7, col('sense'), 0.45 + recoil * 0.5);
     } else if (sc.type === 'bow') {
       // Armbrust vor dem Körper, Sehne spannt sich beim Nachladen, Rückstoß beim Schuss
@@ -2715,12 +2735,12 @@ function draw() {
       const tipX = 4.5 * z, tipY = 5.2 * z, nock = (4.5 - 4 * ld) * z;
       ctx.strokeStyle = C.bone; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipX, -tipY); ctx.lineTo(nock, 0); ctx.lineTo(tipX, tipY); ctx.stroke();
       if (ld >= 1) { ctx.fillStyle = '#ffffff'; ctx.fillRect(10 * z, -0.5, 1.5, 1); }
-      hands(-3.4 * z, 1, 2 * z, 1);
       ctx.restore();
+      arms(px, py + bob, px + gripX(a), py + gripY(a) + bob, a, false, k - 1, [-3.4 * z, 1], [2.5 * z, 1.2]);
       if (ld >= 1 && inGame) glow(px + gripX(a) + Math.cos(a) * 11, py + gripY(a) + bob + Math.sin(a) * 11, 5, sc.t, 0.6);
       if (recoil > 0.5) gCrescent(px + Math.cos(a) * 10, py + 2 + Math.sin(a) * 10, 14, a - 0.7, a + 0.7, 5, sc.t, (recoil - 0.5) * 1.6, 1, ga);
     }
-    else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -8 : 8), py + 4 + bob); if (P.flip) ctx.scale(-1, 1); ctx.rotate(0.9); ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
+    else if (!inGame || !swings.length) { ctx.save(); { const hx = Math.abs(Math.cos(P.face)) > 0.92 ? 2.8 : 3.8; ctx.translate(px + (P.flip ? -hx : hx), py + 1.5 + bob); } if (P.flip) ctx.scale(-1, 1); ctx.rotate(1); ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
     if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
     if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
@@ -3243,7 +3263,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.18.2' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.18.3' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }

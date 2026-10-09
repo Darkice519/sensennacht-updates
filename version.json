@@ -1,7 +1,7 @@
 {
-  "version": "0.18.2",
-  "build": 23,
+  "version": "0.18.3",
+  "build": 24,
   "file": "index.html",
-  "sha256": "3ada9cda283733571a32632955038a0a43afe26097bf866b7652caec61b19dfc",
+  "sha256": "ba16364764b81007c3a256e8a8c35100387bb7a24dccaaf2178d5711d4051a4c",
   "date": "2026-10-09"
 }
