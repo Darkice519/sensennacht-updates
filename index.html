@@ -332,6 +332,18 @@ body.handy .btns button{white-space:nowrap;padding:0 6px;min-width:34px}
 }
 body.handy .hero{grid-template-columns:minmax(0,1fr)}
 body.handy #bNews{position:relative}body.handy #bNews.neu::after{position:absolute;top:-7px;right:-5px;margin:0;font-size:10px;padding:1px 4px}
+/* Chancen unter den Kisten, Fragezeichen für Mythisches, Auftritt beim mythischen Fund */
+.odds{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;font-size:13px;font-weight:700}
+.qm{font-family:var(--display);font-size:54px;line-height:1;color:var(--ash)}
+#mythic{z-index:5;background:radial-gradient(circle at 50% 50%,#5a0a14 0,#1c0508 55%,#080405 100%);gap:10px;overflow:hidden}
+#mythic>*{position:relative}
+.myrays{position:absolute!important;left:50%;top:50%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(rgba(255,59,59,.22) 0 9deg,rgba(255,59,59,0) 9deg 18deg);animation:myspin 14s linear infinite}
+@keyframes myspin{to{transform:rotate(360deg)}}
+#myOh{font-size:clamp(64px,13vw,150px);color:#ffc94a;text-shadow:5px 5px 0 #8a0f1e,10px 10px 0 #080405;animation:myoh .5s steps(6) infinite alternate}
+@keyframes myoh{from{transform:rotate(-4deg) scale(1)}to{transform:rotate(4deg) scale(1.07)}}
+#myCv{width:min(240px,34vh);height:min(240px,34vh);filter:drop-shadow(0 0 22px #ff3b3b)}
+.mynm{font-size:30px;font-weight:800}
+@media (prefers-reduced-motion:reduce){.myrays,#myOh{animation:none}}
 </style>
 
 </head>
@@ -447,6 +459,14 @@ body.handy #bNews{position:relative}body.handy #bNews.neu::after{position:absolu
     <button class="alt" id="bInvBack" type="button">Zurück</button>
   </section>
 
+  <section id="mythic" class="ov" hidden>
+    <div class="myrays" aria-hidden="true"></div>
+    <h2 id="myOh">OH YEAH!</h2>
+    <canvas id="myCv" class="px" width="240" height="240"></canvas>
+    <span class="rar" style="color:#ff3b3b;font-size:22px">Mythisch</span>
+    <span class="mynm" id="myName"></span>
+    <button class="cta" id="bMyOk" type="button">Weiter</button>
+  </section>
   <section id="opening" class="ov" hidden>
     <h2 id="opTitle">Sarg</h2>
     <div class="reels" id="reels"></div>
@@ -803,11 +823,11 @@ function drawSaw(P, pal) {
   P.r(0, 13, 1, 8, g);
 }
 // Mythisches Aussehen des Menschen: Trainingsanzug, Topfschnitt, große Brille. Beim Laufen wippt er vor und zurück,
-// die Fäuste nach hinten gestreckt (t = 1 vorgebeugt, t = 2 zurückgelehnt).
+// die Fäuste nach hinten gestreckt (t = 1 Oberkörper weit zurückgelehnt, t = 2 leicht vor).
 function drawVector(P, d, t, pal, na) {
   const h = pal.h, w = pal.w, o = pal.p, od = pal.q, a = pal.a, b = pal.b, k = pal.k, wd = shade(w), hl = lite(h, 0.22), ol = lite(o, 0.2), lens = '#dfeef2', side = d === 2, back = d >= 3, mv = t > 0;
   if (side) {
-    const ln = t === 1 ? 2 : t === 2 ? -1 : 0, bx = t === 1 ? -2 : t === 2 ? 1 : 0, hy = t === 1 ? 1 : 0, f = t === 1 ? 2 : t === 2 ? -2 : 0, hx = ln;
+    const ln = t === 1 ? -3 : t === 2 ? 1 : 0, bx = t === 1 ? 1 : 0, hy = 0, f = t === 1 ? 2 : t === 2 ? -2 : 0, hx = ln;
     P.r(10 - f + bx, 22, 4, 6, od); P.r(10 - f + bx, 28, 5, 2, shade(b));
     P.r(10 + f + bx, 22, 4, 6, o); P.r(11 + f + bx, 22, 1, 6, a); P.r(10 + f + bx, 28, 5, 2, b); P.p(12 + f + bx, 29, o);
     for (let y = 11; y <= 16; y++) { const s = Math.round(ln * (16 - y) / 5); P.h(y + hy, 9 + bx + s, 15 + bx + s, o); P.p(9 + bx + s, y + hy, od); P.p(12 + bx + s, y + hy, a); P.p(15 + bx + s, y + hy, ol); }
@@ -822,7 +842,7 @@ function drawVector(P, d, t, pal, na) {
     P.r(18 + hx, 7 + hy, 2, 2, w); P.p(20 + hx, 8 + hy, w); P.p(19 + hx, 9 + hy, wd); P.h(9 + hy, 15 + hx, 16 + hx, shade(wd));
     return;
   }
-  const yo = t === 1 ? 1 : 0, wide = t === 1 ? 1 : 0, lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0;
+  const yo = t === 2 ? 1 : 0, wide = 0, lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0;
   P.r(8, 22, 4, 6 - lL, o); P.r(8, 22, 1, 6 - lL, a); P.r(7, 28 - lL, 5, 2, b); P.p(9, 29 - lL, o);
   P.r(14, 22, 4, 6 - lR, o); P.r(17, 22, 1, 6 - lR, a); P.r(14, 28 - lR, 5, 2, b); P.p(16, 29 - lR, o);
   for (let y = 12; y <= 16; y++) { P.h(y + yo, 8, 17, o); P.p(17, y + yo, od); P.p(8, y + yo, a); }
@@ -3492,7 +3512,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
-  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.23.0');
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.23.1');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -3527,6 +3547,8 @@ function openShop() {
   for (const cat in BOX) {
     const b = BOX[cat], card = el('div', 'box'), row = el('div', 'mbtns');
     card.append(icon(b.sp, 6), el('span', 'nm', b.n), el('span', 'ds', b.own === 'skins' ? b.d : 'Für den ' + (b.tp === 'ray' ? 'Alien' : CLS[b.tp].n) + '. ' + b.d));
+    { const pool = Object.keys(b.set).filter(id => b.set[id].r && fits(b, id)), rars = Object.keys(RAR).filter(r => pool.some(id => b.set[id].r === r)), sum = rars.reduce((s, r) => s + RAR[r].w, 0), od = el('span', 'odds');
+      rars.forEach(r => { const sp = el('span', '', (r === 'm' ? '???' : RAR[r].n) + ' ' + Math.round(RAR[r].w / sum * 100) + ' %'); sp.style.color = r === 'm' ? 'var(--ash)' : RAR[r].c; od.append(sp); }); card.append(od); }
     for (const cnt of [1, 5]) {
       const btn = el('button', cnt === 1 ? 'cta' : 'alt', cnt + ' öffnen · ' + b.cost * cnt); btn.type = 'button';
       btn.addEventListener('click', () => openBoxes(cat, cnt));
@@ -3562,14 +3584,16 @@ function openBoxes(cat, cnt) {
   const strips = res.map(r => {
     const reel = el('div', 'reel'), strip = el('div', 'strip'), tiles = [];
     for (let j = 0; j < WIN + 6; j++) {
-      let tid = j === WIN ? r.id : rollId(b); if (j !== WIN) while (b.set[tid].r === 'm') tid = rollId(b); const o = b.set[tid], tile = el('div', 'tile');
-      tile.style.cssText = '--rc:' + RAR[o.r].c; tile.append(icon(o.sp, isz)); strip.append(tile); tiles.push(tile);
+      const tid = j === WIN ? r.id : rollId(b), o = b.set[tid], tile = el('div', 'tile');
+      // Mythisches rollt nur als Fragezeichen vorbei
+      if (o.r === 'm') { tile.style.cssText = '--rc:var(--ash)'; tile.append(el('span', 'qm', '?')); } else { tile.style.cssText = '--rc:' + RAR[o.r].c; tile.append(icon(o.sp, isz)); }
+      strip.append(tile); tiles.push(tile);
     }
     reel.append(strip); reels.append(reel);
     return {reel, strip, win: tiles[WIN], r};
   });
   let done = false; const timers = [];
-  const land = (o, quiet) => { o.win.className = 'tile win'; if (!quiet) { const hi = o.r.it.r === 'e' || o.r.it.r === 'l' || o.r.it.r === 'm'; beep(hi ? 880 : 587, 0.18, 'triangle', 0.06, hi ? 500 : 120); } };
+  const land = (o, quiet) => { o.win.className = 'tile win'; if (o.r.it.r === 'm') { o.win.innerHTML = ''; o.win.style.cssText = '--rc:' + RAR.m.c; o.win.append(icon(o.r.it.sp, isz)); } if (!quiet) { const hi = o.r.it.r === 'e' || o.r.it.r === 'l' || o.r.it.r === 'm'; beep(hi ? 880 : 587, 0.18, 'triangle', 0.06, hi ? 500 : 120); } };
   const finish = () => {
     if (done || seq !== openSeq) return; done = true; timers.forEach(clearTimeout);
     strips.forEach(o => { o.strip.style.transition = 'none'; o.strip.style.transform = 'translateX(' + o.end + 'px)'; land(o, true); });
@@ -3582,6 +3606,7 @@ function openBoxes(cat, cnt) {
       out.append(c);
     });
     show('bSkip', false); show('bOpDone', true); sfx.box(res.some(r => r.kind !== 'max'));
+    const my = res.find(r => r.it.r === 'm'); if (my) showMythic(my.it, b.own === 'skins');
   };
   skipFn = finish;
   // Erst messen, dann im nächsten Bild die Fahrt starten
@@ -3599,6 +3624,21 @@ function openBoxes(cat, cnt) {
   let tk = 45, at = 0; while (at < 4200) { const when = at, f = 300 + (at / 4200) * 260; timers.push(setTimeout(() => { if (seq === openSeq && !done) beep(f, 0.025, 'square', 0.025); }, when)); at += tk; tk *= 1.085; }
   timers.push(setTimeout(finish, longest * 1000 + 500));
 }
+// Mythischer Fund: eigener Auftritt mit "OH YEAH!"
+let myTimer = 0;
+function showMythic(it, isSkin) {
+  const cv = $('myCv'), g = cv.getContext('2d'); let n = 0; g.imageSmoothingEnabled = false;
+  const frame = () => {
+    g.clearRect(0, 0, cv.width, cv.height); n++;
+    if (isSkin) { const sp = it.dir.s[1 + (n >> 1 & 1)], z = 7; g.drawImage(sp.img, (cv.width - sp.w * z) / 2, cv.height - sp.h * z - 6, sp.w * z, sp.h * z); }
+    else { g.save(); g.translate(cv.width / 2, cv.height / 2); g.rotate(Math.sin(n * 0.9) * 0.14); g.drawImage(it.sp.img, -104, -104, 208, 208); g.restore(); }
+  };
+  clearInterval(myTimer); frame(); myTimer = setInterval(frame, 120);
+  $('myName').textContent = it.n; show('mythic', true);
+  [392, 523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, 0.16, 'square', 0.06, 0, i * 0.07));
+  try { const u = new SpeechSynthesisUtterance('Oh yeah!'); u.lang = 'en-US'; u.pitch = 0.5; u.rate = 0.85; u.volume = Math.min(1, opt.vol + 0.2); speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
+}
+$('bMyOk').addEventListener('click', () => { clearInterval(myTimer); show('mythic', false); });
 // Anlegen: das Teil gehört zu einer Klasse und wird dort gemerkt
 function equip(isSkin, id) { const c = isSkin ? SKINS[id].cl : wcl(id); if (isSkin) save.eq[c].skin = id; else save.eq[c].w = id; if (c === save.cls) setClass(c); persist(); }
 let invTab = null;
@@ -3700,6 +3740,7 @@ function showPerks() {
 /* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
 // Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
 const NEWS = [
+  ['0.23.1', ['Unter jeder Kiste stehen jetzt die Chancen. Mythisches steht dort nur als ??? und rollt als Fragezeichen vorbei.', 'Ein mythischer Fund hat einen eigenen Auftritt.']],
   ['0.23.0', ['Neue Seltenheit: Mythisch. Mythisches kommt sehr selten aus den Kisten und bleibt im Inventar verborgen, bis du es besitzt.', 'Neu gemalt: Lichtstrahlen des Priesters, Kreissäge, Pfeilhagel, Orbitalschlag und Armbrustbolzen.', 'Die Sense ist beim großen Hieb nicht mehr grob, ihre Kanten sind geglättet.']],
   ['0.22.0', ['Geschosse der Bosse sind neu: schattierte Kugeln mit Leuchtschweif und Knochenspeere statt leuchtender Blöcke.', 'Einschlagzonen der Bosse haben einen klaren Rand mit drehenden Bögen, das Geschoss fällt sichtbar herab und schlägt mit Funken ein.', 'Partikel sind feiner: Funken ziehen einen kleinen Schweif, Blut und Splitter sind runde, schattierte Tupfer. Es fliegen mehr davon.', 'Neu gemalt: Feuer (Benzinspur, Brandflasche), Sprengfalle, Schwerkraftfalle, Kugelblitz, Irrlichter und die Geschosse der Gewänder, Brandflasche, Drohne und Glocke.', 'Skelette sind größer.']],
   ['0.21.0', ['Alle Gegner und Bosse sind neu gemalt, in doppelter Auflösung und mit Schattierung.', 'Gegner holen sichtbar aus und schlagen dann zu: Fledermäuse beißen, Kürbisse springen dich an, Skelette schwingen ihre Keule. Schaden gibt es nur noch beim Zuschlag, nicht mehr durch bloßes Berühren.', 'Bosse kündigen jeden Angriff mit einer eigenen Haltung an: Arm hoch und Licht an der Hand für Würfe und Schüsse, ein Ring am Boden für Großangriffe.', 'Bosse schlagen im Nahkampf zu. Ein roter Fächer am Boden zeigt, wohin.', 'Neuer Boden: Kopfsteinpflaster, Ackerfurchen, Gras und Kiesel, die Gebiete gehen fließend ineinander über.', 'Gebäude, Bäume und Dinge haben Umriss, Schattierung und Muster (Schindeln, Bretter, Mauerwerk).', 'Seelen, Herzen und Truhen sind neu gemalt.', 'Schadenszahlen: Auch Dauerschaden (Seuchenwolke, Feuer, Kugelblitz, Essenzsauger ...) zeigt jetzt Zahlen, klein und orange.']],
@@ -3715,8 +3756,8 @@ const NEWS = [
 ];
 function openNews() {
   only('news'); const box = $('newsList'); box.innerHTML = '';
-  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.23.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
-  save.seenVer = '0.23.0'; persist();
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.23.1' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.23.1'; persist();
 }
 // Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
 function setDevice(d, quiet) {
@@ -3958,7 +3999,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.23.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.23.1' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
@@ -4017,6 +4058,7 @@ if (DEV) window.__dev = {
   sheetW() { const c = document.getElementById('devsheet'), g = c.getContext('2d'); g.fillStyle = '#4a5560'; g.fillRect(0, 0, 1280, 720); let x = 6, y = 6; for (const id in SCY) { g.drawImage(SCY[id].sp.img, x, y, 160, 160); x += 168; if (x > 1100) { x = 6; y += 168; } } },
   sheetE(keys, z) { let c = document.getElementById('devsheet'); if (!c) { c = document.createElement('canvas'); c.id = 'devsheet'; c.style.cssText = 'position:fixed;left:0;top:0;z-index:99;background:#4a5560'; document.body.append(c); } c.width = 1280; c.height = 720; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.fillStyle = '#3a4a3a'; g.fillRect(0, 0, 1280, 720); let x = 4, y = 4; for (const k of keys) { for (const sp of SP[k].fr) { if (x + sp.w * z > 1276) { x = 4; y += sp.h * z + 4; } g.drawImage(sp.img, x, y, sp.w * z, sp.h * z); x += sp.w * z + 4; } x = 4; y += SP[k].h * z + 4; } },
   sheetS(id, z) { this.sheet(1); const c = document.getElementById('devsheet'), g = c.getContext('2d'), k = SKINS[id]; g.fillStyle = '#4a5560'; g.fillRect(0, 0, 1280, 720); let x = 6, y = 6; for (const set of [k.dir, k.dirN || {}]) { for (const d of ['f', 'fs', 's', 'bs', 'b']) for (const sp of set[d] || []) { g.drawImage(sp.img, x, y, sp.w * z, sp.h * z); x += sp.w * z + 4; if (x > 1280 - sp.w * z) { x = 6; y += sp.h * z + 4; } } x = 6; y += 34 * z; } g.drawImage(SCY.piranha.sp.img, 900, 440, 256, 256); },
+  myth(w) { showMythic(w ? SCY.piranha : SKINS.vektor, !w); },
   sheetOff() { const c = document.getElementById('devsheet'); if (c) c.remove(); },
   diff(i) { save.diff = i; DF = DIFF[i]; },
   win() { bossKills = BOSSES.length; won = true; winT = 0.05; },
