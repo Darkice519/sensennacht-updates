@@ -2720,7 +2720,7 @@ function draw() {
       if (ld >= 1 && inGame) glow(px + gripX(a) + Math.cos(a) * 11, py + gripY(a) + bob + Math.sin(a) * 11, 5, sc.t, 0.6);
       if (recoil > 0.5) gCrescent(px + Math.cos(a) * 10, py + 2 + Math.sin(a) * 10, 14, a - 0.7, a + 0.7, 5, sc.t, (recoil - 0.5) * 1.6, 1, ga);
     }
-    else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -6 : 6), py + 5 + bob); if (P.flip) ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
+    else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -8 : 8), py + 4 + bob); if (P.flip) ctx.scale(-1, 1); ctx.rotate(0.9); ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
     if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
     if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
@@ -2821,7 +2821,7 @@ function drawHero() {
   g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(cx, base - 4, 74, 10, 0, 0, 6.2832); g.fill();
   g.drawImage(sp.img, Math.round(cx - sp.w * sz / 2), base - sp.h * sz + sz, sp.w * sz, sp.h * sz);
   g.save();
-  if (!sc.type) { g.translate(cx + 9 * z, cy + 5 * z); g.drawImage(sc.sp.img, -6 * z, -15.6 * z, 19.2 * z, 19.2 * z); }
+  if (!sc.type) { g.translate(cx + 8.5 * z, cy + 4 * z); g.rotate(0.9); g.scale(-1, 1); g.drawImage(sc.sp.img, -6 * z, -15.6 * z, 19.2 * z, 19.2 * z); }
   else { g.translate(cx + 5 * z, cy + 3.5 * z); g.rotate(-0.22 + Math.sin(menuT * 1.6) * 0.03); const w = z * 0.8; g.drawImage(sc.sp.img, -3.5 * w, -8 * w, 16 * w, 16 * w); g.fillStyle = sk.hand; g.fillRect(-1.5 * z, 0.4 * z, 1.8 * z, 1.8 * z); g.fillRect(3.6 * z, 0.3 * z, 1.8 * z, 1.8 * z); }
   g.restore();
 }
@@ -3243,7 +3243,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.18.1' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.18.2' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
