@@ -344,6 +344,7 @@ body.handy #bNews{position:relative}body.handy #bNews.neu::after{position:absolu
 #myCv{width:min(240px,34vh);height:min(240px,34vh);filter:drop-shadow(0 0 22px #ff3b3b)}
 .mynm{font-size:30px;font-weight:800}
 @media (prefers-reduced-motion:reduce){.myrays,#myOh{animation:none}}
+body.devm .mside{gap:5px}body.devm .mside .alt{padding:6px 14px;font-size:15px}
 </style>
 
 </head>
@@ -385,7 +386,9 @@ body.handy #bNews{position:relative}body.handy #bNews.neu::after{position:absolu
         <button class="alt" id="bCodex" type="button">Waffenkunde</button>
         <button class="alt" id="bNews" type="button">Neuigkeiten</button>
         <button class="alt" id="bSet" type="button">Einstellungen</button>
-        <button class="alt" id="bUnlock" type="button" hidden>Test: Alles freischalten</button>
+        <button class="alt" id="bUnlock" type="button" hidden>Test: Alles frei</button>
+        <button class="alt" id="bCoins" type="button" hidden>Test: +10000</button>
+        <button class="alt" id="bWipe" type="button" hidden>Test: Alles weg</button>
         <button class="alt" id="bExit" type="button" hidden>Beenden</button>
       </div>
       <h1>Sensennacht</h1>
@@ -3512,7 +3515,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
-  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.23.1');
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.23.2');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -3740,6 +3743,7 @@ function showPerks() {
 /* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
 // Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
 const NEWS = [
+  ['0.23.2', ['Entwicklerversion: zwei neue Knöpfe, einer gibt nur Seelensplitter, einer setzt die Sammlung zurück.']],
   ['0.23.1', ['Unter jeder Kiste stehen jetzt die Chancen. Mythisches steht dort nur als ??? und rollt als Fragezeichen vorbei.', 'Ein mythischer Fund hat einen eigenen Auftritt.']],
   ['0.23.0', ['Neue Seltenheit: Mythisch. Mythisches kommt sehr selten aus den Kisten und bleibt im Inventar verborgen, bis du es besitzt.', 'Neu gemalt: Lichtstrahlen des Priesters, Kreissäge, Pfeilhagel, Orbitalschlag und Armbrustbolzen.', 'Die Sense ist beim großen Hieb nicht mehr grob, ihre Kanten sind geglättet.']],
   ['0.22.0', ['Geschosse der Bosse sind neu: schattierte Kugeln mit Leuchtschweif und Knochenspeere statt leuchtender Blöcke.', 'Einschlagzonen der Bosse haben einen klaren Rand mit drehenden Bögen, das Geschoss fällt sichtbar herab und schlägt mit Funken ein.', 'Partikel sind feiner: Funken ziehen einen kleinen Schweif, Blut und Splitter sind runde, schattierte Tupfer. Es fliegen mehr davon.', 'Neu gemalt: Feuer (Benzinspur, Brandflasche), Sprengfalle, Schwerkraftfalle, Kugelblitz, Irrlichter und die Geschosse der Gewänder, Brandflasche, Drohne und Glocke.', 'Skelette sind größer.']],
@@ -3756,8 +3760,8 @@ const NEWS = [
 ];
 function openNews() {
   only('news'); const box = $('newsList'); box.innerHTML = '';
-  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.23.1' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
-  save.seenVer = '0.23.1'; persist();
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.23.2' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.23.2'; persist();
 }
 // Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
 function setDevice(d, quiet) {
@@ -3970,11 +3974,19 @@ $('bSet').addEventListener('click', () => openSet('menu'));
 $('bCodex').addEventListener('click', openCodex);
 $('bCodexBack').addEventListener('click', toMenu);
 // Testknopf (nur im Entwicklermodus sichtbar): schaltet alles frei, setzt alles auf die höchste Stufe und gibt Seelensplitter
+// Entwickler: nur Währung geben, oder die ganze Sammlung zurücksetzen (Währung bleibt)
+$('bCoins').addEventListener('click', () => { save.coins += 10000; persist(); audioOn(); sfx.box(true); toMenu(); });
+$('bWipe').addEventListener('click', () => {
+  save.skins = []; save.scythes = []; save.lvls = {};
+  for (const c in CLS) { save.skins.push(CLS[c].skin); save.scythes.push(CLS[c].w); save.eq[c] = {skin: CLS[c].skin, w: CLS[c].w}; }
+  setClass(save.cls); persist(); audioOn(); beep(200, 0.2, 'sawtooth', 0.05, -80); toMenu();
+  $('bUnlock').lastChild.textContent = 'Test: Alles frei';
+});
 $('bUnlock').addEventListener('click', () => {
   save.skins = Object.keys(SKINS); save.scythes = Object.keys(SCY);
   for (const id of save.skins.concat(save.scythes)) save.lvls[id] = MAXL;
   for (const d of DIFF) save.won[d.id] = true; save.coins += 10000; persist(); audioOn(); sfx.box(true); toMenu();
-  $('bUnlock').lastChild.textContent = 'Freigeschaltet · +10000 Splitter';
+  $('bUnlock').lastChild.textContent = 'Alles freigeschaltet';
 });
 $('bSetP').addEventListener('click', () => openSet('pause'));
 $('bSetBack').addEventListener('click', () => { if (setFrom === 'pause' && state === 'pause') only('pause'); else toMenu(); });
@@ -3993,13 +4005,13 @@ const MI = {
   book:   ['.xxxxxxx.','xx.....xx','xx.xxx.xx','xx.....xx','xx.xxx.xx','xx.....xx','xx.....xx','xxxxxxxxx','.xxxxxxx.'],
   skip:   ['.........','x...x....','.x...x...','..x...x..','...x...x.','..x...x..','.x...x...','x...x....','.........'],
 };
-const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross', bCodex:'book', bCodexBack:'back', bFree:'play', bWinMenu:'home', bCls:'play', bNews:'book', bNewsBack:'back'};
+const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bCoins:'chest', bWipe:'cross', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross', bCodex:'book', bCodexBack:'back', bFree:'play', bWinMenu:'home', bCls:'play', bNews:'book', bNewsBack:'back'};
 for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(MI[BTN[id]], {x: b.className === 'cta' ? C.void : C.bone}), 3)); }
 
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
-show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.23.1' + (DEV ? ' · Entwicklermodus' : '');
+if (DEV && document.body.classList) document.body.classList.add('devm'); show('bUnlock', DEV); show('bCoins', DEV); show('bWipe', DEV);
+$('ver').textContent = 'Version 0.23.2' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
