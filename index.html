@@ -185,7 +185,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .mbl{display:grid;gap:6px;justify-items:start;text-align:left}.mbl .keys{justify-content:flex-start}
 .mbc{display:grid;gap:8px;justify-items:center}
 .mbr{justify-self:end}
-.cta.big{font-size:34px;padding:22px 54px;letter-spacing:.1em}
+.cta.big{font-size:24px;padding:22px 30px;letter-spacing:.06em;white-space:nowrap}
 @media (max-width:900px){.mtop,.mbot{grid-template-columns:1fr;justify-items:center}.mside{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center}.mtop::before{display:none}.mside .alt{min-width:0}.mtop .coins,.mbr{justify-self:center}.mbl{justify-items:center;text-align:center}}
 .diffs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .dbtn{--cat:var(--bone);font:inherit;font-weight:700;font-size:17px;color:var(--bone);background:var(--coal);border:2px solid var(--cat);padding:7px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:118px}
@@ -259,7 +259,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
   <section id="menu" class="ov">
     <div class="mtop">
       <div class="mside">
-        <button class="alt" id="bShop" type="button">Särge</button>
+        <button class="alt" id="bShop" type="button">Kisten</button>
         <button class="alt" id="bInv" type="button">Inventar</button>
         <button class="alt" id="bCodex" type="button">Waffenkunde</button>
         <button class="alt" id="bSet" type="button">Einstellungen</button>
@@ -273,7 +273,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
       <button class="arrow" id="bPrevC" type="button" aria-label="Vorherige Klasse">&#9664;</button>
       <div class="hero">
         <div class="hname" id="heroName"></div>
-        <canvas id="hero" width="340" height="270"></canvas>
+        <canvas id="hero" width="440" height="300"></canvas>
         <p id="loadout"></p>
         <p class="dim" id="clsInfo"></p>
       </div>
@@ -289,17 +289,17 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
         <div class="diffs" id="diffs"></div>
         <p class="dim" id="diffInfo"></p>
       </div>
-      <div class="mbr"><button class="cta big" id="bStart" type="button">Spielen</button></div>
+      <div class="mbr"><button class="cta big" id="bStart" type="button">Starte in die Nacht</button></div>
     </div>
   </section>
 
   <section id="shop" class="ov" hidden>
-    <h2>Särge</h2>
+    <h2>Kisten</h2>
     <div class="coins"><i class="coin"></i><span id="sCoins">0</span><span>Seelensplitter</span></div>
-    <h3>Klassen-Särge</h3>
+    <h3>Klassen-Kisten</h3>
     <p class="dim">Neues Aussehen für eine Klasse. Jedes bringt einen eigenen Bonus mit.</p>
     <div class="boxes" id="boxesC"></div>
-    <h3>Waffen-Särge</h3>
+    <h3>Waffen-Kisten</h3>
     <p class="dim">Neue Waffen. Jede Waffenart gehört fest zu ihrer Klasse.</p>
     <div class="boxes" id="boxesW"></div>
     <p id="shopMsg"></p>
@@ -467,6 +467,15 @@ const SP = {
   coffinSkin: mk(COFFIN, {k:'#2a1216', d:C.gore, y:C.glow}),
   coffinScy: mk(COFFIN, {k:'#1a1a22', d:'#4a4458', y:C.bone}),
 };
+// Kisten der Klassen: Sarg (Reaper), Holzkiste (Mensch), Grab mit Stein (Zombie), Kapsel (Alien)
+const CRATE = ['............','.kkkkkkkkkk.','kyddddddddyk','kdkddddddkdk','kddkddddkddk','kyyyyyyyyyyk','kddddkkddddk','kddddkkddddk','kyyyyyyyyyyk','kddkddddkddk','kdkddddddkdk','kyddddddddyk','.kkkkkkkkkk.'];
+const TOMB = ['...kkkkkk...','..kddddddk..','.kddddddddk.','.kdddyydddk.','.kddyyyyddk.','.kdddyydddk.','.kdddyydddk.','.kddddddddk.','.kdyydyyddk.','.kddddddddk.','kkddddddddkk','kggygggyggyk','.kkkkkkkkkk.'];
+const POD = ['....kkkk....','...kddddk...','..kdyyyydk..','..kyyyyyyk..','.kdyyyyyydk.','.kddyyyyddk.','.kddddddddk.','.kdkkkkkkdk.','.kddddddddk.','..kddddddk..','..kkddddkk..','.kk.kkkk.kk.','kk...kk...kk'];
+Object.assign(SP, {
+  drone: mk(['kk.....kk','kmk...kmk','.kmmmmmk.','..mmamm..','.kmmmmmk.','kmk...kmk','kk.....kk'], {k:'#2a2e38', m:'#b0b4bc', a:'#6fd0ff'}),
+  drone_2: mk(['.k.....k.','kmk...kmk','.kmmmmmk.','..mmamm..','.kmmmmmk.','kmk...kmk','.k.....k.'], {k:'#55606e', m:'#b0b4bc', a:'#ffffff'}),
+  bell: mk(['....k....','...kyk...','..kyyyk..','..kyhyk..','..kyyyk..','.kyyyyyk.','kyyyyyyyk','kkkkkkkkk','...kyk...'], {k:'#3a2410', y:'#ffc94a', h:'#ffffff'}),
+});
 // Mutierte Horde: nach allen vier Bossen sehen Gegner und Bosse anders aus, sind zäher und geben mehr Essenz
 Object.assign(SP, {
   m_bat: mk(BAT, {d:'#4aa832', y:'#e040ff'}), m_pumpkin: mk(PUMPKIN, {o:'#6a2a8a', y:'#7dff3a', g:'#2a1a3a'}),
@@ -492,6 +501,174 @@ const BOSSES = [
   {n:'Verfluchter Priester', sub:'Lichtkreuze, Bannkreis und Glockenschlag', t:'priest', sp:'bPriest', hp:1.1, spd:21, aura:'#ffc94a'},
 ];
 
+/* ---------- Maler: fein gezeichnete Figuren und Waffen ---------- */
+// Figuren und Waffen werden in doppelter Auflösung gemalt und halb so groß gezeichnet (z = 0.5).
+// Jedes Bild bekommt am Ende von selbst einen dunklen Umriss.
+function lite(c, f) { const n = parseInt(c.slice(1), 16); return '#' + [(n >> 16 & 255), (n >> 8 & 255), (n & 255)].map(v => Math.round(v + (255 - v) * (f || 0.2)).toString(16).padStart(2, '0')).join(''); }
+function painted(w, h, fn) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  const P = {
+    r(x, y, ww, hh, col) { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), ww, hh); },
+    h(y, x0, x1, col) { if (x1 >= x0) { g.fillStyle = col; g.fillRect(x0, y, x1 - x0 + 1, 1); } },
+    p(x, y, col) { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1); },
+    c(x, y) { g.clearRect(x, y, 1, 1); },
+    line(x0, y0, x1, y1, col, th) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2 || 1; g.fillStyle = col; for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), th || 1, th || 1); },
+  };
+  fn(P);
+  // Umriss: jeder leere Bildpunkt neben einem gefüllten wird dunkel
+  const im = g.getImageData(0, 0, w, h), d = im.data, src = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) src[i] = d[i * 4 + 3] > 0 ? 1 : 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x; if (src[i]) continue;
+    if ((x > 0 && src[i - 1]) || (x < w - 1 && src[i + 1]) || (y > 0 && src[i - w]) || (y < h - 1 && src[i + w])) { d[i * 4] = 12; d[i * 4 + 1] = 7; d[i * 4 + 2] = 9; d[i * 4 + 3] = 255; }
+  }
+  g.putImageData(im, 0, 0);
+  const f = document.createElement('canvas'); f.width = w; f.height = h;
+  const fg = f.getContext('2d'); fg.drawImage(c, 0, 0); fg.globalCompositeOperation = 'source-in'; fg.fillStyle = '#fff'; fg.fillRect(0, 0, w, h);
+  return {img: c, flash: f, w, h, z: 0.5};
+}
+const bz = (a, b, c, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
+const INK = '#0a0607', TOOTH = '#d8ccb8';
+
+// Richtung d: 0 vorn, 1 schräg vorn, 2 Seite, 3 schräg hinten, 4 hinten. Bild t: 0 Stand, 1 und 2 Schritte.
+// Reaper: Kapuze mit Schädel, weite Kutte bis zum Boden, Knochenhände
+function drawReaper(P, d, t, pal) {
+  const p = pal.p, q = pal.q, w = pal.w, r = pal.r, k = pal.k, pl = lite(p, 0.22), wd = shade(w), side = d === 2, sway = t === 1 ? -1 : t === 2 ? 1 : 0;
+  for (let y = 12; y <= 29; y++) {
+    const hw = (y < 15 ? 6 : y < 20 ? 7 : y < 26 ? 8 : 9) - (side ? 2 : 0), sx = y >= 25 ? sway : 0, x0 = 12 - hw + sx, x1 = 13 + hw + sx;
+    P.h(y, x0, x1, p); P.h(y, x1 - 2, x1, q); P.p(x0 + 1, y, pl);
+  }
+  for (let x = 1; x <= 24; x++) if (((x + t * 2) & 3) === 0) { P.c(x, 29); if ((x & 7) === 0) P.c(x, 28); }
+  if (!side) { P.r(12, 15, 1, 14, q); P.r(9, 22, 1, 7, q); P.r(16, 23, 1, 6, q); } else P.r(11, 20, 1, 9, q);
+  P.h(19, side ? 8 : 6, side ? 17 : 19, '#6b5c50'); P.h(20, side ? 12 : 13, side ? 13 : 14, '#6b5c50');
+  if (side) { P.r(11, 14 + sway, 4, 8, q); P.r(12, 14 + sway, 3, 7, p); P.r(13, 21 + sway, 2, 2, w); }
+  else { P.r(4, 14 + sway, 4, 8, pl); P.r(4, 21 + sway, 4, 1, q); P.r(8, 15 + sway, 1, 7, q); P.r(5, 22 + sway, 2, 3, w); P.p(4, 23 + sway, w); P.p(7, 23 + sway, wd); P.r(18, 14 - sway, 4, 8, p); P.r(18, 21 - sway, 4, 1, q); P.r(17, 15 - sway, 1, 7, q); P.r(19, 22 - sway, 2, 3, wd); P.p(21, 23 - sway, wd); P.r(7, 24, 1, 5, q); P.r(18, 25, 1, 4, q); }
+  for (const [y, a0, a1] of [[1, 11, 14], [2, 9, 16], [3, 8, 17], [4, 7, 18], [5, 6, 19], [6, 6, 19], [7, 6, 19], [8, 6, 19], [9, 6, 19], [10, 6, 19], [11, 6, 19], [12, 7, 18], [13, 8, 17]]) { P.h(y, a0, a1, p); P.h(y, a1 - 1, a1, q); }
+  P.h(2, 10, 12, pl); P.h(3, 9, 10, pl); P.p(8, 4, pl); P.p(7, 5, pl);
+  if (d <= 1) {
+    const o = d * 2;
+    for (let y = 5; y <= 11; y++) { const i = (y === 5 || y === 11) ? 1 : 0; P.h(y, 8 + o + i, Math.min(18, 17 + o - i), INK); }
+    for (const [y, a0, a1] of [[6, 10, 15], [7, 9, 16], [8, 9, 16], [9, 10, 15], [10, 10, 15], [11, 11, 14]]) P.h(y, a0 + o, Math.min(18, a1 + o), y === 11 ? wd : w);
+    P.r(10 + o, 7, 2, 2, k); P.r(14 + o, 7, 2, 2, k); P.p(11 + o, 8, r); P.p(14 + o, 8, r); P.r(12 + o, 9, 2, 1, wd); P.p(11 + o, 10, INK); P.p(13 + o, 10, INK); if (!o) P.p(15, 10, INK);
+  } else if (side) {
+    for (let y = 6; y <= 10; y++) P.h(y, 13, 19, INK);
+    for (const [y, a0, a1] of [[5, 15, 18], [6, 14, 19], [7, 14, 20], [8, 14, 20], [9, 15, 20], [10, 15, 19], [11, 16, 18]]) P.h(y, a0, a1, y === 11 ? wd : w);
+    P.r(16, 7, 3, 2, k); P.p(18, 8, r); P.p(20, 9, wd); P.p(17, 10, INK); P.p(19, 10, INK); P.p(15, 9, wd);
+  } else if (d === 3) { P.r(17, 6, 2, 5, INK); P.r(18, 7, 1, 3, w); P.r(11, 3, 1, 10, q); }
+  else P.r(12, 3, 1, 11, q);
+}
+// Mensch: zerzaustes Haar, offene Jacke über dem Hemd, Hose und Stiefel
+function drawHuman(P, d, t, pal) {
+  const h = pal.h, w = pal.w, r = pal.r, p = pal.p, q = pal.q, a = pal.a, b = pal.b, k = pal.k, wd = shade(w), bd = shade(b), hl = lite(h, 0.22), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
+  if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(10 - f, 21, 4, 7, bd); P.r(10 - f, 28, 5, 2, shade(k)); P.r(10 + f, 21, 4, 7, b); P.r(10 + f, 28, 5, 2, k); }
+  else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(8, 21, 4, 7 - lL, b); P.r(11, 21, 1, 7 - lL, bd); P.r(7, 28 - lL, 5, 2, k); P.r(14, 21, 4, 7 - lR, b); P.r(17, 21, 1, 7 - lR, bd); P.r(14, 28 - lR, 5, 2, k); }
+  const x0 = side ? 9 : 7, x1 = side ? 16 : 18;
+  for (let y = 12; y <= 20; y++) { P.h(y, x0, x1, p); P.h(y, x1 - 1, x1, q); } P.p(x0, 12, q); P.h(20, x0, x1, k);
+  if (!back && !side) { const o = d; P.r(10 + o, 12, 5, 8, a); P.r(10 + o, 13, 1, 7, shade(a)); P.r(9 + o, 12, 1, 8, q); P.r(15 + o, 12, 1, 8, q); P.p(12 + o, 20, '#c8a040'); }
+  if (side) { P.r(15, 13, 2, 7, a); P.r(14, 13, 1, 7, q); }
+  if (back) { P.r(12, 13, 1, 7, q); P.h(16, x0 + 1, x1 - 2, q); }
+  if (side) { P.r(11 + sw, 13, 3, 7, q); P.r(11 + sw, 13, 2, 7, p); P.r(12 + sw, 20, 2, 2, w); }
+  else { P.r(4, 12 + sw, 3, 8, p); P.r(4, 12 + sw, 1, 8, lite(p, 0.15)); P.r(5, 20 + sw, 2, 2, w); P.r(19, 12 - sw, 3, 8, q); P.r(19, 20 - sw, 2, 2, wd); }
+  P.r(11, 10, 4, 2, wd);
+  const hx = side ? 1 : 0;
+  for (const [y, a0, a1] of [[3, 9, 16], [4, 8, 17], [5, 8, 17], [6, 8, 17], [7, 8, 17], [8, 8, 17], [9, 9, 16]]) { P.h(y, a0 + hx, a1, w); P.p(a1, y, wd); }
+  for (const [y, a0, a1] of [[0, 10, 15], [1, 8, 17], [2, 7, 18], [3, 7, 18]]) P.h(y, a0, a1, h);
+  P.h(1, 10, 12, hl); P.p(9, 2, hl); P.p(13, 0, hl);
+  if (back) { for (let y = 4; y <= 7; y++) P.h(y, 7, 18, h); P.h(8, 8, 17, h); P.p(10, 8, w); P.p(14, 8, w); P.r(12, 4, 1, 4, shade(h)); }
+  else if (side) { for (let y = 4; y <= 7; y++) P.h(y, 8, 13, h); P.h(8, 9, 12, h); P.p(14, 4, h); P.p(15, 4, h); P.p(16, 6, '#ffffff'); P.p(15, 6, r); P.p(18, 7, w); P.h(8, 15, 16, shade(wd)); P.h(5, 15, 16, h); }
+  else {
+    const o = d * 2; P.p(7, 4, h); P.p(7, 5, h); P.p(18, 4, h); if (!o) P.p(18, 5, h); else { P.r(7, 4, 2, 4, h); }
+    P.h(4, 8, 10 + o, h); P.p(14 + o > 17 ? 17 : 14 + o, 4, h);
+    P.h(5, 10 + o, 11 + o, h); P.h(5, Math.min(16, 14 + o), Math.min(17, 15 + o), h);
+    P.p(10 + o, 6, '#ffffff'); P.p(11 + o, 6, r); P.p(Math.min(16, 14 + o), 6, r); P.p(Math.min(17, 15 + o), 6, '#ffffff');
+    P.p(13 + o > 17 ? 17 : 13 + o, 7, wd); P.h(8, 11 + o, Math.min(17, 14 + o), shade(wd));
+    P.h(11, 9, 16, a);
+  }
+}
+// Zombie: kahler, schwerer Kopf mit glühenden Augen, zerrissenes Hemd, nackte Füße; größer und breiter als die anderen
+function drawZombie(P, d, t, pal) {
+  const g = pal.g, r = pal.r, k = pal.k, p = pal.p, q = pal.q, b = pal.b, gd = shade(g), gl = lite(g, 0.2), bd = shade(b), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
+  if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(12 - f, 23, 5, 7, bd); P.r(12 - f, 30, 6, 2, gd); P.r(12 + f, 23, 5, 7, b); P.r(12 + f, 30, 6, 2, g); P.p(13 + f, 29, g); }
+  else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(9, 23, 5, 7 - lL, b); P.r(13, 23, 1, 7 - lL, bd); P.r(8, 30 - lL, 6, 2, g); P.r(16, 23, 5, 7 - lR, b); P.r(20, 23, 1, 7 - lR, bd); P.r(16, 30 - lR, 6, 2, gd); P.p(10, 29 - lL, g); P.p(18, 28 - lR, gd); }
+  const x0 = side ? 10 : 7, x1 = side ? 19 : 22, bx = sw;
+  P.h(22, x0 + 1, x1 - 1, gd);
+  for (let y = 13; y <= 22; y++) for (let x = x0; x <= x1; x++) { if (y === 22 && (x * 7 + 1) % 3 === 0) continue; if (y === 21 && x % 5 === 0) continue; P.p(x + (y < 18 ? bx : 0), y, x >= x1 - 1 ? q : p); }
+  P.h(13, x0 + 1 + bx, x0 + 4 + bx, lite(p, 0.18));
+  if (!side) { P.r(x0 + 3 + bx, 17, 2, 2, gd); P.p(x0 + 9, 19, gd); P.p(x0 + 10, 20, gd); }
+  if (side) { P.r(14 + bx, 14, 4, 4, q); P.r(18 + bx, 15 + (t ? 1 : 0), 8, 3, g); P.h(17 + (t ? 1 : 0), 18 + bx, 25 + bx, gd); P.r(25 + bx, 14 + (t ? 1 : 0), 3, 4, g); P.p(27 + bx, 18 + (t ? 1 : 0), gd); }
+  else { P.r(4 + bx, 13 + sw, 3, 4, p); P.r(4 + bx, 17 + sw, 3, 8, g); P.r(4 + bx, 17 + sw, 1, 8, gl); P.r(3 + bx, 25 + sw, 4, 2, g); P.r(23 + bx, 13 - sw, 3, 4, q); P.r(23 + bx, 17 - sw, 3, 8, gd); P.r(23 + bx, 25 - sw, 4, 2, gd); }
+  P.r(12 + bx, 11, 5, 2, gd);
+  const hx = bx + (side ? 2 : 0);
+  for (const [y, a0, a1] of [[2, 11, 17], [3, 10, 18], [4, 9, 19], [5, 9, 19], [6, 9, 19], [7, 9, 19], [8, 9, 19], [9, 9, 19], [10, 10, 18], [11, 11, 17]]) { P.h(y, a0 + hx, a1 + hx, g); P.h(y, a1 + hx - 1, a1 + hx, gd); }
+  P.h(3, 11 + hx, 13 + hx, gl); P.p(10 + hx, 4, gl); P.r(11 + hx, 4, 2, 1, gd); P.p(17 + hx, 3, gd); P.p(10 + hx, 9, gd);
+  if (back) { P.r(12 + hx, 5, 5, 2, gd); P.p(14 + hx, 8, '#8a0f1e'); }
+  else if (side) { P.r(16 + hx, 6, 3, 2, k); P.r(17 + hx, 6, 2, 2, r); P.r(16 + hx, 9, 4, 2, k); P.p(17 + hx, 9, TOOTH); P.p(19 + hx, 10, TOOTH); P.h(5, 16 + hx, 18 + hx, gd); }
+  else { const o = d * 2; P.r(11 + hx + o, 6, 3, 2, k); P.r(11 + hx + o, 6, 2, 2, r); P.r(Math.min(17, 16 + o) + hx, 6, 3 - (o ? 1 : 0), 2, k); P.r(Math.min(17, 16 + o) + hx, 6, 2, 2, r); P.h(5, 11 + hx + o, 13 + hx + o, gd); P.r(12 + hx + o, 9, 6 - (o ? 1 : 0), 2, k); P.p(13 + hx + o, 9, TOOTH); P.p(16 + hx + o, 9, TOOTH); P.p(14 + hx + o, 10, TOOTH); P.p(14 + hx + o, 7, gd); }
+}
+// Alien: großer Kopf mit riesigen dunklen Augen, schmaler Körper im Anzug, dünne Arme mit langen Fingern
+function drawAlien(P, d, t, pal) {
+  const g = pal.g, k = pal.k, s = pal.s, a = pal.a, gd = shade(g), gl = lite(g, 0.28), sd = shade(s), side = d === 2, back = d >= 3, sw = t === 1 ? -1 : t === 2 ? 1 : 0;
+  if (side) { const f = t === 1 ? 2 : t === 2 ? -2 : 0; P.r(11 - f, 22, 3, 6, sd); P.r(11 - f, 28, 5, 2, gd); P.r(11 + f, 22, 3, 6, s); P.r(11 + f, 28, 5, 2, g); }
+  else { const lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0; P.r(9, 22, 3, 6 - lL, s); P.r(8, 28 - lL, 4, 2, g); P.r(14, 22, 3, 6 - lR, s); P.r(16, 22, 1, 6 - lR, sd); P.r(14, 28 - lR, 4, 2, gd); }
+  P.r(12, 12, 2, 2, gd);
+  const x0 = side ? 10 : 9, x1 = side ? 15 : 16;
+  for (let y = 14; y <= 21; y++) { P.h(y, x0, x1, s); P.p(x1, y, sd); } P.h(14, x0 - 1, x1 + 1, s); P.h(15, x0 - 1, x1 + 1, sd); P.h(21, x0, x1, a); P.p(x0 + 1, 15, lite(s, 0.25)); P.p(x0 + 1, 16, lite(s, 0.25));
+  if (back) { P.r(10, 15, 6, 5, sd); P.r(12, 16, 2, 2, a); P.p(11, 15, lite(s, 0.2)); }
+  else if (!side) { P.r(12 + d, 16, 2, 2, a); P.p(12 + d, 16, '#ffffff'); P.h(18, 10, 15, sd); }
+  if (side) { P.r(12 + sw, 15, 2, 8, g); P.r(12 + sw, 23, 3, 2, g); P.p(12 + sw, 15, gl); }
+  else { P.r(6, 15 + sw, 2, 8, g); P.p(6, 15 + sw, gl); P.p(6, 16 + sw, gl); P.r(5, 23 + sw, 3, 2, g); P.p(5, 25 + sw, g); P.p(7, 25 + sw, g); P.r(18, 15 - sw, 2, 8, gd); P.r(18, 23 - sw, 3, 2, gd); P.p(18, 25 - sw, gd); P.p(20, 25 - sw, gd); }
+  const hx = side ? 1 : 0;
+  for (const [y, a0, a1] of [[0, 10, 15], [1, 8, 17], [2, 7, 18], [3, 6, 19], [4, 6, 19], [5, 6, 19], [6, 6, 19], [7, 7, 18], [8, 7, 18], [9, 8, 17], [10, 9, 16], [11, 10, 15], [12, 11, 14]]) { P.h(y, a0 - (side && y < 8 ? 1 : 0), a1 + hx, g); P.h(y, a1 + hx - 1, a1 + hx, gd); }
+  P.h(1, 10, 12, gl); P.h(2, 8, 10, gl); P.p(7, 3, gl); P.p(7, 4, gl);
+  if (back) { P.r(11, 4, 4, 3, gd); P.p(12, 8, gd); }
+  else if (side) { P.h(5, 15, 18, k); P.h(6, 14, 19, k); P.h(7, 15, 19, k); P.h(8, 16, 18, k); P.p(16, 5, '#ffffff'); P.p(19, 10, gd); P.h(11, 15, 16, gd); }
+  else {
+    const o = d;
+    P.h(5, 8 + o, 10 + o, k); P.h(6, 8 + o, 11 + o, k); P.h(7, 9 + o, 12 + o, k); P.h(8, 10 + o, 12 + o, k);
+    P.h(5, 15 + o, 17 + o, k); P.h(6, 14 + o, 17 + o, k); P.h(7, 13 + o, 16 + o, k); P.h(8, 13 + o, 15 + o, k);
+    P.p(9 + o, 5, '#ffffff'); P.p(16 + o, 5, '#ffffff'); P.p(10 + o, 7, lite(k, 0.3)); P.p(15 + o, 7, lite(k, 0.3));
+    P.p(12 + o, 10, gd); P.p(13 + o, 10, gd); P.h(11, 12 + o, 13 + o, gd);
+  }
+}
+
+// Waffen in 32 x 32, Lage wie die alten Bilder in 16 x 16 (damit Griff und Drehpunkt passen)
+function drawScythe(P, pal) {
+  const e = pal.e, w = pal.w, s = pal.s, b = pal.b, g = pal.g;
+  P.line(6, 30, 27, 10, b, 2); P.line(6, 31, 27, 11, shade(b), 1);
+  for (const f of [0.1, 0.34, 0.6, 0.86]) { const x = Math.round(6 + 21 * f), y = Math.round(30 - 20 * f); P.r(x - 1, y - 1, 4, 3, g); P.p(x, y - 1, lite(g, 0.3)); }
+  for (let i = 0; i <= 120; i++) { const t = i / 120, ox = bz(28, 16, 0, t), oy = bz(8, -4, 11, t), nx = bz(25, 15, 0, t), ny = bz(13, 5, 11, t); P.line(ox, oy, nx, ny, w, 2); }
+  for (let i = 0; i <= 120; i++) { const t = i / 120; P.p(bz(28, 16, 0, t), bz(8, -4, 11, t), s); P.p(bz(28, 16, 0, t), bz(8, -4, 11, t) + 1, s); P.p(bz(25, 15, 0, t), bz(13, 5, 11, t) + 1, e); if (t < 0.8) P.p(bz(25, 15, 0, t), bz(13, 5, 11, t), e); }
+  for (let i = 10; i <= 100; i += 18) { const t = i / 120; P.p(bz(26.5, 15.5, 0, t), bz(10.5, 0.5, 11, t), lite(w, 0.4)); }
+  P.r(25, 8, 5, 6, s); P.r(26, 9, 3, 4, g); P.p(26, 9, e); P.p(29, 14, g);
+}
+function drawSaw(P, pal) {
+  const b = pal.b, g = pal.g, w = pal.w, e = pal.e, s = pal.s || shade(w), hi = pal.h || e, k = pal.k || INK;
+  P.r(15, 13, 15, 7, w); P.r(30, 14, 2, 5, w); P.r(16, 15, 14, 3, s); P.h(13, 15, 29, lite(w, 0.35)); P.r(28, 15, 2, 2, e);
+  for (let x = 16; x <= 30; x += 2) { P.p(x, 12, e); P.p(x + 1, 20, e); } P.p(31, 13, e); P.p(31, 19, e);
+  P.r(1, 10, 15, 14, b); P.r(1, 10, 15, 2, lite(b, 0.28)); P.r(1, 21, 15, 3, shade(b)); P.r(13, 11, 3, 12, shade(b)); P.r(14, 12, 1, 10, g);
+  P.r(3, 16, 7, 1, k); P.r(3, 18, 7, 1, k); P.r(3, 20, 7, 1, k); P.r(10, 12, 3, 3, hi); P.p(11, 13, k); P.r(2, 12, 5, 2, lite(b, 0.4));
+  P.line(3, 9, 5, 4, g, 2); P.line(5, 4, 12, 4, g, 2); P.line(12, 4, 14, 9, g, 2); P.h(4, 6, 11, lite(g, 0.3));
+  P.r(0, 13, 1, 8, g);
+}
+function drawBow(P, pal) {
+  const b = pal.b, g = pal.g, w = pal.w, e = pal.e, m = shade(w);
+  for (let i = 0; i <= 90; i++) { const t = i / 90, x = bz(19, 29, 19, t), y = bz(4, 16, 27, t); P.r(x, y, 2, 2, w); P.p(Math.round(x) + 1, Math.round(y), lite(w, 0.3)); }
+  P.r(18, 3, 3, 3, e); P.r(18, 26, 3, 3, e);
+  P.r(0, 12, 6, 8, b); P.r(0, 18, 6, 2, g); P.r(0, 12, 1, 8, g);
+  P.r(4, 13, 22, 6, b); P.r(4, 17, 22, 2, g); P.h(13, 4, 25, lite(b, 0.25)); P.r(8, 15, 16, 2, shade(g));
+  P.r(21, 12, 4, 8, m); P.r(22, 13, 2, 6, w); P.p(22, 13, lite(w, 0.4));
+  P.r(26, 14, 3, 4, w); P.r(29, 15, 3, 2, e); P.r(9, 19, 2, 3, g); P.p(3, 14, lite(b, 0.3));
+}
+// Strahlenpistole des Aliens: Flosse hinten, Energiekammer oben, schräger Griff, langer Lauf mit drei Ringen
+function drawGun(P, pal) {
+  const b = pal.b, g = pal.g, w = pal.w, s = pal.s, e = pal.e;
+  P.r(19, 14, 12, 4, w); P.r(19, 15, 12, 2, s); P.h(14, 19, 30, lite(w, 0.4)); for (const x of [20, 24, 28]) { P.r(x, 12, 2, 8, g); P.p(x, 12, lite(g, 0.4)); } P.r(31, 13, 1, 6, e);
+  P.r(3, 12, 16, 8, b); P.h(12, 3, 18, lite(b, 0.35)); P.r(3, 18, 16, 2, shade(b)); P.r(6, 14, 10, 2, s); P.r(7, 14, 3, 1, e);
+  P.r(0, 10, 4, 9, g); P.line(0, 7, 3, 10, s, 2); P.p(0, 10, lite(g, 0.3));
+  P.r(8, 7, 7, 5, s); P.r(9, 7, 3, 2, e); P.r(7, 11, 9, 1, g); P.p(14, 8, shade(s));
+  P.r(5, 20, 5, 3, g); P.r(4, 23, 5, 4, g); P.r(5, 21, 1, 5, lite(g, 0.3)); P.h(26, 4, 8, shade(g));
+  P.r(10, 20, 4, 1, g); P.r(13, 20, 1, 3, g); P.r(15, 20, 3, 4, g); P.p(15, 20, lite(g, 0.3));
+}
 /* ---------- Sammlung: Klassen, ihr Aussehen und ihre Waffen ---------- */
 const RAR = {g:{n:'Gewöhnlich', c:'var(--bone)', w:55}, s:{n:'Selten', c:'var(--ember)', w:30}, e:{n:'Episch', c:'var(--epic)', w:12}, l:{n:'Legendär', c:'var(--glow)', w:3}};
 const pc = x => Math.round(x * 100), dec = x => x.toFixed(1).replace('.', ',');
@@ -506,9 +683,9 @@ const SKINS = {
   // Mensch
   jaeger:      {cl:'bow', n:'Jäger', d:m => 'Dein alter Mantel. Kein eigener Bonus.', pal:{h:'#6a4426', w:'#e8c8a0', r:'#2a1a12', p:'#4f7040', q:'#2e4424', a:'#c23a2a', b:'#4a3a30', k:'#1a1210'}},
   soeldner:    {cl:'bow', n:'Söldner', r:'g', hp:25, d:m => '+' + Math.round(25 * m) + ' maximale Lebenspunkte.', pal:{h:'#8a8f9a', w:'#e8c8a0', r:'#2a1a12', p:'#3a4a6a', q:'#222c44', a:'#c8c8d8', b:'#3a3034', k:'#14141a'}},
-  waldlaeufer: {cl:'bow', n:'Waldläufer', r:'s', speed:.15, d:m => '+' + pc(.15 * m) + ' % Lauftempo.', pj:{n:'Wurfbeile', neu:'Wurfbeile fliegen auf die nächsten Gegner.', c1:'#7ab84a', c2:'#e6dcd2'}, pal:{h:'#2e4424', w:'#d8b088', r:'#14100e', p:'#6a5a3a', q:'#3e3422', a:'#7ab84a', b:'#3a2e28', k:'#14100e'}},
-  hexenjaeger: {cl:'bow', n:'Hexenjäger', r:'e', dmg:.2, d:m => '+' + pc(.2 * m) + ' % Schaden für alle Waffen.', pj:{n:'Silberkugeln', neu:'Silberkugeln schießen auf die nächsten Gegner.', c1:'#c8c8d8', c2:'#ffffff'}, pal:{h:'#14141a', w:'#f2e9dd', r:C.blood, p:'#2a2230', q:'#14101a', a:'#c8c8d8', b:'#22222c', k:'#0a0a0e'}},
-  inquisitor:  {cl:'bow', n:'Großinquisitor', r:'l', startW:true, xp:.1, d:m => 'Startet mit einer zweiten Zufallswaffe. +' + pc(.1 * m) + ' % Erfahrung.', pj:{n:'Weihfeuer', neu:'Geweihte Flammen schießen auf die nächsten Gegner.', c1:C.glow, c2:'#ffffff'}, pal:{h:'#8a0f1e', w:'#f2e9dd', r:'#14100e', p:'#f2e9dd', q:C.glow, a:C.glow, b:'#8a0f1e', k:'#2a0a10'}},
+  waldlaeufer: {cl:'bow', n:'Waldläufer', r:'s', speed:.15, d:m => '+' + pc(.15 * m) + ' % Lauftempo.', pj:{n:'Jagdmesser', neu:'Jagdmesser fliegen auf die nächsten Gegner.', c1:'#3e3422', c2:'#e6dcd2'}, pal:{h:'#2e4424', w:'#d8b088', r:'#14100e', p:'#6a5a3a', q:'#3e3422', a:'#7ab84a', b:'#3a2e28', k:'#14100e'}},
+  hexenjaeger: {cl:'bow', n:'Hexenjäger', r:'e', dmg:.2, d:m => '+' + pc(.2 * m) + ' % Schaden für alle Waffen.', pj:{n:'Silberdolche', neu:'Silberdolche fliegen auf die nächsten Gegner.', c1:'#14141a', c2:'#ffffff'}, pal:{h:'#14141a', w:'#f2e9dd', r:C.blood, p:'#2a2230', q:'#14101a', a:'#c8c8d8', b:'#22222c', k:'#0a0a0e'}},
+  inquisitor:  {cl:'bow', n:'Großinquisitor', r:'l', startW:true, xp:.1, d:m => 'Startet mit einer zweiten Zufallswaffe. +' + pc(.1 * m) + ' % Erfahrung.', pj:{n:'Weihdolche', neu:'Geweihte Dolche fliegen auf die nächsten Gegner.', c1:'#8a0f1e', c2:C.glow}, pal:{h:'#8a0f1e', w:'#f2e9dd', r:'#14100e', p:'#f2e9dd', q:C.glow, a:C.glow, b:'#8a0f1e', k:'#2a0a10'}},
   // Zombie
   untoter:     {cl:'saw', n:'Untoter', d:m => 'Frisch aus dem Grab. Kein eigener Bonus.', pal:{g:'#7a9a5a', r:C.blood, k:'#14180e', p:'#5a5f6a', q:'#34383f', b:'#4a3a30'}},
   bueroleiche: {cl:'saw', n:'Büroleiche', r:'g', pick:.3, d:m => '+' + pc(.3 * m) + ' % Sammelradius für Seelen.', pal:{g:'#8aa8a0', r:'#ffe040', k:'#101418', p:'#e6dcd2', q:'#c22a40', b:'#22222c'}},
@@ -543,9 +720,9 @@ const SCY = {
   frostbrust:   {type:'bow', n:'Frostarmbrust', r:'e', slow:true, d:m => 'Bolzen durchschlagen alles und verlangsamen Gegner für ' + dec(2 * m) + ' Sekunden.', t:'#8fdcff', pal:{b:'#34406a', g:'#8fdcff', w:'#8fdcff', e:'#e8fbff'}},
   seelenschleuder:{type:'bow', n:'Seelenschleuder', r:'l', boom:true, d:m => 'Bolzen explodieren am Ende ihres Flugs (' + pc(.7 * m) + ' % Schaden im Umkreis).', t:'#2fe08a', pal:{b:'#10241c', g:'#b8ffd8', w:'#2fe08a', e:'#b8ffd8'}},
   // Geisterkanonen: schießen schnell, der Strahl springt von Gegner zu Gegner. Viele Treffer, wenig Schaden pro Schuss.
-  protonen:     {type:'ray', n:'Protonenwerfer', r:'g', d:m => 'Der Strahl springt von Gegner zu Gegner.', t:'#ffb040', pal:{b:'#4a4a58', g:'#22222c', w:'#b0a4a0', s:'#ffb040', e:'#fff3c0'}},
-  ekto:         {type:'ray', n:'Ektoplasma-Kanone', r:'s', slow:true, d:m => 'Getroffene Gegner werden für ' + dec(1.2 * m) + ' Sekunden langsamer.', t:'#7dff3a', pal:{b:'#2a4a3a', g:'#10241c', w:'#8fc0b6', s:'#7dff3a', e:'#b8ffd8'}},
-  sturm:        {type:'ray', n:'Sturmkanone', r:'e', jump:2, d:m => 'Der Strahl springt 2 Gegner weiter.', t:'#6fd0ff', pal:{b:'#34406a', g:'#1e2540', w:'#cfd8ee', s:'#6fd0ff', e:'#ffffff'}},
+  protonen:     {type:'ray', n:'Protonen-Blaster', r:'g', d:m => 'Der Strahl springt von Gegner zu Gegner.', t:'#ffb040', pal:{b:'#4a4a58', g:'#22222c', w:'#b0a4a0', s:'#ffb040', e:'#fff3c0'}},
+  ekto:         {type:'ray', n:'Plasma-Blaster', r:'s', slow:true, d:m => 'Getroffene Gegner werden für ' + dec(1.2 * m) + ' Sekunden langsamer.', t:'#7dff3a', pal:{b:'#2a4a3a', g:'#10241c', w:'#8fc0b6', s:'#7dff3a', e:'#b8ffd8'}},
+  sturm:        {type:'ray', n:'Sturm-Blaster', r:'e', jump:2, d:m => 'Der Strahl springt 2 Gegner weiter.', t:'#6fd0ff', pal:{b:'#34406a', g:'#1e2540', w:'#cfd8ee', s:'#6fd0ff', e:'#ffffff'}},
   seelenstrahl: {type:'ray', n:'Seelenstrahler', r:'l', boom:true, d:m => 'Stirbt ein Gegner im Strahl, zerplatzt er und trifft die Umstehenden (' + pc(.4 * m) + ' % Schaden).', t:'#ff4f9a', pal:{b:'#3a1424', g:'#1a0810', w:'#ffb0cc', s:'#ff4f9a', e:'#ffffff'}},
 };
 const RAY = ['................','................','................','................','....gg..........','.bbbbbbbb.......','bbwbbbbbbwwwwwe.','bgbbbbbbbsssssee','bbwbbbbbbwwwwwe.','.bbbbbbbb.......','..gg............','................','................','................','................','................'];
@@ -554,33 +731,23 @@ const BOW = ['................','................','.........w......','.........
 const WPLUS = {sense: 'Mehr Schaden und Reichweite. Ab Stufe 3 auch nach hinten, ab Stufe 5 ringsum.', saw: 'Mehr Schaden und eine längere Säge. Ab Stufe 3 breiter, ab Stufe 5 läuft die Kette schneller.', bow: 'Mehr Schaden und Durchschlag. Stufe 3 und 5 geben je einen Bolzen mehr.', ray: 'Mehr Schaden, jede zweite Stufe ein Sprung mehr. Ab Stufe 4 lädt sie schneller nach.'};
 const WDK = {sense: 'Doppelter Hiebschaden, +25 % Reichweite, schlägt immer ringsum.', saw: 'Doppelter Schaden, +25 % Länge und eine zweite Säge nach hinten.', bow: 'Doppelter Schaden und doppelt so viele Bolzen.', ray: 'Doppelter Schaden, der Strahl springt doppelt so oft.'};
 const fits = (b, id) => b.own === 'skins' ? SKINS[id].cl === b.tp : wcl(id) === b.tp;
-// Der Schnitter von vorn, schräg vorn, von der Seite, schräg hinten und von hinten; dazu Stand und zwei Schritte
-const RP = {f:['....pppp....','...pppppp...','..ppqqqqpp..','..pqwwwwqp..','..pwrwwrwp..','..pwwwwwwp..','..pqwkkwqp..','.pppqqqqppp.','.pppppppppp.','pppppqqppppp','pppppqqppppp','.pppppppppp.'],fs:['....pppp....','...pppppp...','..pppqqqqp..','..ppqwwwwp..','..ppwrwwrw..','..ppwwwwww..','..ppqwkkwp..','.pppqqqqpp..','.pppppppppp.','ppppppqqpppp','ppppppqqpppp','.pppppppppp.'],s:['....pppp....','...pppppp...','..ppppqqqp..','..pppqwwwp..','..pppqwrww..','..pppqwwww..','..ppppqwkp..','..ppppqqpp..','.ppppppppp..','.pppppqpppp.','.pppppqpppp.','..pppppppp..'],bs:['....pppp....','...pppppp...','..pppppppq..','..ppqppppq..','..pppqqppw..','..pppqqppq..','..pppppppp..','.pppppppppp.','.ppqppppppp.','ppppqppppppp','ppppppqppppp','.pppppppppp.'],b:['....pppp....','...pppppp...','..pppppppp..','..ppqppqpp..','..pppqqppp..','..pppqqppp..','..pppppppp..','.pppppppppp.','.ppqppppqpp.','ppppqppqpppp','pppppqqppppp','.pppppppppp.']};
-const FEET = [['.ppp.pp.ppp.','.pp..pp..pp.'],['.pppp.pppp..','.ppp...pp...'],['..pppp.pppp.','...pp...ppp.']];
-// Mensch: Hut, Mantel, Halstuch. Zombie: breiter und größer, die Arme hängen oder greifen nach vorn. Alien: kleiner, großer Kopf.
-const HUMAN = {f:['....hhhh....','...hhhhhh...','..hhhhhhhh..','...wwwwww...','...wrwwrw...','...wwwwww...','..ppaaaapp..','.pppppppppp.','.wppppppppw.','..pppqqppp..','..pppqqppp..','..bbbbbbbb..'],fs:['....hhhh....','...hhhhhh...','..hhhhhhhh..','...hwwwww...','...hwrwwr...','...hwwwww...','..pppaaaap..','.pppppppppp.','.pppppppppw.','..ppppqqpp..','..ppppqqpp..','..bbbbbbbb..'],s:['....hhhh....','...hhhhhh...','..hhhhhhhhh.','...hhhwww...','...hhhwrw...','...hhhwww...','...pppaaa...','..pppppppp..','..ppppwppp..','...pppppp...','...pppppp...','...bbbbbb...'],bs:['....hhhh....','...hhhhhh...','..hhhhhhhh..','...hhhhhw...','...hhhhhw...','...hhhhhh...','..paaapppp..','.pppqqppppp.','.wppqqppppp.','..ppqqpppp..','..pppppppp..','..bbbbbbbb..'],b:['....hhhh....','...hhhhhh...','..hhhhhhhh..','...hhhhhh...','...hhhhhh...','...hhhhhh...','..ppaaaapp..','.pppqqqqppp.','.wppqqqqppw.','..ppqqqqpp..','..pppppppp..','..bbbbbbbb..']};
-const HFEET = [['..bbb..bbb..','..kkk..kkk..'],['..bbb..kkk..','..kkk.......'],['..kkk..bbb..','.......kkk..']];
-const ZOMB = {f:['....gggggg....','...gggggggg...','...grggggkg...','...gggggggg...','...ggkkkkgg...','....gggggg....','..pppppppppp..','.pppppqppgppp.','.ggpppppppqgg.','.gg.pppppp.gg.','.g..ppqppp..g.','....bbbbbb....','....bbbbbb....'],fs:['.....gggggg...','....gggggggg..','....gggrggkg..','....gggggggg..','....gggkkkkg..','.....gggggg...','..pppppppppp..','.ppppppqppgpp.','.ggppppppppgg.','.gg.pppppp.gg.','.g..pppqpp..g.','....bbbbbb....','....bbbbbb....'],s:['.....gggggg...','....ggggggg...','....ggggrgg...','....ggggggg...','....ggggkkk...','.....ggggg....','....pppppp....','...ppppppgggg.','...pppqppgggg.','...pppppp.....','...ppqppp.....','....bbbbb.....','....bbbbb.....'],bs:['...gggggg.....','..gggggggg....','..ggggggggg...','..gggggggg....','..gggggggg....','...gggggg.....','..pppppppppp..','.pppqpppppppp.','.ggppppppppgg.','.gg.pppqpp.gg.','.g..pppppp..g.','....bbbbbb....','....bbbbbb....'],b:['....gggggg....','...gggggggg...','...gggggggg...','...ggGGGGgg...','...gggggggg...','....gggggg....','..pppppppppp..','.pppqppppqppp.','.ggppppppppgg.','.gg.ppqppp.gg.','.g..pppppp..g.','....bbbbbb....','....bbbbbb....']};
-const ZFEET = [['....bb..bb....','...kkk..kkk...'],['....bb..kkk...','...kkk........'],['...kkk..bb....','........kkk...']];
-const ALIEN = {f:['...gggggg...','..gggggggg..','.gggggggggg.','.gkkkggkkkg.','.gkkkggkkkg.','..gkkggkkg..','...gggggg...','....gssg....','...ssssss...','..gssaassg..','...ssssss...'],fs:['...gggggg...','..gggggggg..','.gggggggggg.','.ggkkkggkkk.','.ggkkkggkkk.','..ggkkggkk..','...gggggg...','....gssg....','...ssssss...','..gsssaasg..','...ssssss...'],s:['...gggggg...','..gggggggg..','.ggggggggg..','.gggggkkkg..','.gggggkkkg..','..ggggkkg...','...ggggg....','....gss.....','...sssss....','...ssgass...','...sssss....'],bs:['...gggggg...','..gggggggg..','.gggggggggg.','.ggggggggkg.','.ggggggggkg.','..gggggggg..','...gggggg...','....gssg....','...ssssss...','..gssssssg..','...ssssss...'],b:['...gggggg...','..gggggggg..','.gggggggggg.','.gggGGGGggg.','.gggggggggg.','..gggggggg..','...gggggg...','....gssg....','...ssssss...','..gsaaaasg..','...ssssss...']};
-const AFEET = [['...ss..ss...','...gg..gg...'],['...ss..gg...','...gg.......'],['...gg..ss...','.......gg...']];
 // Die vier Klassen. Der Schlüssel ist zugleich die Waffenart: Jede Klasse hat ihre eigenen Waffen.
 const CLS = {
-  sense: {n:'Schnitter', wn:'Sensen', skin:'schnitter', w:'rost', rows:RP, feet:FEET, hand:'w', c:'#f02238', d:'Der Vollstrecker. Gegner mit weniger als 10 % Leben fallen sofort (Bosse ausgenommen).',
+  sense: {n:'Reaper', wn:'Sensen', skin:'schnitter', w:'rost', draw:drawReaper, cw:26, ch:32, hand:'w', c:'#f02238', d:'Der Vollstrecker. Gegner mit weniger als 10 % Leben fallen sofort (Bosse ausgenommen).',
     pj:{n:'Irrlichter', neu:'Glühende Lichter jagen die nächsten Gegner.', c1:C.ember, c2:C.glow}},
-  bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', rows:HUMAN, feet:HFEET, hand:'w', c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
-    pj:{n:'Wurfmesser', neu:'Wurfmesser fliegen auf die nächsten Gegner.', c1:'#c8c8d8', c2:'#ffffff'}},
-  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', rows:ZOMB, feet:ZFEET, hand:'g', c:'#7dff3a', d:'Zäh und langsam: +40 Leben, heilt 0,5 Leben pro Sekunde, läuft aber 10 % langsamer.',
+  bow:   {n:'Mensch', wn:'Armbrüste', skin:'jaeger', w:'jagdbrust', draw:drawHuman, cw:26, ch:32, hand:'w', c:'#7ab84a', d:'Flink und wendig: +10 % Lauftempo, weicht 10 % aller Treffer aus, hat aber 10 Leben weniger.',
+    pj:{n:'Wurfmesser', neu:'Wurfmesser fliegen auf die nächsten Gegner.', c1:'#4a2a1e', c2:'#e6dcd2'}},
+  saw:   {n:'Zombie', wn:'Kettensägen', skin:'untoter', w:'rostsaege', draw:drawZombie, cw:30, ch:34, hand:'g', c:'#7dff3a', d:'Zäh und langsam: +40 Leben, heilt 0,5 Leben pro Sekunde, läuft aber 10 % langsamer.',
     pj:{n:'Maden', neu:'Maden.', c1:'#7dff3a', c2:'#ffffff'}},
-  ray:   {n:'Alien', wn:'Geisterkanonen', skin:'grauer', w:'protonen', rows:ALIEN, feet:AFEET, hand:'g', c:'#6fd0ff', d:'Der Sammler: +30 % Sammelradius und +10 % Erfahrung, hat aber 15 Leben weniger.',
-    pj:{n:'Drohnen', neu:'Kleine Drohnen jagen die nächsten Gegner.', c1:'#6fd0ff', c2:'#ffffff'}},
+  ray:   {n:'Alien', wn:'Blaster', skin:'grauer', w:'protonen', draw:drawAlien, cw:26, ch:32, hand:'g', c:'#6fd0ff', d:'Der Sammler: +30 % Sammelradius und +10 % Erfahrung, hat aber 15 Leben weniger.',
+    pj:{n:'Kampfdrohne', neu:'Du machst eine Drohne startklar. Sie fliegt über die Gegner, schießt auf alles in ihrer Nähe und verschwindet dann.', c1:'#6fd0ff', c2:'#ffffff'}},
 };
 for (const id in SKINS) {
   const k = SKINS[id]; k.id = id; k.cl = k.cl || 'sense'; const cl = CLS[k.cl];
   if (!k.pj) k.pj = k.cl === 'ray' ? Object.assign({}, cl.pj, {c1: k.pal.a}) : cl.pj;
   if (!k.nc) k.nc = k.cl === 'saw' ? '#c2182e' : cl.c;
   k.hand = k.pal[cl.hand];
-  k.dir = {}; for (const d in cl.rows) k.dir[d] = cl.feet.map(ft => mk(cl.rows[d].concat(ft), k.pal)); k.sp = k.dir.f[0];
+  k.dir = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dir[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal))); }); k.sp = k.dir.f[0];
 }
 // Blickrichtung aus der Laufrichtung: acht Richtungen, links ist die gespiegelte rechte Seite
 const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', true], ['bs', true], ['b', false], ['bs', false]];
@@ -590,15 +757,17 @@ function reaperSprite(moving) {
   return [sk.dir[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
 }
 const wcl = id => SCY[id].type || 'sense';
-for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } it.sp = mk(it.type === 'saw' ? SAW : it.type === 'bow' ? BOW : it.type === 'ray' ? RAY : SCYTHE, it.pal); }
-const BOX = {k_sense: {n:'Schnittersarg', pl:'Schnittersärge', d:'Enthält ein Gewand für den Schnitter.', cost:100, sp:SP.coffinSkin, set:SKINS, own:'skins', tp:'sense'},
-             k_bow:  {n:'Menschensarg', pl:'Menschensärge', d:'Enthält ein Aussehen für den Menschen.', cost:100, sp:mk(COFFIN, {k:'#14180e', d:'#4f7040', y:'#e8c8a0'}), set:SKINS, own:'skins', tp:'bow'},
-             k_saw:  {n:'Zombiesarg', pl:'Zombiesärge', d:'Enthält ein Aussehen für den Zombie.', cost:100, sp:mk(COFFIN, {k:'#0c140a', d:'#5a5f6a', y:'#7dff3a'}), set:SKINS, own:'skins', tp:'saw'},
-             k_ray:  {n:'Aliensarg', pl:'Aliensärge', d:'Enthält ein Aussehen für das Alien.', cost:100, sp:mk(COFFIN, {k:'#0a0a12', d:'#4a5a7a', y:'#a8b0a8'}), set:SKINS, own:'skins', tp:'ray'},
-             scy:  {n:'Klingensarg', pl:'Klingensärge', d:'Enthält eine Sense mit eigener Wirkung.', cost:100, sp:SP.coffinScy, set:SCY, own:'scythes', tp:'sense'},
-             saw:  {n:'Sägensarg', pl:'Sägensärge', d:'Enthält eine Kettensäge: kurze Reichweite, sehr viel Schaden.', cost:150, sp:mk(COFFIN, {k:'#1a1014', d:'#7a4a22', y:'#e6dcd2'}), set:SCY, own:'scythes', tp:'saw'},
-             bow:  {n:'Bolzensarg', pl:'Bolzensärge', d:'Enthält eine Armbrust: schwere Bolzen auf große Entfernung.', cost:150, sp:mk(COFFIN, {k:'#101a14', d:'#2a4a3a', y:'#b8ffd8'}), set:SCY, own:'scythes', tp:'bow'},
-             ray:  {n:'Strahlensarg', pl:'Strahlensärge', d:'Enthält eine Geisterkanone: schnelle Strahlen, die von Gegner zu Gegner springen.', cost:150, sp:mk(COFFIN, {k:'#14081e', d:'#34406a', y:'#6fd0ff'}), set:SCY, own:'scythes', tp:'ray'}};
+for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } it.sp = painted(32, 32, P => (it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe)(P, it.pal)); }
+const BOX = {
+  k_sense: {n:'Reaper-Sarg', pl:'Reaper-Särge', d:'Enthält ein Gewand für den Reaper.', cost:100, sp:SP.coffinSkin, set:SKINS, own:'skins', tp:'sense'},
+  k_bow:   {n:'Vorratskiste', pl:'Vorratskisten', d:'Enthält ein Aussehen für den Menschen.', cost:100, sp:mk(CRATE, {k:'#1a1210', d:'#8a5638', y:'#c8a040'}), set:SKINS, own:'skins', tp:'bow'},
+  k_saw:   {n:'Frisches Grab', pl:'Frische Gräber', d:'Enthält ein Aussehen für den Zombie.', cost:100, sp:mk(TOMB, {k:'#14180e', d:'#6a6f78', y:'#3a3f48', g:'#4a3420'}), set:SKINS, own:'skins', tp:'saw'},
+  k_ray:   {n:'Stasis-Kapsel', pl:'Stasis-Kapseln', d:'Enthält ein Aussehen für das Alien.', cost:100, sp:mk(POD, {k:'#0a0a12', d:'#a8b0b8', y:'#7dff3a'}), set:SKINS, own:'skins', tp:'ray'},
+  scy:     {n:'Klingensarg', pl:'Klingensärge', d:'Enthält eine Sense mit eigener Wirkung.', cost:100, sp:SP.coffinScy, set:SCY, own:'scythes', tp:'sense'},
+  bow:     {n:'Waffenkiste', pl:'Waffenkisten', d:'Enthält eine Armbrust: schwere Bolzen auf große Entfernung.', cost:150, sp:mk(CRATE, {k:'#101a14', d:'#3a4a3a', y:'#e6dcd2'}), set:SCY, own:'scythes', tp:'bow'},
+  saw:     {n:'Werkzeuggrab', pl:'Werkzeuggräber', d:'Enthält eine Kettensäge: kurze Reichweite, sehr viel Schaden.', cost:150, sp:mk(TOMB, {k:'#1a1014', d:'#8a3a22', y:'#e6dcd2', g:'#3a2a1a'}), set:SCY, own:'scythes', tp:'saw'},
+  ray:     {n:'Waffenkapsel', pl:'Waffenkapseln', d:'Enthält einen Blaster: schnelle Strahlen, die von Gegner zu Gegner springen.', cost:150, sp:mk(POD, {k:'#14081e', d:'#4a5a7a', y:'#6fd0ff'}), set:SCY, own:'scythes', tp:'ray'},
+};
 // Partikel jeder Waffe: Farben, Schwerkraft (g, negativ steigt), Größe, Dauer, deckend oder leuchtend, Fleck am Boden
 const WTH = {
   rost:     {c: ['#f02238', '#e6dcd2']},
@@ -705,6 +874,7 @@ const ICONS = {
   infekt: ['x...x...x','.x..x..x.','..xxxxx..','..xhhhx..','xxxhhhxxx','..xhhhx..','..xxxxx..','.x..x..x.','x...x...x'],
   schild: ['...xxx...','.xx...xx.','x..hhh..x','x.hhhhh.x','x.hhhhh.x','x..hhh..x','.x.....x.','..xx.xx..','....x....'],
   orbital:['....h....','....h....','...hhh...','...hhh...','....h....','.x..h..x.','..xxhxx..','.xxxxxxx.','..x...x..'],
+  brand:  ['....h....','....x....','...xxx...','...xxx...','..xxxxx..','..xhhxx..','..xhxxx..','..xxxxx..','...xxx...'],
   haut:   ['xxxxxxxxx','xhhxxxxxx','xhxxxxxxx','xxxxxxxxx','xxxxxxxxx','.xxxxxxx.','.xxxxxxx.','..xxxxx..','....x....'],
 };
 const UP = [
@@ -716,10 +886,11 @@ const UP = [
   {id:'hagel', c:'fern', only:'bow', w:1, max:6, s:'J', n:'Pfeilhagel', neu:'Ein Schauer aus Pfeilen geht auf die nächste Gegnergruppe nieder.', plus:'Größere Fläche, mehr Schaden.'},
   {id:'falle', c:'dauer', only:'bow', w:1, max:6, s:'T', n:'Sprengfalle', neu:'Du wirfst Fallen vor dich in Richtung der Gegner. Tritt einer hinein, explodieren sie.', plus:'Eine Falle mehr gleichzeitig, größere und stärkere Explosion.'},
   {id:'kugel', c:'fern', only:'ray', w:1, max:6, s:'U', n:'Kugelblitz', neu:'Eine langsame Blitzkugel schwebt durch die Reihen und schockt alles in ihrer Nähe.', plus:'Mehr Schaden, die Kugel schockt mehr Gegner gleichzeitig.'},
-  {id:'gfalle', c:'dauer', only:'ray', w:1, max:6, s:'Y', n:'Geisterfalle', neu:'Wirft eine Falle, die Gegner in ihren Sog zieht und festhält, während sie Schaden nehmen.', plus:'Größerer Sog, mehr Schaden.'},
-  {id:'glocke', c:'dauer', cls:['sense'], w:1, max:6, n:'Totenglocke', neu:'Alle paar Sekunden läutet eine Glocke. Gegner im Umkreis nehmen Schaden und erstarren kurz.', plus:'Größerer Umkreis, mehr Schaden, längere Starre.'},
+  {id:'gfalle', c:'dauer', only:'ray', w:1, max:6, s:'Y', n:'Schwerkraftfalle', neu:'Wirft eine Falle, die Gegner in ihren Sog zieht und festhält, während sie Schaden nehmen.', plus:'Größerer Sog, mehr Schaden.'},
+  {id:'glocke', c:'dauer', cls:['sense'], w:1, max:6, n:'Totenglocke', neu:'Über deinem Kopf erscheint eine Glocke. Wenn sie läutet, nehmen Gegner in deiner Nähe Schaden und erstarren kurz.', plus:'Etwas größerer Umkreis, mehr Schaden, etwas längere Starre.'},
+  {id:'brand', c:'dauer', cls:['bow'], w:1, max:6, n:'Brandflasche', neu:'Du wirfst eine Brandflasche auf die nächste Gruppe. Wo sie zerspringt, brennt der Boden.', plus:'Das Feuer brennt länger und heißer.'},
   {id:'seuche', c:'dauer', cls:['saw'], w:1, max:6, n:'Seuchenwolke', neu:'Eine Wolke aus Fäulnis hängt um dich. Wer hineinläuft, nimmt ständig Schaden und wird langsamer.', plus:'Größere Wolke, mehr Schaden.'},
-  {id:'infekt', c:'dauer', cls:['saw'], max:5, n:'Ansteckung', plus:'Besiegte Gegner platzen mit 6 % höherer Chance und treffen alle Umstehenden. Mehr Schaden.'},
+  {id:'infekt', c:'dauer', cls:['saw'], max:6, n:'Ansteckung', plus:'Besiegte Gegner platzen mit 6 % höherer Chance und treffen alle Umstehenden. Mehr Schaden.'},
   {id:'orbital', c:'fern', cls:['ray'], w:1, max:6, n:'Orbitalschlag', neu:'Dein Mutterschiff feuert alle paar Sekunden einen Strahl auf den nächsten Gegner. Doppelter Schaden gegen Bosse.', plus:'Größerer Einschlag, mehr Schaden.'},
   {id:'schild', c:'leben', cls:['ray'], max:5, n:'Energieschild', plus:'Ein Schild fängt einen Treffer ab und lädt dann nach. Jede Stufe lädt 2 Sekunden schneller (Stufe 1: 13 Sekunden).'},
   {id:'rausch', c:'schaden', cls:['bow'], max:5, n:'Adrenalin', plus:'Jeder Sieg gibt kurz +0,6 % Schaden und etwas Tempo, bis zu 20-mal. Ohne Siege verfliegt es.'},
@@ -747,7 +918,7 @@ const DKT = {
   licht: 'Doppelt so viele Geschosse, sie durchschlagen alles, +50 % Schaden.', sauger: 'Doppelt so viele Ziele, doppelter Schaden, heilt dich beim Saugen. Jede Essenz fliegt sofort zu dir.',
   scharf: '+100 % Schaden für alle Waffen.', rasch: 'Alle Waffen schlagen noch einmal 30 % schneller.', flink: '+35 % Lauftempo.',
   sog: 'Sammelradius mal 2,5.', herz: '+150 maximale Lebenspunkte, heilt dich voll.', durst: 'Heilt zusätzlich 3 Lebenspunkte pro Sekunde.',
-  glocke: 'Doppelter Schaden, doppelt so lange Starre, +30 % Umkreis.', seuche: 'Doppelter Schaden, +30 % Größe.', infekt: 'Platzt fast doppelt so oft, doppelter Schaden.',
+  brand: 'Größere Feuerfläche, brennt länger, doppelter Schaden.', glocke: 'Doppelter Schaden, +50 % Starre, +20 % Umkreis.', seuche: 'Doppelter Schaden, +30 % Größe.', infekt: 'Platzt fast doppelt so oft, doppelter Schaden.',
   orbital: 'Drei Strahlen hintereinander, +30 % Schaden.', schild: 'Lädt in weniger als der Hälfte der Zeit und stößt beim Brechen alle Gegner zurück.', rausch: 'Baut sich doppelt so schnell auf, bis zu 30-mal.', krit: 'Volltreffer treffen noch einmal härter (+1 auf den Faktor).',
   weite: '+45 % Reichweite und Größe aller Angriffe.', gier: 'Seelen geben doppelte Erfahrung.', haut: 'Jeder Treffer macht 6 weniger Schaden.',
 };
@@ -757,6 +928,7 @@ UP.forEach(u => u.dk = DKT[u.id]);
 const WALT = {
   weite:  {saw: ['Lange Schiene'], bow: ['Weitblick'], ray: ['Verstärker']},
   scharf: {saw: ['Kettenöl'], bow: ['Stahlspitzen'], ray: ['Überladung']},
+  licht:  {ray: ['Kampfdrohne', 'Mehr Schaden pro Schuss. Ab Stufe 4 startet eine zweite Drohne.', 'Doppelt so viele Drohnen, +50 % Schaden.'], bow: ['Wurfmesser', 'Ein Messer mehr pro Wurf, mehr Schaden.', 'Doppelt so viele Messer, sie durchschlagen alles, +50 % Schaden.']},
   sog:    {ray: ['Traktorstrahl']},
   gier:   {bow: ['Kopfgeld'], ray: ['Forschung']},
   durst:  {saw: ['Fresssucht']},
@@ -774,7 +946,7 @@ let W = 0, H = 0, S = 3, VW = 0, VH = 0, dpr = 1;
 let state = 'menu', menuT = 0;
 let hudCache = {}, luOpts = [], luAt = 0;
 const ARENA = 165, DK = '#b040ff';
-let sucking = false, rays = [], orbs = [], vorts = [];
+let sucking = false, rays = [], orbs = [], vorts = [], drones = [], bottles = [];
 let autoPick = false, distractT = 0, bossBag = [], discs = [], fires = [], volleys = [], traps = [], pools = [], beams = [], bowLoad = 1, shots = [], aimA = 0, rev = 0, sawHit = 0, recoil = 0, boltT = 6, flick = 0, boltPath = [];
 const mutL = () => Math.floor(bossKills / 4);
 let dark = {};
@@ -806,9 +978,9 @@ function reset() {
   lv = {}; dark = {}; UP.forEach(u => lv[u.id] = 0); lv.sense = 1;
   if (sk.startW) { const w = UP.filter(u => u.w && u.id !== 'sense' && fitsW(u)); lv[w[Math.random() * w.length | 0].id] = 1; }
   st = {}; recompute(); P.hp = st.maxHp; for (let i = 0; i < 6; i++) collide();
-  rings = []; decals = []; flashT = 0; hurtT = 0; rays = []; orbs = []; vorts = []; discs = []; fires = []; volleys = []; traps = []; pools = []; beams = []; bossBag = []; distractT = 0; beam = null; shots = []; aimA = 0; rev = 0; sawHit = 0; recoil = 0; boltT = 6; flick = 0; zones = []; enemies = []; picks = []; bolts = []; swings = []; throws = []; wisps = []; novas = []; parts = []; nums = []; pending = [];
+  rings = []; decals = []; flashT = 0; hurtT = 0; rays = []; orbs = []; vorts = []; drones = []; bottles = []; discs = []; fires = []; volleys = []; traps = []; pools = []; beams = []; bossBag = []; distractT = 0; beam = null; shots = []; aimA = 0; rev = 0; sawHit = 0; recoil = 0; boltT = 6; flick = 0; zones = []; enemies = []; picks = []; bolts = []; swings = []; throws = []; wisps = []; novas = []; parts = []; nums = []; pending = [];
   time = 0; kills = 0; bossKills = 0; level = 1; xp = 0; xpNeed = needFor(1); wave = 0; waveT = 0; spawnAcc = 0; boss = null; shake = 0; orbA = 0;
-  cd = {sense: 0.4, wurf: 1, nova: 2, licht: 0.6, sauger: 0, disc: 1, spur: 0, hagel: 2, falle: 1, kugel: 1.5, gfalle: 2.5, glocke: 3, orbital: 2, seuche: 0}; arena = null; drain = []; pickCombo = 0; pickComboT = 0;
+  cd = {sense: 0.4, wurf: 1, nova: 2, licht: 0.6, sauger: 0, disc: 1, spur: 0, hagel: 2, falle: 1, kugel: 1.5, gfalle: 2.5, glocke: 3, orbital: 2, seuche: 0, brand: 1.5}; arena = null; drain = []; pickCombo = 0; pickComboT = 0;
   hudCache = {};
 }
 function needFor(l) { return Math.floor(6 + l * 5 + l * l * 0.6); }
@@ -941,7 +1113,7 @@ function glInit() {
   atlas.cv = document.createElement('canvas'); atlas.cv.width = atlas.cv.height = atlas.size; atlas.g = atlas.cv.getContext('2d');
   atlas.g.fillStyle = '#fff'; atlas.g.fillRect(2, 2, 8, 8); atlas.white = [4 / atlas.size, 4 / atlas.size, 8 / atlas.size, 8 / atlas.size]; atlas.x = 14; atlas.rowH = 8;
   for (const k in SP) { SP[k].uv = atlasAdd(SP[k].img, SP[k].w, SP[k].h); SP[k].fuv = atlasAdd(SP[k].flash, SP[k].w, SP[k].h); }
-  for (const k in SCY) SCY[k].sp.uv = atlasAdd(SCY[k].sp.img, 16, 16);
+  for (const k in SCY) SCY[k].sp.uv = atlasAdd(SCY[k].sp.img, 32, 32);
   glTexA = glTexture(atlas.cv, false);
   // zweite Textur, weich gefiltert: links ein Leuchtfleck, rechts eine Scheibe
   glSoft = document.createElement('canvas'); glSoft.width = 512; glSoft.height = 128;
@@ -1010,6 +1182,11 @@ function gq4(uv, x0, y0, x1, y1, x2, y2, x3, y3, r, g, b, a, t) {
 function gRot(uv, x, y, rot, w, h, ox, oy, z, al) {
   const c = Math.cos(rot) * z, s = Math.sin(rot) * z, l = -ox, t = -oy, r = w - ox, b = h - oy;
   gq4(uv, x + l * c - t * s, y + l * s + t * c, x + r * c - t * s, y + r * s + t * c, x + l * c - b * s, y + l * s + b * c, x + r * c - b * s, y + r * s + b * c, al, al, al, al, 0);
+}
+// Strich von (x0, y0) nach (x1, y1), am Anfang w0 und am Ende w1 breit
+function gLine(x0, y0, x1, y1, w0, w1, c, al, add) {
+  const v = rgb(c), dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1, nx = -dy / l / 2, ny = dx / l / 2;
+  gq4(atlas.white, x0 + nx * w0, y0 + ny * w0, x1 + nx * w1, y1 + ny * w1, x0 - nx * w0, y0 - ny * w0, x1 - nx * w1, y1 - ny * w1, v[0] * al, v[1] * al, v[2] * al, add ? 0 : al, 0);
 }
 // Ring aus Teilstücken; add = leuchtend
 function gRing(c, x, y, r, w, al, add) {
@@ -1514,7 +1691,7 @@ function weapons(dt) {
   // Benzinspur (Kettensäge): beim Laufen bleibt Feuer am Boden
   if (lv.spur && P.mv) {
     cd.spur -= dt;
-    if (cd.spur <= 0) { cd.spur = 0.2; const L = lv.spur; if (fires.length > 70) fires.shift(); fires.push({x: P.x, y: P.y + 5, t: 0, d: (2 + 0.35 * L) * (dark.spur ? 2 : 1), r: 15 * st.area, dps: (7 + 3.5 * L) * st.dmg * (dark.spur ? 2 : 1), tk: 0, sd: Math.random()}); }
+    if (cd.spur <= 0) { cd.spur = 0.2; const L = lv.spur; if (fires.length > 110) fires.shift(); fires.push({x: P.x, y: P.y + 5, t: 0, d: (2 + 0.35 * L) * (dark.spur ? 2 : 1), r: 15 * st.area, dps: (7 + 3.5 * L) * st.dmg * (dark.spur ? 2 : 1), tk: 0, sd: Math.random()}); }
   }
   // Pfeilhagel (Armbrust): Schauer auf die nächste Gruppe
   if (lv.hagel) {
@@ -1553,15 +1730,21 @@ function weapons(dt) {
       if (!t) cd.gfalle = 0.5; else { cd.gfalle = 6.5 * st.cd; const L = lv.gfalle; vorts.push({x: t.x, y: t.y, sx: P.x, sy: P.y, t: -0.35, d: dark.gfalle ? 4.4 : 2.4, tk: 0, r: (44 + 4 * L) * st.area, dps: (4 + 3.6 * L) * st.dmg * (dark.gfalle ? 2 : 1)}); beep(500, 0.3, 'triangle', 0.04, -200); }
     }
   }
-  // Totenglocke (Schnitter): Schaden und kurze Starre im Umkreis
+  // Totenglocke (Reaper): die Glocke erscheint über dem Kopf, läutet und lässt nahe Gegner kurz erstarren
   if (lv.glocke) {
-    cd.glocke -= dt;
+    const was = cd.glocke; cd.glocke -= dt;
+    if (was > BELLT && cd.glocke <= BELLT) beep(1180, 0.12, 'sine', 0.03);
     if (cd.glocke <= 0) {
-      cd.glocke = 6 * st.cd; const L = lv.glocke, dk = dark.glocke, R = (62 + 7 * L) * st.area * (dk ? 1.3 : 1), dmg = (9 + 5 * L) * st.dmg * (dk ? 2 : 1), stun = (0.7 + 0.12 * L) * (dk ? 2 : 1);
+      cd.glocke = 6.5 * st.cd + BELLT; const L = lv.glocke, dk = dark.glocke, R = glockeR(), dmg = (5 + 2.5 * L) * st.dmg * (dk ? 2 : 1), stun = (0.5 + 0.06 * L) * (dk ? 1.5 : 1);
       for (const e of enemies) { if (e.dead) continue; const dx = e.x - P.x, dy = e.y - P.y, rr = R + e.r; if (dx * dx + dy * dy < rr * rr) { hit(e, dmg, 0, 0); if (!e.dead) { if (e.boss) e.slowT = Math.max(e.slowT, stun); else e.stunT = stun; } } }
-      ring(P.x, P.y, R, col('glocke'), 0.7, 5); ring(P.x, P.y, R * 0.66, '#ffffff', 0.5, 2); ring(P.x, P.y, R * 0.33, col('glocke'), 0.35, 3); wfx(P.x, P.y - 6, 14, undefined, 0, 30, 120);
-      shake = Math.max(shake, 2); beep(196, 1.3, 'triangle', 0.07, -8); beep(392, 0.9, 'sine', 0.04, -10); beep(588, 0.5, 'sine', 0.02);
+      ring(P.x, P.y, R, col('glocke'), 0.6, 4); ring(P.x, P.y, R * 0.6, '#ffffff', 0.4, 2); wfx(P.x, P.y - 16, 10, undefined, 0, 30, 110);
+      shake = Math.max(shake, 1.5); beep(196, 1.3, 'triangle', 0.07, -8); beep(392, 0.9, 'sine', 0.04, -10); beep(588, 0.5, 'sine', 0.02);
     }
+  }
+  // Brandflasche (Mensch): fliegt im Bogen auf die nächste Gruppe, dort brennt der Boden
+  if (lv.brand) {
+    cd.brand -= dt;
+    if (cd.brand <= 0) { const t = nearest(P.x, P.y, 170); if (!t) cd.brand = 0.4; else { cd.brand = 5 * st.cd; bottles.push({sx: P.x, sy: P.y - 4, x: t.x, y: t.y, t: 0}); beep(420, 0.12, 'triangle', 0.03, 200); } }
   }
   // Seuchenwolke (Zombie): ständiger Schaden rund um dich
   if (lv.seuche) {
@@ -1570,7 +1753,7 @@ function weapons(dt) {
       cd.seuche = 0.4; const R = seucheR(), dmg = (2.2 + 1.5 * lv.seuche) * st.dmg * (dark.seuche ? 2 : 1);
       for (const e of enemies) { if (e.dead) continue; const dx = e.x - P.x, dy = e.y - P.y, rr = R + e.r; if (dx * dx + dy * dy < rr * rr) { hit(e, dmg, 0, 0, true); if (!e.dead && !e.boss) e.slowT = Math.max(e.slowT, 0.5); } }
     }
-    if (Math.random() < 22 * dt * PM) { const a = rnd(0, TAU), r = seucheR() * Math.sqrt(Math.random()); fx(P.x + Math.cos(a) * r, P.y + Math.sin(a) * r, 1, {c: dark.seuche ? [DK, '#e0b0ff'] : ['#7dff3a', '#2a6a1a', '#b8ffd8'], a: -1.57, sp: 0.5, v0: 4, v1: 16, d0: 0.4, d1: 0.9, s: 2, add: true}); }
+    if (Math.random() < (dark.seuche ? 70 : 22) * dt * PM) { const a = rnd(0, TAU), r = seucheR() * Math.sqrt(Math.random()); fx(P.x + Math.cos(a) * r, P.y + Math.sin(a) * r, 1, {c: dark.seuche ? [DK, '#e0b0ff', '#7a2ad0', '#ffffff'] : ['#7dff3a', '#2a6a1a', '#b8ffd8'], a: -1.57, sp: 0.5, v0: 4, v1: 16, d0: 0.4, d1: 0.9, s: dark.seuche ? 2.5 : 2, add: true}); }
   }
   // Orbitalschlag (Alien): Strahl von oben auf den nächsten Gegner
   if (lv.orbital) {
@@ -1604,8 +1787,20 @@ function weapons(dt) {
       if (dk && drain.length) P.hp = Math.min(st.maxHp, P.hp + 0.3);
     }
   }
-  // Geschosse des Gewands: suchen ihr Ziel und platzen beim Treffer
-  if (lv.licht) {
+  // Kampfdrohne (Alien): wird kurz startklar gemacht, fliegt dann über die Gegner, schießt und verschwindet
+  if (lv.licht && sk.cl === 'ray') {
+    cd.licht -= dt;
+    if (cd.licht <= 0) {
+      const t = nearest(P.x, P.y, 230);
+      if (!t) cd.licht = 0.4; else {
+        cd.licht = 4.5 * st.cd; const L = lv.licht, dk = dark.licht, n = (1 + (L >= 4 ? 1 : 0)) * (dk ? 2 : 1), a0 = Math.atan2(t.y - P.y, t.x - P.x);
+        for (let i = 0; i < n; i++) drones.push({x: P.x, y: P.y - 14, a: a0 + (i - (n - 1) / 2) * 0.55, t: -0.7, st: 0, dmg: (9 + 4.5 * L) * st.dmg * (dk ? 1.5 : 1), zt: 0, zx: 0, zy: 0, ph: rnd(0, TAU), off: (i - (n - 1) / 2) * 12});
+        beep(300, 0.5, 'square', 0.02, 500);
+      }
+    }
+  }
+  // Geschosse der Klasse: suchen ihr Ziel und platzen beim Treffer
+  if (lv.licht && sk.cl !== 'ray') {
     cd.licht -= dt;
     if (cd.licht <= 0) {
       cd.licht = 0.9 * st.cd;
@@ -1621,6 +1816,8 @@ function weapons(dt) {
     }
   }
 }
+const BELLT = 0.9;
+function glockeR() { return (38 + 3 * lv.glocke) * st.area * (dark.glocke ? 1.2 : 1); }
 function seucheR() { return (30 + 4 * lv.seuche) * st.area * (dark.seuche ? 1.3 : 1); }
 function orbPos() { return [P.x + Math.cos(clock * 1.7) * 17, P.y - 7 + Math.sin(clock * 1.7) * 8]; }
 
@@ -1723,7 +1920,7 @@ function update(dt) {
       if (w.tg) { const sp = Math.hypot(w.vx, w.vy), ca = Math.atan2(w.vy, w.vx), da = Math.atan2(w.tg.y - w.y, w.tg.x - w.x), df = ((da - ca + Math.PI) % TAU + TAU) % TAU - Math.PI, na = ca + Math.max(-6 * dt, Math.min(6 * dt, df)); w.vx = Math.cos(na) * sp; w.vy = Math.sin(na) * sp; }
     }
     w.x += w.vx * dt; w.y += w.vy * dt;
-    if (Math.random() < (w.big ? 0.9 : 0.55) * PM) fx(w.x, w.y, 1, {c: w.big ? [sc.t, sc.pal.e] : [sk.pj.c1, sk.pj.c2], v0: 2, v1: 16, d0: 0.15, d1: 0.38, s: 1.5, add: true, j: w.big ? 8 : 1});
+    if ((w.big || sk.cl !== 'bow') && Math.random() < (w.big ? 0.9 : 0.55) * PM) fx(w.x, w.y, 1, {c: w.big ? [sc.t, sc.pal.e] : [sk.pj.c1, sk.pj.c2], v0: 2, v1: 16, d0: 0.15, d1: 0.38, s: 1.5, add: true, j: w.big ? 8 : 1});
     const hr = w.big ? 12 : 5;
     for (const e of enemies) {
       if (e.dead || w.seen.has(e)) continue;
@@ -1815,11 +2012,30 @@ function update(dt) {
     }
   }
   discs = discs.filter(d => d.t < 2.6);
+  // Brandflaschen: landen und setzen den Boden in Brand
+  for (const b of bottles) {
+    b.t += dt; if (b.t < 0.45) continue; b.done = true;
+    const L = lv.brand, dk = dark.brand, n = dk ? 9 : 6;
+    for (let i = 0; i < n; i++) { const a = i / (n - 1) * TAU, rr = i ? (i > 6 ? 26 : 14) * st.area : 0; fires.push({x: b.x + Math.cos(a) * rr, y: b.y + Math.sin(a) * rr * 0.8, t: 0, d: (2.6 + 0.3 * L) * (dk ? 1.5 : 1), r: 14 * st.area, dps: (6 + 3.2 * L) * st.dmg * (dk ? 2 : 1), tk: 0, sd: Math.random()}); }
+    for (const e of enemies) { if (e.dead) continue; const dx = e.x - b.x, dy = e.y - b.y, r = 20 * st.area + e.r; if (dx * dx + dy * dy < r * r) hit(e, (8 + 4 * L) * st.dmg, dx, dy); }
+    ring(b.x, b.y, 22 * st.area, dk ? DK : C.ember, 0.35, 3); fx(b.x, b.y, 14, {c: [C.ember, C.glow, '#ffffff'], v0: 30, v1: 140, d0: 0.2, d1: 0.45, s: 2, add: true}); beep(1600, 0.08, 'square', 0.03, -900); beep(90, 0.3, 'sawtooth', 0.04, -20);
+  }
+  bottles = bottles.filter(b => !b.done);
+  // Kampfdrohnen
+  for (const d of drones) {
+    d.t += dt; d.zt -= dt;
+    if (d.t < 0) { d.x = P.x + d.off; d.y = P.y - 14; continue; }
+    const tg = nearest(d.x, d.y, 150);
+    if (tg) d.a += Math.max(-1.6 * dt, Math.min(1.6 * dt, angd(Math.atan2(tg.y - d.y, tg.x - d.x), d.a)));
+    d.x += Math.cos(d.a) * 58 * dt; d.y += Math.sin(d.a) * 58 * dt; d.st -= dt;
+    if (d.st <= 0) { const e = nearest(d.x, d.y, 80); if (e) { d.st = 0.28; d.zx = e.x; d.zy = e.y; d.zt = 0.1; tone('licht'); hit(e, d.dmg, 0, 0); fx(e.x, e.y, 2, {c: [sk.pj.c1, '#ffffff'], v0: 20, v1: 70, d0: 0.1, d1: 0.25, s: 1.5, add: true}); } else d.st = 0.08; }
+  }
+  drones = drones.filter(d => d.t < 3.8);
   // Benzinspur
   for (const f of fires) {
     f.t += dt; f.tk -= dt;
     if (f.tk <= 0) { f.tk = 0.25; for (const e of enemies) { if (e.dead) continue; const dx = e.x - f.x, dy = e.y - f.y, r = f.r + e.r; if (dx * dx + dy * dy < r * r) { tone('spur'); hit(e, f.dps * 0.25, 0, 0, true); } } }
-    if (Math.random() < 0.18 * PM) fx(f.x + rnd(-5, 5), f.y, 1, {c: dark.spur ? [DK, '#e0b0ff'] : sc.th.fire || [C.ember, C.glow, '#ff3a1a'], a: -1.57, sp: 0.4, v0: 12, v1: 38, d0: 0.25, d1: 0.5, s: 2, add: true});
+    if (Math.random() < 0.18 * PM) fx(f.x + rnd(-5, 5), f.y, 1, {c: (dark.spur || dark.brand) ? [DK, '#e0b0ff'] : sc.th.fire || [C.ember, C.glow, '#ff3a1a'], a: -1.57, sp: 0.4, v0: 12, v1: 38, d0: 0.25, d1: 0.5, s: 2, add: true});
   }
   fires = fires.filter(f => f.t < f.d);
   // Pfeilhagel
@@ -2187,7 +2403,7 @@ function draw() {
   // Kamera hängt fest an der gerasterten Spielerposition, damit die Figur nicht zittert
   px = snap(px); py = snap(py);
   const sh = (reduceMotion || !opt.shake) ? 0 : shake;
-  const [RS, RF] = reaperSprite(inGame ? P.mv : true), yo = (RS.h - 14) / 2;
+  const [RS, RF] = reaperSprite(inGame ? P.mv : true), PZ = RS.z, yo = (RS.h * PZ - 14) / 2;
   // in der Waffenkunde steht der Schnitter rechts im Bild, links liegt der Text
   const cx = px - snap(VW * (demoOn && W > 900 ? 0.72 : 0.5)) + snap(rnd(-sh, sh)), cy = py - snap(VH / 2) + snap(rnd(-sh, sh));
   ctx.setTransform(k, 0, 0, k, -cx * k, -cy * k);
@@ -2333,9 +2549,9 @@ function draw() {
     }
     // Benzinspur
     for (const f of fires) {
-      const fd = Math.min(1, (f.d - f.t) * 2), fc = sc.th.fire, c1 = dark.spur ? DK : fc ? fc[0] : C.ember, fl = Math.sin(clock * 18 + f.sd * 40);
+      const fd = Math.min(1, (f.d - f.t) * 2), fc = sc.th.fire, fdk = dark.spur || dark.brand, c1 = fdk ? DK : fc ? fc[0] : C.ember, fl = Math.sin(clock * 18 + f.sd * 40);
       glow(f.x, f.y, f.r * 1.9, c1, 0.4 * fd);
-      ctx.globalAlpha = fd; ctx.fillStyle = c1; ctx.fillRect(snap(f.x - 5), snap(f.y - 4 - (fl > 0 ? 1 : 0)), 10, 6); ctx.fillStyle = dark.spur ? '#e0b0ff' : fc ? fc[1] : C.glow; ctx.fillRect(snap(f.x - 1 + fl), snap(f.y - 4), 2, 3); ctx.globalAlpha = 1;
+      ctx.globalAlpha = fd; ctx.fillStyle = c1; ctx.fillRect(snap(f.x - 5), snap(f.y - 4 - (fl > 0 ? 1 : 0)), 10, 6); ctx.fillStyle = fdk ? '#e0b0ff' : fc ? fc[1] : C.glow; ctx.fillRect(snap(f.x - 1 + fl), snap(f.y - 4), 2, 3); ctx.globalAlpha = 1;
     }
     // Sprengfallen
     for (const tr of traps) {
@@ -2415,10 +2631,34 @@ function draw() {
         gCrescent(ox, oy, 22, w.a - 1.05, w.a + 1.05, 9, sc.t, 0.75 * al, 1, ga); gCrescent(ox, oy, 22, w.a - 0.9, w.a + 0.9, 3.5, sc.pal.e, al, 1, ga);
         glow(w.x, w.y, 22, sc.t, 0.5 * al); continue;
       }
+      if (sk.cl === 'bow') {
+        // Wurfmesser: Klinge und Griff in Flugrichtung, dahinter die durchschnittene Luft
+        const sp = Math.hypot(w.vx, w.vy) || 1, ux = w.vx / sp, uy = w.vy / sp, nx = -uy, ny = ux, pj = sk.pj;
+        gLine(w.x - ux * 3, w.y - uy * 3, w.x - ux * 20, w.y - uy * 20, 2.4, 0, '#ffffff', 0.3, ga);
+        gLine(w.x - ux * 2 + nx * 1.6, w.y - uy * 2 + ny * 1.6, w.x - ux * 13 + nx * 2.6, w.y - uy * 13 + ny * 2.6, 0.7, 0, '#cfe8ff', 0.45, ga);
+        gLine(w.x - ux * 2 - nx * 1.6, w.y - uy * 2 - ny * 1.6, w.x - ux * 11 - nx * 2.6, w.y - uy * 11 - ny * 2.6, 0.7, 0, '#cfe8ff', 0.45, ga);
+        gLine(w.x - ux * 5.5, w.y - uy * 5.5, w.x + ux * 5.5, w.y + uy * 5.5, 3.2, 1.4, '#0c0709', 1, false);
+        gLine(w.x - ux * 5, w.y - uy * 5, w.x - ux * 1.5, w.y - uy * 1.5, 1.8, 1.8, pj.c1, 1, false);
+        gLine(w.x - ux * 1.5, w.y - uy * 1.5, w.x - ux * 0.5, w.y - uy * 0.5, 3.4, 3.4, '#8a7c6c', 1, false);
+        gLine(w.x - ux * 0.5, w.y - uy * 0.5, w.x + ux * 5, w.y + uy * 5, 2.2, 0.4, pj.c2, 1, false);
+        gLine(w.x, w.y, w.x + ux * 4, w.y + uy * 4, 0.6, 0.2, '#ffffff', 1, false);
+        continue;
+      }
       const pj = sk.pj, pu = Math.sin(clock * 30 + w.ph) > 0 ? 1 : 0;
       glow(w.x, w.y, 10 + pu * 2, pj.c1, 0.7);
       if (pj.sp) spr(SP[pj.sp], w.x, w.y, pj.z, w.vx < 0, false);
       else { const sx = snap(w.x), sy = snap(w.y); ctx.fillStyle = pj.c1; ctx.fillRect(sx - 2 - pu, sy - 1, 4 + pu * 2, 2); ctx.fillRect(sx - 1, sy - 2 - pu, 2, 4 + pu * 2); ctx.fillStyle = pj.c2; ctx.fillRect(sx - 1, sy - 1, 2, 2); }
+    }
+    // Brandflaschen im Flug
+    for (const b of bottles) { const f = Math.min(1, b.t / 0.45), x = b.sx + (b.x - b.sx) * f, y = b.sy + (b.y - b.sy) * f - Math.sin(f * Math.PI) * 24; gRect('#0c0709', snap(x) - 2, snap(y) - 3, 4, 6, 1); gRect('#5a8a4a', snap(x) - 1, snap(y) - 2, 2, 4, 1); gRect(C.glow, snap(x) - 1, snap(y) - 5, 2, 2, 1); glow(x, y - 4, 8, C.ember, 0.7); }
+    // Kampfdrohnen: beim Start ein kleiner werdender Ring, dann Flug mit Schatten und Schüssen
+    for (const d of drones) {
+      const cD = dark.licht ? DK : sk.pj.c1, al = d.t < 0 ? 1 + d.t / 0.7 : Math.min(1, (3.8 - d.t) * 3), bob = Math.sin(clock * 9 + d.ph) * 0.8;
+      if (d.t < 0) gRing(cD, d.x, d.y, 3 + 12 * (-d.t / 0.7), 1, 0.8, ga);
+      else gDisc('#000000', d.x, d.y + 9, 4, 1.6, 0.3 * al);
+      if (d.zt > 0) { const f = d.zt / 0.1; gLine(d.x, d.y, d.zx, d.zy, 1.8, 1.8, cD, f, ga); gLine(d.x, d.y, d.zx, d.zy, 0.6, 0.6, '#ffffff', f, ga); glow(d.zx, d.zy, 8, cD, 0.7 * f); }
+      glow(d.x, d.y, 10, cD, 0.45 * al);
+      gSprite((clock * 24 | 0) & 1 ? SP.drone : SP.drone_2, d.x, d.y + bob, 1, false, false, al);
     }
     // Armbrustbolzen: Schaft mit Spitze und Federn, dahinter ein langer, schmaler werdender Leuchtschweif
     for (const b of shots) {
@@ -2443,8 +2683,8 @@ function draw() {
   if (inGame && !(state === 'play' && P.inv > 0 && (clock * 20 | 0) % 2)) {
     const bob = (inGame && !P.mv) ? 0 : (((P.walk / 1.7 | 0) & 1) ? -1 : 0);
     ctx.globalAlpha = 0.4; ctx.fillStyle = '#000'; ctx.fillRect(px - 5, py + 6, 10, 2); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
-    ctx.globalAlpha = 0.8; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py + bob - yo + q[1], 1, RF, true); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
-    spr(RS, px, py + bob - yo, 1, RF, false);
+    ctx.globalAlpha = 0.8; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py + bob - yo + q[1], PZ, RF, true); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
+    spr(RS, px, py + bob - yo, PZ, RF, false);
     ctx.globalAlpha = 1;
     if (sc.type === 'saw') {
       // Motorblock sitzt vor dem Körper, die Schiene zeigt nach vorn; die Kette läuft sichtbar um
@@ -2478,7 +2718,8 @@ function draw() {
     }
     else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -6 : 6), py + 5 + bob); if (P.flip) ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -6, -15.6, 19.2, 19.2); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
-    if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, 1, RF, false); ctx.globalAlpha = 1; }
+    if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
+    if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
     if (lv.schild && shieldT <= 0) gRing('#6fd0ff', px, py - 1, 11 + Math.sin(clock * 5) * 0.6, 1.2, 0.75, ga);
     if (inGame && P.hp < st.maxHp) { ctx.fillStyle = C.void; ctx.fillRect(px - 10, py + 10, 20, 4); ctx.fillStyle = C.blood; ctx.fillRect(px - 9, py + 11, Math.max(0, Math.round(18 * P.hp / st.maxHp)), 2); }
   }
@@ -2486,7 +2727,7 @@ function draw() {
   let hidden = false;
   for (const o of objs) if (o.y > py + 3) { drawObjC(o); const bx = BOXES[o.k]; if (bx && Math.abs(o.x - px) < bx[0] + 5 && o.y - py < bx[1] * 2 + 34) hidden = true; }
   // Steht der Schnitter hinter einem Gebäude, scheint er als Umriss durch
-  if (hidden) { ctx.globalAlpha = 0.55; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py - yo + q[1], 1, RF, true); ctx.globalAlpha = 0.75; spr(RS, px, py - yo, 1, RF, false); ctx.globalAlpha = 1; }
+  if (hidden) { ctx.globalAlpha = 0.55; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py - yo + q[1], PZ, RF, true); ctx.globalAlpha = 0.75; spr(RS, px, py - yo, PZ, RF, false); ctx.globalAlpha = 1; }
   if (inGame) {
     // Ringe, Partikel, Zahlen
     for (const r of rings) { const q = r.t / r.d, e = 1 - Math.pow(1 - q, 2); gRing(r.c, r.x, r.y, 2 + r.max * e, r.w * (1 - q) + 0.6, 1 - q, ga); }
@@ -2553,7 +2794,7 @@ const SCREENS = ['menu', 'shop', 'inv', 'opening', 'settings', 'codex', 'levelup
 function show(id, on) { $(id).hidden = !on; }
 function only(id) { SCREENS.forEach(s => show(s, s === id)); }
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-function icon(sp, scale) { const c = document.createElement('canvas'); c.width = sp.w; c.height = sp.h; c.getContext('2d').drawImage(sp.img, 0, 0); c.className = 'px'; c.style.width = sp.w * scale + 'px'; c.style.height = sp.h * scale + 'px'; return c; }
+function icon(sp, scale) { const c = document.createElement('canvas'); c.width = sp.w; c.height = sp.h; c.getContext('2d').drawImage(sp.img, 0, 0); c.className = 'px'; const z = scale * (sp.z || 1); c.style.width = sp.w * z + 'px'; c.style.height = sp.h * z + 'px'; return c; }
 
 /* ---------- Hauptmenü, Särge, Inventar ---------- */
 function bestLine(b) { return b ? 'Bestleistung: Welle ' + b.wave + ' · ' + b.kills + ' Seelen · ' + fmt(b.time) : ''; }
@@ -2571,13 +2812,13 @@ function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4])
 // Die Figur groß in der Mitte des Hauptmenüs: Aussehen und Waffe, wie sie angelegt sind
 function drawHero() {
   const c = $('hero'), g = c.getContext && c.getContext('2d'); if (!g || $('menu').hidden) return;
-  const z = 10, st4 = (menuT * 3.2 | 0) % 4, sp = sk.dir.f[WALK[st4]], cx = c.width / 2 - 24, base = c.height - 16, cy = base - 7 * z;
+  const z = 12, st4 = (menuT * 3.2 | 0) % 4, sp = sk.dir.f[WALK[st4]], sz = z * sp.z, cx = c.width / 2 - 56, base = c.height - 16, cy = base - 7 * z;
   g.clearRect(0, 0, c.width, c.height); g.imageSmoothingEnabled = false;
-  g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(cx, base - 4, 62, 9, 0, 0, 6.2832); g.fill();
-  g.drawImage(sp.img, Math.round(cx - sp.w * z / 2), base - sp.h * z, sp.w * z, sp.h * z);
+  g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(cx, base - 4, 74, 10, 0, 0, 6.2832); g.fill();
+  g.drawImage(sp.img, Math.round(cx - sp.w * sz / 2), base - sp.h * sz + sz, sp.w * sz, sp.h * sz);
   g.save();
-  if (!sc.type) { g.translate(cx + 6 * z, cy + 5 * z); g.drawImage(sc.sp.img, -6 * z, -15.6 * z, 19.2 * z, 19.2 * z); }
-  else { g.translate(cx + 4.5 * z, cy + 3.5 * z); g.rotate(-0.22 + Math.sin(menuT * 1.6) * 0.03); const w = z; g.drawImage(sc.sp.img, -3.5 * w, -8 * w, 16 * w, 16 * w); g.fillStyle = sk.hand; g.fillRect(-1.5 * z, 0.4 * z, 1.8 * z, 1.8 * z); g.fillRect(3.6 * z, 0.3 * z, 1.8 * z, 1.8 * z); }
+  if (!sc.type) { g.translate(cx + 9 * z, cy + 5 * z); g.drawImage(sc.sp.img, -6 * z, -15.6 * z, 19.2 * z, 19.2 * z); }
+  else { g.translate(cx + 5 * z, cy + 3.5 * z); g.rotate(-0.22 + Math.sin(menuT * 1.6) * 0.03); const w = z; g.drawImage(sc.sp.img, -3.5 * w, -8 * w, 16 * w, 16 * w); g.fillStyle = sk.hand; g.fillRect(-1.5 * z, 0.4 * z, 1.8 * z, 1.8 * z); g.fillRect(3.6 * z, 0.3 * z, 1.8 * z, 1.8 * z); }
   g.restore();
 }
 let openSeq = 0, skipFn = null;
@@ -2597,8 +2838,8 @@ function openShop() {
   openSeq++; only('shop'); $('sCoins').textContent = save.coins; $('shopMsg').textContent = '';
   $('boxesC').innerHTML = ''; $('boxesW').innerHTML = '';
   for (const cat in BOX) {
-    const b = BOX[cat], card = el('div', 'box'), row = el('div', 'mbtns'); card.style.borderColor = CLS[b.tp].c;
-    card.append(icon(b.sp, 6), el('span', 'nm', b.n), el('span', 'ds', b.own === 'skins' ? b.d : 'Für: ' + CLS[b.tp].n + '. ' + b.d));
+    const b = BOX[cat], card = el('div', 'box'), row = el('div', 'mbtns');
+    card.append(icon(b.sp, 6), el('span', 'nm', b.n), el('span', 'ds', b.own === 'skins' ? b.d : 'Für den ' + (b.tp === 'ray' ? 'Alien' : CLS[b.tp].n) + '. ' + b.d));
     for (const cnt of [1, 5]) {
       const btn = el('button', cnt === 1 ? 'cta' : 'alt', cnt + ' öffnen · ' + b.cost * cnt); btn.type = 'button';
       btn.addEventListener('click', () => openBoxes(cat, cnt));
@@ -2617,7 +2858,7 @@ function rollId(b) {
 // Särge im Stil eines Glücksrads: ein Band pro Sarg rollt aus und bleibt auf dem Gewinn stehen
 function openBoxes(cat, cnt) {
   const b = BOX[cat], total = b.cost * cnt;
-  if (save.coins < total) { $('shopMsg').textContent = 'Dir fehlen ' + (total - save.coins) + ' Seelensplitter für ' + (cnt > 1 ? cnt + ' Särge.' : 'diesen Sarg.'); return; }
+  if (save.coins < total) { $('shopMsg').textContent = 'Dir fehlen ' + (total - save.coins) + ' Seelensplitter für ' + (cnt > 1 ? cnt + ' Kisten.' : 'diese Kiste.'); return; }
   save.coins -= total;
   const res = [];
   for (let i = 0; i < cnt; i++) {
@@ -2704,7 +2945,7 @@ function openInv(tab) {
           row.append(up);
         } else row.append(el('span', 'lvl', 'Maximal'));
         t.append(row);
-      } else t.append(el('span', 'ds', it.d(1)), el('span', 'dim', 'Noch im Sarg'));
+      } else t.append(el('span', 'ds', it.d(1)), el('span', 'dim', 'Noch in der Kiste'));
       box.append(t);
     }
   }
@@ -2716,7 +2957,7 @@ const WCLS = {
   sense: {n: 'Sense', item: 'rost', d: 'Die sichere Wahl. Breite Hiebe um dich herum, gut gegen Gruppen und solide gegen Bosse. Keine echte Schwäche, aber auch keine Spitze.'},
   saw:   {n: 'Kettensäge', item: 'rostsaege', d: 'Für Mutige. Sie fräst nur, was direkt vor dir steht, dreht dabei hoch und macht dann sehr viel Schaden. Schwach, wenn der Schwarm von allen Seiten kommt.'},
   bow:   {n: 'Armbrust', item: 'jagdbrust', d: 'Die Bosswaffe. Wenige, schwere Bolzen auf große Entfernung, die ganze Reihen durchschlagen. Träge gegen viele kleine Gegner.'},
-  ray:   {n: 'Geisterkanone', item: 'protonen', d: 'Für Schwärme. Ein Strahl springt von Gegner zu Gegner und trifft viele auf einmal. Wenig Schaden pro Treffer, schwach gegen Bosse.'},
+  ray:   {n: 'Blaster', item: 'protonen', d: 'Für Schwärme. Ein Strahl springt von Gegner zu Gegner und trifft viele auf einmal. Wenig Schaden pro Treffer, schwach gegen Bosse.'},
 };
 let demoOn = null;
 function codexAbilities(cls) { return ['sense'].concat(UP.filter(u => u.w && u.id !== 'sense' && fitsC(u, cls)).map(u => u.id)); }
@@ -2865,7 +3106,7 @@ function openLevelUp() {
       else ico.append(icon(u.ic, 6));
       b.append(el('span', 'cat', o.dark ? 'Dunkle Stufe' : CAT[u.c].n), el('span', 'k', String(i + 1)), ico, el('span', 'nm', isPj ? sk.pj.n : u.id === 'sense' ? sc.n : altN(u)),
         el('span', 'lv', o.dark ? 'Geheim · nur 2 pro Runde' : (cur === 0 ? (u.w ? 'Neue Waffe' : 'Neue Gabe') : 'Stufe ' + cur + ' → ' + to) + (o.rare ? ' · zählt doppelt' : '')),
-        el('span', 'ds', o.dark ? (u.id === 'sense' ? WDK[sc.type || 'sense'] : u.dk) : cur === 0 && u.neu ? (isPj ? sk.pj.neu : u.neu) : altP(u)));
+        el('span', 'ds', o.dark ? (u.id === 'sense' ? WDK[sc.type || 'sense'] : altOf(u)[2] || u.dk) : cur === 0 && u.neu ? (isPj ? sk.pj.neu : u.neu) : altP(u)));
     }
     b.addEventListener('click', () => choose(o));
     box.append(b);
@@ -2998,7 +3239,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.17.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.18.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
@@ -3048,6 +3289,14 @@ if (DEV) window.__dev = {
   skin(id) { if (!save.skins.includes(id)) save.skins.push(id); save.eq[SKINS[id].cl].skin = id; setClass(SKINS[id].cl); recompute(); },
   coins(n) { save.coins += n; persist(); },
   mut(n) { bossKills = 4 * n; won = true; },
+  // Übersicht aller Bilder der angelegten Figur und Waffe (für Prüf-Fotos)
+  sheet(z) {
+    z = z || 5; let c = document.getElementById('devsheet'); if (!c) { c = document.createElement('canvas'); c.id = 'devsheet'; c.style.cssText = 'position:fixed;left:0;top:0;z-index:99;background:#4a5560'; document.body.append(c); }
+    c.width = 1280; c.height = 720; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; let y = 6;
+    for (const cl of ['sense', 'bow', 'saw', 'ray']) { let x = 6; const k = SKINS[save.eq[cl].skin]; for (const d of ['f', 'fs', 's', 'bs', 'b']) for (const sp of k.dir[d]) { g.drawImage(sp.img, x, y, sp.w * z, sp.h * z); x += sp.w * z + 6; if (x > 1280 - 160) { x = 6; y += sp.h * z + 4; } } y += 34 * z + 6; if (y > 560) break; }
+  },
+  sheetW() { const c = document.getElementById('devsheet'), g = c.getContext('2d'); g.fillStyle = '#4a5560'; g.fillRect(0, 0, 1280, 720); let x = 6, y = 6; for (const id in SCY) { g.drawImage(SCY[id].sp.img, x, y, 160, 160); x += 168; if (x > 1100) { x = 6; y += 168; } } },
+  sheetOff() { const c = document.getElementById('devsheet'); if (c) c.remove(); },
   diff(i) { save.diff = i; DF = DIFF[i]; },
   win() { bossKills = BOSSES.length; won = true; winT = 0.05; },
   killBoss() { if (boss) hit(boss, 1e9, 0, 0); },
