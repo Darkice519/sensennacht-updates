@@ -506,7 +506,7 @@ const BOSSES = [
 // Figuren und Waffen werden in doppelter Auflösung gemalt und halb so groß gezeichnet (z = 0.5).
 // Jedes Bild bekommt am Ende von selbst einen dunklen Umriss.
 function lite(c, f) { const n = parseInt(c.slice(1), 16); return '#' + [(n >> 16 & 255), (n >> 8 & 255), (n & 255)].map(v => Math.round(v + (255 - v) * (f || 0.2)).toString(16).padStart(2, '0')).join(''); }
-function painted(w, h, fn) {
+function painted(w, h, fn, raw) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
   const P = {
     ox: 0,
@@ -517,7 +517,11 @@ function painted(w, h, fn) {
     line(x0, y0, x1, y1, col, th) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2 || 1; g.fillStyle = col; for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), th || 1, th || 1); },
   };
   fn(P);
-  // Umriss: jeder leere Bildpunkt neben einem gefüllten wird dunkel
+  return raw ? c : finish(c);
+}
+// Umriss und weiße Trefferfassung: jeder leere Bildpunkt neben einem gefüllten wird dunkel
+function finish(c) {
+  const w = c.width, h = c.height, g = c.getContext('2d');
   const im = g.getImageData(0, 0, w, h), d = im.data, src = new Uint8Array(w * h);
   for (let i = 0; i < w * h; i++) src[i] = d[i * 4 + 3] > 0 ? 1 : 0;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
@@ -528,6 +532,22 @@ function painted(w, h, fn) {
   const f = document.createElement('canvas'); f.width = w; f.height = h;
   const fg = f.getContext('2d'); fg.drawImage(c, 0, 0); fg.globalCompositeOperation = 'source-in'; fg.fillStyle = '#fff'; fg.fillRect(0, 0, w, h);
   return {img: c, flash: f, w, h, z: 0.5};
+}
+// Waffe in fünf festen Richtungen (hoch, schräg hoch, zur Seite, schräg runter, runter), gedreht um ihren Griff (gx, gy).
+// Die Bildpunkte bleiben dabei im Raster, der Umriss wird nach dem Drehen neu gezogen. Links ist später das Spiegelbild.
+function rotSprites(src, gx, gy) {
+  const W = 64, sd = src.getContext('2d').getImageData(0, 0, src.width, src.height), sw = src.width, sh = src.height;
+  return [-2, -1, 0, 1, 2].map(k => {
+    const a = k * Math.PI / 4, ca = Math.cos(a), sa = Math.sin(a), c = document.createElement('canvas'); c.width = c.height = W;
+    const g = c.getContext('2d'), im = g.createImageData(W, W);
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const dx = x - 32 + 0.5, dy = y - 32 + 0.5, sx = Math.floor(gx + dx * ca + dy * sa), sy = Math.floor(gy - dx * sa + dy * ca);
+      if (sx < 0 || sy < 0 || sx >= sw || sy >= sh) continue;
+      const si = (sy * sw + sx) * 4, di = (y * W + x) * 4; if (!(sd.data[si + 3] > 0)) continue;
+      im.data[di] = sd.data[si]; im.data[di + 1] = sd.data[si + 1]; im.data[di + 2] = sd.data[si + 2]; im.data[di + 3] = 255;
+    }
+    g.putImageData(im, 0, 0); return finish(c);
+  });
 }
 const bz = (a, b, c, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
 const INK = '#0a0607', TOOTH = '#d8ccb8';
@@ -754,20 +774,20 @@ for (const id in SKINS) {
   if (!k.nc) k.nc = k.cl === 'saw' ? '#c2182e' : cl.c;
   k.hand = k.pal[cl.hand];
   k.dir = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dir[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal))); }); k.sp = k.dir.f[0];
-  if (k.cl !== 'sense') { k.armC = k.pal[cl.arm]; k.dirN = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dirN[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal, true))); }); }
+  if (k.cl !== 'sense') { k.armC = k.pal[cl.arm]; k.armD = shade(k.armC); k.dirN = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dirN[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal, true))); }); }
 }
 // Blickrichtung aus der Laufrichtung: acht Richtungen, links ist die gespiegelte rechte Seite
 const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', true], ['bs', true], ['b', false], ['bs', false]];
 function reaperSprite(moving) {
   // mit Säge, Armbrust und Kanone schaut er dorthin, wohin er zielt; mit der Sense in Laufrichtung
-  const d = RDIR[Math.round((sc.type && state !== 'menu' ? aimA : P.face) / (Math.PI / 4)) & 7];
+  const d = RDIR[sc.type && state !== 'menu' ? aimK : Math.round(P.face / (Math.PI / 4)) & 7];
   // der Reaper schwebt: sein Saum weht ständig, Schritte macht er nicht
   if (sk.cl === 'sense') return [sk.dir[d[0]][WALK[(clock * 3.2 | 0) & 3]], d[1]];
   // im Spiel halten Mensch, Zombie und Alien ihre Waffe mit beiden Armen: Figur ohne hängende Arme
   return [(state !== 'menu' ? sk.dirN : sk.dir)[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
 }
 const wcl = id => SCY[id].type || 'sense';
-for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } it.sp = painted(32, 32, P => (it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe)(P, it.pal)); }
+for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } const dr = it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe; it.sp = painted(32, 32, P => dr(P, it.pal)); if (it.type) it.rot = rotSprites(painted(32, 32, P => dr(P, it.pal), true), it.type === 'ray' ? 6 : 8, it.type === 'saw' ? 17 : it.type === 'ray' ? 16 : 15); }
 const BOX = {
   k_sense: {n:'Reaper-Sarg', pl:'Reaper-Särge', d:'Enthält ein Gewand für den Reaper.', cost:100, sp:SP.coffinSkin, set:SKINS, own:'skins', tp:'sense'},
   k_bow:   {n:'Vorratskiste', pl:'Vorratskisten', d:'Enthält ein Aussehen für den Menschen.', cost:100, sp:mk(CRATE, {k:'#1a1210', d:'#8a5638', y:'#c8a040'}), set:SKINS, own:'skins', tp:'bow'},
@@ -957,7 +977,7 @@ let state = 'menu', menuT = 0;
 let hudCache = {}, luOpts = [], luAt = 0;
 const ARENA = 165, DK = '#b040ff';
 let sucking = false, rays = [], orbs = [], vorts = [], drones = [], bottles = [];
-let autoPick = false, distractT = 0, bossBag = [], discs = [], fires = [], volleys = [], traps = [], pools = [], beams = [], bowLoad = 1, shots = [], aimA = 0, rev = 0, sawHit = 0, recoil = 0, boltT = 6, flick = 0, boltPath = [];
+let autoPick = false, distractT = 0, bossBag = [], discs = [], fires = [], volleys = [], traps = [], pools = [], beams = [], bowLoad = 1, shots = [], aimA = 0, aimK = 0, rev = 0, sawHit = 0, recoil = 0, boltT = 6, flick = 0, boltPath = [];
 const mutL = () => Math.floor(bossKills / 4);
 let dark = {};
 const col = id => dark[id] ? DK : sc.t, NC = () => dark.nova ? DK : sk.nc;
@@ -988,7 +1008,7 @@ function reset() {
   lv = {}; dark = {}; UP.forEach(u => lv[u.id] = 0); lv.sense = 1;
   if (sk.startW) { const w = UP.filter(u => u.w && u.id !== 'sense' && fitsW(u)); lv[w[Math.random() * w.length | 0].id] = 1; }
   st = {}; recompute(); P.hp = st.maxHp; for (let i = 0; i < 6; i++) collide();
-  rings = []; decals = []; flashT = 0; hurtT = 0; rays = []; orbs = []; vorts = []; drones = []; bottles = []; discs = []; fires = []; volleys = []; traps = []; pools = []; beams = []; bossBag = []; distractT = 0; beam = null; shots = []; aimA = 0; rev = 0; sawHit = 0; recoil = 0; boltT = 6; flick = 0; zones = []; enemies = []; picks = []; bolts = []; swings = []; throws = []; wisps = []; novas = []; parts = []; nums = []; pending = [];
+  rings = []; decals = []; flashT = 0; hurtT = 0; rays = []; orbs = []; vorts = []; drones = []; bottles = []; discs = []; fires = []; volleys = []; traps = []; pools = []; beams = []; bossBag = []; distractT = 0; beam = null; shots = []; aimA = 0; aimK = 0; rev = 0; sawHit = 0; recoil = 0; boltT = 6; flick = 0; zones = []; enemies = []; picks = []; bolts = []; swings = []; throws = []; wisps = []; novas = []; parts = []; nums = []; pending = [];
   time = 0; kills = 0; bossKills = 0; level = 1; xp = 0; xpNeed = needFor(1); wave = 0; waveT = 0; spawnAcc = 0; boss = null; shake = 0; orbA = 0;
   cd = {sense: 0.4, wurf: 1, nova: 2, licht: 0.6, sauger: 0, disc: 1, spur: 0, hagel: 2, falle: 1, kugel: 1.5, gfalle: 2.5, glocke: 3, orbital: 2, seuche: 0, brand: 1.5}; arena = null; drain = []; pickCombo = 0; pickComboT = 0;
   hudCache = {};
@@ -1536,7 +1556,10 @@ function senseTick(dt) {
 // Die Hände halten Säge, Armbrust und Kanone dicht vor der Brust; die Waffe dreht sich um diesen Griff
 const gripX = a => Math.cos(a) * 3, gripY = a => 2 + Math.sin(a) * 2.5;
 const angd = (a, b) => ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
-function turnTo(target, dt, rate) { aimA += Math.max(-rate * dt, Math.min(rate * dt, angd(target, aimA))); }
+// Die Waffe zielt stufenlos, gezeigt wird sie in acht festen Richtungen (aimK). Erst wenn das Ziel klar in der
+// nächsten Richtung liegt, schwenken Figur und Waffe um; so flackert nichts an der Grenze.
+function turnTo(target, dt, rate) { aimA += Math.max(-rate * dt, Math.min(rate * dt, angd(target, aimA))); if (Math.abs(angd(aimA, aimK * Math.PI / 4)) > 0.5) aimK = Math.round(aimA / (Math.PI / 4)) & 7; }
+const aimS = () => aimK * Math.PI / 4;
 // Säge: deutlich kürzer als die Sense. Das Bild der Säge wächst mit der Reichweite mit.
 function sawReach() { const L = lv.sense; return Math.min(34, (17 + 0.9 * L) * (1 + (st.area - 1) * 0.5) * (1 + (st.range - 1) * 0.6) * (dark.sense ? 1.15 : 1)); }
 // Im Bosskampf bleibt die Hauptwaffe auf dem Boss, bis dich ein kleiner Gegner trifft
@@ -1579,9 +1602,9 @@ function bowTick(dt) {
   if (cd.sense > 0 || !t || Math.abs(angd(want, aimA)) > 0.2) return;
   cd.sense = total; bowLoad = 0;
   const cnt = (1 + (L >= 3 ? 1 : 0) + (L >= 5 ? 1 : 0) + (sc.twin ? 1 : 0)) * (dark.sense ? 2 : 1), dmg = (TUNE.bowDmg0 + TUNE.bowDmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1);
-  for (let i = 0; i < cnt; i++) { const a = aimA + (i - (cnt - 1) / 2) * 0.15; shots.push({x: P.x + gripX(a) + Math.cos(a) * 9, y: P.y + gripY(a) + Math.sin(a) * 9, vx: Math.cos(a) * 390, vy: Math.sin(a) * 390, a, t: 0, pierce: sc.slow ? 99 : 4 + L, dmg, seen: new Set(), vid: time}); }
+  for (let i = 0; i < cnt; i++) { const a = aimA + (i - (cnt - 1) / 2) * 0.15, s8 = aimS(); shots.push({x: P.x + gripX(s8) + Math.cos(s8) * 9, y: P.y + gripY(s8) + Math.sin(s8) * 9, vx: Math.cos(a) * 390, vy: Math.sin(a) * 390, a, t: 0, pierce: sc.slow ? 99 : 4 + L, dmg, seen: new Set(), vid: time}); }
   recoil = 1; shake = Math.max(shake, 1.2);
-  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 11, my = P.y + gripY(aimA) + Math.sin(aimA) * 11;
+  const mx = P.x + gripX(aimS()) + Math.cos(aimS()) * 11, my = P.y + gripY(aimS()) + Math.sin(aimS()) * 11;
   wfx(mx, my, 8, aimA, 0.5, 50, 170); ring(mx, my, 12, sc.t, 0.2, 2);
   beep(180, 0.16, 'triangle', 0.05, -120); beep(900, 0.05, 'square', 0.02, -500);
 }
@@ -1623,7 +1646,7 @@ function rayTick(dt) {
   }
   cd.sense -= dt; if (cd.sense > 0 || !t) return;
   aimA = Math.atan2(t.y - P.y, t.x - P.x);
-  const mx = P.x + gripX(aimA) + Math.cos(aimA) * 11.5, my = P.y + gripY(aimA) + Math.sin(aimA) * 11.5, left = (RAYB.j0 + (L * RAYB.jL | 0) + (sc.jump || 0)) * (dark.sense ? 2 : 1);
+  const mx = P.x + gripX(aimS()) + Math.cos(aimS()) * 11.5, my = P.y + gripY(aimS()) + Math.sin(aimS()) * 11.5, left = (RAYB.j0 + (L * RAYB.jL | 0) + (sc.jump || 0)) * (dark.sense ? 2 : 1);
   beam = {seen: new Set([t]), n: 0, end: 0, sd: Math.random() * 99, spd: RAYB.spd + RAYB.spdL * L, hop: RAYB.hop * (1 + (st.area - 1) * 0.5), forks: 1 + (L >= RAYB.forkAt ? 1 : 0) + (L >= RAYB.forkAt + 2 ? 1 : 0),
     dmg: (RAYB.dmg0 + RAYB.dmgL * L) * st.dmg * st.sdmg * (dark.sense ? 2 : 1), heads: [{x: mx, y: my, pts: [mx, my], n: 0, left, tg: t}]};
   recoil = 0.5; wfx(mx, my, 4, aimA, 0.6, 30, 110); beep(rnd(500, 650), 0.12, 'sawtooth', 0.02, 300);
@@ -1655,7 +1678,7 @@ function weapons(dt) {
   auraT -= dt;
   if (auraT <= 0 && Q >= 1 && save.scythe !== 'rost' && (!demoOn || demoOn.ab === 'sense')) {
     auraT = 0.09;
-    if (sc.type) wfx(P.x + gripX(aimA) + Math.cos(aimA) * 9, P.y + gripY(aimA) + Math.sin(aimA) * 9, 1, undefined, 0, 2, 12);
+    if (sc.type) wfx(P.x + gripX(aimS()) + Math.cos(aimS()) * 9, P.y + gripY(aimS()) + Math.sin(aimS()) * 9, 1, undefined, 0, 2, 12);
     else wfx(P.x + (P.flip ? -9 : 9) + rnd(-5, 5), P.y - 9 + rnd(-3, 3), 1, undefined, 0, 2, 12);
   }
   // Seelenkreis
@@ -2399,20 +2422,25 @@ function scytheAt(x, y, ang, z, al) { gRot(sc.sp.uv, x, y, ang + Math.PI / 4, 16
 // Säge und Armbrust zeigen nach rechts; Griff liegt im Ursprung
 function weaponAt(x, y, ang, z) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(sc.sp.img, -2.5 * z, -8 * z, 16 * z, 16 * z); ctx.restore(); }
 function spin(sp, x, y, rot, z, al) { gRot(sp.uv, x, y, rot, 16, 16, 8, 8, z, al == null ? 1 : al); }
-// Beide Arme von den Schultern zu den Griffen der Waffe. (gx, gy) ist der Griffpunkt, a die Zielrichtung,
-// h0 und h1 sind die Griffstellen im Bild der Waffe (hinten und vorn), fl spiegelt wie die Waffe selbst.
-function arms(px, py, gx, gy, a, fl, k, h0, h1) {
-  const ca = Math.cos(a), sa = Math.sin(a), fs = fl && ca < 0 ? -1 : 1, fa = Math.round(a / (Math.PI / 4)) * Math.PI / 4, S = CLS[sk.cl].sh;
-  const sx = -Math.sin(fa) * S[0], sy = Math.cos(fa) * 1.1;
-  const pts = [[px + sx, py + S[1] + sy, h0], [px - sx, py + S[1] - sy, h1]];
+// Arm aus einzelnen Bildpunkten im Raster der Figur: Schulter, leichter Knick, Hand am Griff
+function pixArm(ox, oy, x0, y0, x1, y1, c) {
+  const ex = (x0 + x1) / 2, ey = (y0 + y1) / 2 + 1.2, pts = [];
+  for (const [ax, ay, bx, by] of [[x0, y0, ex, ey], [ex, ey, x1, y1]]) { const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 0.5) || 1; for (let i = 0; i <= n; i++) pts.push(ox + Math.round((ax + (bx - ax) * i / n - ox) * 2) / 2, oy + Math.round((ay + (by - ay) * i / n - oy) * 2) / 2); }
+  ctx.fillStyle = '#0c0709'; for (let i = 0; i < pts.length; i += 2) ctx.fillRect(pts[i] - 1.25, pts[i + 1] - 1.25, 2.5, 2.5);
+  ctx.fillStyle = c; for (let i = 0; i < pts.length - 4; i += 2) ctx.fillRect(pts[i] - 0.75, pts[i + 1] - 0.75, 1.5, 1.5);
+  ctx.fillStyle = sk.hand; for (let i = Math.max(0, pts.length - 4); i < pts.length; i += 2) ctx.fillRect(pts[i] - 0.75, pts[i + 1] - 0.75, 1.5, 1.5);
+}
+// Waffe in der Hand: eine von acht festen Richtungen (kd), fertig gedrehtes Bild, beide Arme greifen an die Griffe.
+// rec = Rückstoß, h0/h1 = Griffstellen (hinten, vorn) im Bild der nach rechts zeigenden Waffe, over = Zusatz im Bild der Waffe
+const WDIR = [[2, false], [3, false], [4, false], [3, true], [2, true], [1, true], [0, false], [1, false]];
+function held(px, py, kd, rec, z, h0, h1, over, noArms) {
+  const bi = WDIR[kd][0], mir = WDIR[kd][1], b = (bi - 2) * Math.PI / 4, cb = Math.cos(b), sb = Math.sin(b), m = mir ? -1 : 1, as = kd * Math.PI / 4;
+  const gx = px + Math.round((gripX(as) - rec * cb * m) * 2) / 2, gy = py + Math.round((gripY(as) - rec * sb) * 2) / 2, s = 0.5 * z;
+  ctx.save(); ctx.translate(gx, gy); if (mir) ctx.scale(-1, 1); ctx.drawImage(sc.rot[bi].img, -32 * s, -32 * s, 64 * s, 64 * s); if (over) { ctx.rotate(b); over(); } ctx.restore();
+  if (noArms) return;
+  const S = CLS[sk.cl].sh, sx = -Math.sin(as) * S[0], sy = Math.cos(as) * 1.1, pts = [[px + sx, py + S[1] + sy, h0, sy >= 0], [px - sx, py + S[1] - sy, h1, sy < 0]];
   if (sy < 0) pts.reverse();                                    // der hintere Arm zuerst
-  ctx.lineCap = 'round';
-  for (const [x0, y0, h] of pts) {
-    const hx = gx + ca * (h[0] - k) - sa * h[1] * fs, hy = gy + sa * (h[0] - k) + ca * h[1] * fs, ex = (x0 + hx) / 2, ey = (y0 + hy) / 2 + 1.6;
-    for (const [w, c] of [[2.7, '#0c0709'], [1.5, sk.armC]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(ex, ey, hx, hy); ctx.stroke(); }
-    ctx.fillStyle = '#0c0709'; ctx.fillRect(hx - 1.15, hy - 1.15, 2.3, 2.3); ctx.fillStyle = sk.hand; ctx.fillRect(hx - 0.7, hy - 0.7, 1.4, 1.4);
-  }
-  ctx.lineCap = 'butt';
+  for (const [x0, y0, h, near] of pts) pixArm(px, py, x0, y0, gx + m * (cb * h[0] - sb * h[1]), gy + sb * h[0] + cb * h[1], near || Math.abs(sy) < 0.3 ? sk.armC : sk.armD);
 }
 function hands(x0, y0, x1, y1) { ctx.fillStyle = C.void; ctx.fillRect(x0 - 1.1, y0 - 1.1, 2.2, 2.2); ctx.fillRect(x1 - 1.1, y1 - 1.1, 2.2, 2.2); ctx.fillStyle = sk.hand; ctx.fillRect(x0 - 0.6, y0 - 0.6, 1.2, 1.2); ctx.fillRect(x1 - 0.6, y1 - 0.6, 1.2, 1.2); }
 
@@ -2711,38 +2739,27 @@ function draw() {
     ctx.globalAlpha = 1;
     if (sc.type === 'saw') {
       // Motorblock sitzt vor dem Körper, die Schiene zeigt nach vorn; die Kette läuft sichtbar um
-      const a = inGame ? aimA : -0.3, jig = inGame ? Math.sin(clock * 80) * (0.25 + rev * 0.35) : 0, z = Math.min(1.25, Math.max(0.8, sawReach() / 22));
-      for (const aa of (dark.sense && inGame) ? [a, a + Math.PI] : [a]) {
-        ctx.save(); ctx.translate(px + gripX(aa) + jig, py + gripY(aa) + bob); ctx.rotate(aa); if (Math.cos(aa) < 0) ctx.scale(1, -1);
-        ctx.drawImage(sc.sp.img, -4 * z, -8.5 * z, 16 * z, 16 * z);
-        ctx.fillStyle = sc.pal.e; const run = inGame ? clock * (14 + rev * 26) : 0;
-        for (let i = 0; i < 4; i++) { const f = ((run + i * 1.75) % 7); ctx.fillRect((5 + f) * z, -2.5 * z, z * 0.8, z * 0.8); ctx.fillRect((12 - f) * z, 1.7 * z, z * 0.8, z * 0.8); }
-        ctx.restore();
-        if (aa === a) arms(px + jig, py + bob, px + gripX(aa) + jig, py + gripY(aa) + bob, aa, true, 0, [-3 * z, 0.5 * z], [0.8 * z, -4.4 * z]);
-      }
+      const jig = Math.sin(clock * 80) * (0.25 + rev * 0.35), z = Math.min(1.25, Math.max(0.8, sawReach() / 22)), run = clock * (14 + rev * 26);
+      const chain = () => { ctx.fillStyle = sc.pal.e; for (let i = 0; i < 4; i++) { const f = ((run + i * 1.75) % 7); ctx.fillRect((5 + f) * z, -2.5 * z, z * 0.8, z * 0.8); ctx.fillRect((12 - f) * z, 1.7 * z, z * 0.8, z * 0.8); } };
+      if (dark.sense) held(px + jig, py + bob, (aimK + 4) & 7, 0, z, null, null, chain, true);
+      held(px + jig, py + bob, aimK, 0, z, [-3 * z, 0.5 * z], [0.8 * z, -4.4 * z], chain);
     } else if (sc.type === 'ray') {
-      const a = inGame ? aimA : -0.3, k = recoil * 2.5, z = 0.85;
-      ctx.save(); ctx.translate(px + gripX(a), py + gripY(a) + bob); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); ctx.translate(-k, 0);
-      ctx.drawImage(sc.sp.img, -3 * z, -8 * z, 16 * z, 16 * z);
-      ctx.restore();
-      arms(px, py + bob, px + gripX(a), py + gripY(a) + bob, a, true, k, [-0.6 * z, 2.4 * z], [5 * z, 2 * z]);
+      const a = aimS(), z = 0.85;
+      held(px, py + bob, aimK, recoil * 2.5, z, [-0.6 * z, 2.4 * z], [5 * z, 2 * z]);
       glow(px + gripX(a) + Math.cos(a) * 11.5, py + gripY(a) + bob + Math.sin(a) * 11.5, 5 + recoil * 7, col('sense'), 0.45 + recoil * 0.5);
     } else if (sc.type === 'bow') {
       // Armbrust vor dem Körper, Sehne spannt sich beim Nachladen, Rückstoß beim Schuss
-      const a = inGame ? aimA : -0.3, z = 0.95, ld = inGame ? bowLoad : 1, k = recoil * 3.5;
-      ctx.save(); ctx.translate(px + gripX(a), py + gripY(a) + bob); ctx.rotate(a); ctx.translate(1 - k, 0);
-      ctx.drawImage(sc.sp.img, -5 * z, -7.5 * z, 16 * z, 16 * z);
-      const tipX = 4.5 * z, tipY = 5.2 * z, nock = (4.5 - 4 * ld) * z;
-      ctx.strokeStyle = C.bone; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipX, -tipY); ctx.lineTo(nock, 0); ctx.lineTo(tipX, tipY); ctx.stroke();
-      if (ld >= 1) { ctx.fillStyle = '#ffffff'; ctx.fillRect(10 * z, -0.5, 1.5, 1); }
-      ctx.restore();
-      arms(px, py + bob, px + gripX(a), py + gripY(a) + bob, a, false, k - 1, [-3.4 * z, 1], [2.5 * z, 1.2]);
-      if (ld >= 1 && inGame) glow(px + gripX(a) + Math.cos(a) * 11, py + gripY(a) + bob + Math.sin(a) * 11, 5, sc.t, 0.6);
+      const a = aimS(), z = 0.95, ld = bowLoad;
+      held(px, py + bob, aimK, recoil * 3.5, z, [-3.4 * z, 1], [2.5 * z, 1.2], () => {
+        const tipX = 5.5 * z, tipY = 5.2 * z, nock = (5.5 - 4 * ld) * z;
+        ctx.strokeStyle = C.bone; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipX, -tipY); ctx.lineTo(nock, 0); ctx.lineTo(tipX, tipY); ctx.stroke();
+      });
+      if (ld >= 1) glow(px + gripX(a) + Math.cos(a) * 11, py + gripY(a) + bob + Math.sin(a) * 11, 5, sc.t, 0.6);
       if (recoil > 0.5) gCrescent(px + Math.cos(a) * 10, py + 2 + Math.sin(a) * 10, 14, a - 0.7, a + 0.7, 5, sc.t, (recoil - 0.5) * 1.6, 1, ga);
     }
     else if (!inGame || !swings.length) { ctx.save(); { const hx = Math.abs(Math.cos(P.face)) > 0.92 ? 2.8 : 3.8; ctx.translate(px + (P.flip ? -hx : hx), py + 1.5 + bob); } if (P.flip) ctx.scale(-1, 1); ctx.rotate(1); ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -5.5, -14.3, 17.6, 17.6); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
-    if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
+    if (sc.type && aimK >= 5) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob - yo, PZ, RF, false); ctx.globalAlpha = 1; }
     if (inGame && lv.glocke && cd.glocke <= BELLT) { const f = 1 - Math.max(0, cd.glocke) / BELLT, bs = 0.9 + f * 0.7; ctx.globalAlpha = Math.min(1, f * 3); ctx.save(); ctx.translate(px, py - 21 - f * 2); ctx.rotate(Math.sin(clock * 16) * 0.35 * f); ctx.drawImage(SP.bell.img, -4.5 * bs, -4.5 * bs, 9 * bs, 9 * bs); ctx.restore(); ctx.globalAlpha = 1; glow(px, py - 21, 10 + f * 8, C.glow, 0.5 * f); gRing(dark.glocke ? DK : C.glow, P.x, P.y, glockeR(), 0.8, 0.25 * f, ga); }
     if (lv.schild && shieldT <= 0) gRing('#6fd0ff', px, py - 1, 11 + Math.sin(clock * 5) * 0.6, 1.2, 0.75, ga);
     if (inGame && P.hp < st.maxHp) { ctx.fillStyle = C.void; ctx.fillRect(px - 10, py + 10, 20, 4); ctx.fillStyle = C.blood; ctx.fillRect(px - 9, py + 11, Math.max(0, Math.round(18 * P.hp / st.maxHp)), 2); }
@@ -3263,7 +3280,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.18.3' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.18.4' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
