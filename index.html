@@ -802,6 +802,70 @@ function drawSaw(P, pal) {
   P.line(3, 9, 5, 4, g, 2); P.line(5, 4, 12, 4, g, 2); P.line(12, 4, 14, 9, g, 2); P.h(4, 6, 11, lite(g, 0.3));
   P.r(0, 13, 1, 8, g);
 }
+// Mythisches Aussehen des Menschen: Trainingsanzug, Topfschnitt, große Brille. Beim Laufen wippt er vor und zurück,
+// die Fäuste nach hinten gestreckt (t = 1 vorgebeugt, t = 2 zurückgelehnt).
+function drawVector(P, d, t, pal, na) {
+  const h = pal.h, w = pal.w, o = pal.p, od = pal.q, a = pal.a, b = pal.b, k = pal.k, wd = shade(w), hl = lite(h, 0.22), ol = lite(o, 0.2), lens = '#dfeef2', side = d === 2, back = d >= 3, mv = t > 0;
+  if (side) {
+    const ln = t === 1 ? 2 : t === 2 ? -1 : 0, bx = t === 1 ? -2 : t === 2 ? 1 : 0, hy = t === 1 ? 1 : 0, f = t === 1 ? 2 : t === 2 ? -2 : 0, hx = ln;
+    P.r(10 - f + bx, 22, 4, 6, od); P.r(10 - f + bx, 28, 5, 2, shade(b));
+    P.r(10 + f + bx, 22, 4, 6, o); P.r(11 + f + bx, 22, 1, 6, a); P.r(10 + f + bx, 28, 5, 2, b); P.p(12 + f + bx, 29, o);
+    for (let y = 11; y <= 16; y++) { const s = Math.round(ln * (16 - y) / 5); P.h(y + hy, 9 + bx + s, 15 + bx + s, o); P.p(9 + bx + s, y + hy, od); P.p(12 + bx + s, y + hy, a); P.p(15 + bx + s, y + hy, ol); }
+    for (let y = 16; y <= 22; y++) { const wv = y >= 18 && y <= 21 ? 1 : 0; P.h(y, 8 + bx - wv, 16 + bx, o); P.p(8 + bx - wv, y, od); P.p(12 + bx, y, a); }
+    if (mv) { for (let i = 0; i < 5; i++) P.r(10 + ln + bx - i, 12 + hy + i, 2, 2, od); P.r(4 + ln + bx, 17 + hy, 2, 2, w); P.p(4 + ln + bx, 18 + hy, wd); }
+    else if (!na) { P.r(11, 13, 2, 7, od); P.r(11, 20, 2, 2, w); }
+    P.r(9 + hx, 9 + hy, 2, 3, o); P.r(14 + hx, 10 + hy, 3, 2, o); P.p(16 + hx, 9 + hy, o); P.p(9 + hx, 8 + hy, ol); P.r(11 + hx, 10 + hy, 3, 1, wd);
+    for (const [y, a0, a1] of [[3, 10, 16], [4, 10, 17], [5, 10, 17], [6, 10, 17], [7, 10, 17], [8, 10, 16], [9, 11, 15]]) P.h(y + hy, a0 + hx, a1 + hx, w);
+    for (const [y, a0, a1] of [[0, 10, 15], [1, 9, 16], [2, 8, 17], [3, 8, 17], [4, 8, 17], [5, 8, 11], [6, 8, 11], [7, 9, 11]]) P.h(y + hy, a0 + hx, a1 + hx, h);
+    P.h(1 + hy, 11 + hx, 13 + hx, hl); P.p(10 + hx, 2 + hy, hl); P.p(12 + hx, 6 + hy, wd);
+    P.r(14 + hx, 5 + hy, 4, 3, k); P.r(15 + hx, 6 + hy, 2, 1, lens); P.p(16 + hx, 6 + hy, k); P.h(6 + hy, 12 + hx, 13 + hx, k);
+    P.r(18 + hx, 7 + hy, 2, 2, w); P.p(20 + hx, 8 + hy, w); P.p(19 + hx, 9 + hy, wd); P.h(9 + hy, 15 + hx, 16 + hx, shade(wd));
+    return;
+  }
+  const yo = t === 1 ? 1 : 0, wide = t === 1 ? 1 : 0, lL = t === 1 ? 2 : 0, lR = t === 2 ? 2 : 0;
+  P.r(8, 22, 4, 6 - lL, o); P.r(8, 22, 1, 6 - lL, a); P.r(7, 28 - lL, 5, 2, b); P.p(9, 29 - lL, o);
+  P.r(14, 22, 4, 6 - lR, o); P.r(17, 22, 1, 6 - lR, a); P.r(14, 28 - lR, 5, 2, b); P.p(16, 29 - lR, o);
+  for (let y = 12; y <= 16; y++) { P.h(y + yo, 8, 17, o); P.p(17, y + yo, od); P.p(8, y + yo, a); }
+  for (let y = 17; y <= 22; y++) { const wv = y === 17 || y === 22 ? 0 : 1 + wide; P.h(y, 7 - wv, 18 + wv, o); P.p(7 - wv, y, a); P.p(18 + wv, y, od); }
+  if (!back) P.r(12 + d, 12 + yo, 1, 10 - yo, od); else P.r(12, 13 + yo, 1, 9 - yo, od);
+  if (mv) { P.r(5, 13 + yo, 2, 4, o); P.r(3, 16 + yo, 3, 2, o); P.r(2, 17 + yo, 2, 2, w); if (!na) { P.r(19, 13 + yo, 2, 4, od); P.r(20, 16 + yo, 3, 2, od); P.r(22, 17 + yo, 2, 2, wd); } }
+  else { P.r(5, 13, 2, 7, o); P.r(5, 20, 2, 2, w); if (!na) { P.r(19, 13, 2, 7, od); P.r(19, 20, 2, 2, wd); } }
+  if (na) P.r(18, 12 + yo, 2, 2, od);
+  P.r(7, 9 + yo, 3, 4, o); P.r(16, 9 + yo, 3, 4, od); P.p(7, 9 + yo, ol); P.p(8, 9 + yo, ol); P.r(11, 10 + yo, 4, 2, wd);
+  for (const [y, a0, a1] of [[3, 9, 16], [4, 8, 17], [5, 8, 17], [6, 8, 17], [7, 8, 17], [8, 8, 17], [9, 9, 16]]) { P.h(y + yo, a0, a1, w); P.p(a1, y + yo, wd); }
+  for (const [y, a0, a1] of [[0, 10, 15], [1, 8, 17], [2, 7, 18], [3, 7, 18], [4, 7, 18]]) P.h(y + yo, a0, a1, h);
+  P.h(1 + yo, 10, 13, hl); P.p(9, 2 + yo, hl); P.p(7, 5 + yo, h); P.p(18, 5 + yo, h);
+  if (back) { for (let y = 5; y <= 7; y++) P.h(y + yo, 7, 18, h); P.h(8 + yo, 8, 17, h); P.r(12, 5 + yo, 1, 3, shade(h)); }
+  else {
+    const o2 = d * 2;
+    P.r(8 + o2, 5 + yo, 4, 3, k); P.r(9 + o2, 6 + yo, 2, 1, lens); P.p(10 + o2, 6 + yo, k); P.p(12 + o2, 6 + yo, k);
+    P.r(13 + o2, 5 + yo, 4, 3, k); P.r(14 + o2, 6 + yo, 2, 1, lens); P.p(14 + o2, 6 + yo, k);
+    P.r(12 + o2, 8 + yo, 2, 1, wd); P.h(9 + yo, 12 + o2, 14 + o2, shade(wd)); P.p(15 + o2, 8 + yo, shade(wd));
+  }
+}
+// Piranha-Kanone: weißer Rumpf mit Trichter, Glaskuppel voller Piranhas, vorn schaut einer heraus
+function drawFishGun(P, pal) {
+  const w = '#eef2f4', g = '#b8c0c8', d = '#7a828c', o = '#ff7a2a', t = '#4ac8c0', gl = '#bfe6ee';
+  P.r(0, 10, 2, 12, w); P.r(2, 11, 2, 10, w); P.r(4, 12, 2, 8, w); P.r(0, 20, 2, 2, g); P.r(2, 19, 2, 2, g); P.r(4, 18, 2, 2, g); P.p(0, 10, '#ffffff'); P.r(0, 12, 1, 6, g);
+  P.r(6, 13, 8, 7, w); P.r(14, 13, 8, 6, w); P.r(22, 14, 3, 4, w); P.h(19, 6, 13, g); P.h(18, 14, 24, g); P.h(13, 6, 21, '#ffffff'); P.r(16, 15, 4, 1, g);
+  P.r(9, 20, 3, 4, d); P.p(9, 20, g); P.r(15, 19, 2, 3, d);
+  for (const [y, a0, a1] of [[4, 11, 15], [5, 10, 16], [6, 9, 17], [7, 9, 17], [8, 9, 17], [9, 9, 17], [10, 9, 17], [11, 9, 17], [12, 9, 17]]) P.h(y, a0, a1, gl);
+  P.h(4, 12, 13, '#ffffff'); P.p(10, 6, '#ffffff'); P.p(10, 7, '#ffffff'); P.h(12, 9, 17, g);
+  P.r(11, 7, 2, 2, o); P.p(13, 8, o); P.r(14, 10, 2, 2, t); P.p(13, 10, t); P.p(15, 6, o); P.p(16, 7, t); P.p(11, 10, o); P.p(12, 7, '#ffffff'); P.p(15, 10, '#ffffff');
+  P.r(22, 9, 3, 2, w); P.p(23, 8, w);
+  P.r(24, 11, 5, 8, '#8a929c'); P.r(25, 10, 3, 1, '#8a929c'); P.h(18, 24, 28, '#6a727c'); P.r(25, 12, 2, 2, '#ffffff'); P.p(26, 13, '#c01020');
+  P.r(28, 12, 3, 6, o); P.r(29, 13, 3, 4, '#3a0a0a'); P.p(29, 13, '#ffffff'); P.p(31, 13, '#ffffff'); P.p(30, 16, '#ffffff'); P.p(29, 16, '#ffffff'); P.p(31, 16, '#ffffff');
+}
+// Bild verdoppeln und dabei schräge Kanten glätten (Scale2x): für die große Sense beim Hieb
+function scale2x(src) {
+  const w = src.width, h = src.height, sd = new Uint32Array(src.getContext('2d').getImageData(0, 0, w, h).data.buffer);
+  const c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; const g = c.getContext('2d'), im = g.createImageData(w * 2, h * 2), dd = new Uint32Array(im.data.buffer);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const p = sd[y * w + x], A = y > 0 ? sd[(y - 1) * w + x] : p, D = y < h - 1 ? sd[(y + 1) * w + x] : p, C = x > 0 ? sd[y * w + x - 1] : p, B = x < w - 1 ? sd[y * w + x + 1] : p, i = y * 2 * w * 2 + x * 2;
+    dd[i] = C === A && C !== D && A !== B ? A : p; dd[i + 1] = A === B && A !== C && B !== D ? B : p; dd[i + w * 2] = D === C && D !== B && C !== A ? C : p; dd[i + w * 2 + 1] = B === D && B !== A && D !== C ? D : p;
+  }
+  g.putImageData(im, 0, 0); return c;
+}
 function drawBow(P, pal) {
   const b = pal.b, g = pal.g, w = pal.w, e = pal.e, m = shade(w);
   for (let i = 0; i <= 90; i++) { const t = i / 90, x = bz(19, 29, 19, t), y = bz(4, 16, 27, t); P.r(x, y, 2, 2, w); P.p(Math.round(x) + 1, Math.round(y), lite(w, 0.3)); }
@@ -1056,6 +1120,11 @@ function wChest(G) { G.ox = -3; G.oy = -5; G.cyl(1.6, 7, 14.4, 13.6, '#8a0f1e');
   SP.potion = wesen(1, G => { S0(G); G.ell(7, 9.4, 3.9, 3.9, '#7dff3a'); G.box(6, 3.4, 2, 2.8, '#d8ccb8', 0.2); G.box(5.4, 2.4, 3.2, 1.1, '#6a4426', 0.2); G.ell(5.6, 8, 0.9, 0.9, '#ffffff', 0.9); }, 14);
   SP.bell = wesen(1, G => { S0(G); G.ell(10, 3.2, 1.3, 1.3, '#c9a43a'); G.poly([6, 14, 6.6, 8, 8, 5, 10, 4, 12, 5, 13.4, 8, 14, 14, 15.8, 15.8, 4.2, 15.8], '#ffc94a', 0.2); G.poly([11, 4.4, 12, 5, 13.4, 8, 14, 14, 15.8, 15.8, 11.6, 15.8], '#ffc94a', -0.3); G.poly([6.6, 13.6, 7.2, 8.2, 8.4, 5.8, 8.6, 13.6], '#ffffff', 0.9); G.box(4.2, 14.8, 11.6, 1, '#c9a43a', -0.3); G.ell(10, 17.2, 1.4, 1.4, '#8a6a2a'); }, 20);
   for (const k of [0, 1]) SP[k ? 'drone_2' : 'drone'] = wesen(1, G => { S0(G); for (const r of [[4, 6], [16, 6], [4, 14], [16, 14]]) { G.limb(10, 10, r[0], r[1], 0.5, 0.5, '#55606e'); G.ell(r[0], r[1], k ? 1.6 : 3.2, 0.9, k ? '#ffffff' : '#b0b4bc', 0.2); } G.ell(10, 10, 4.2, 2.8, '#b0b4bc'); G.box(8.8, 9.2, 2.4, 1.6, '#6fd0ff', 0.2); G.box(8.8, 9.2, 1, 0.7, '#ffffff', 0.9); }, 20);
+  SP.saw = wesen(1, G => { S0(G); for (let i = 0; i < 10; i++) { const a = i / 10 * 6.2832, c = Math.cos(a), s = Math.sin(a), c2 = Math.cos(a + 0.5), s2 = Math.sin(a + 0.5); G.poly([12 + c * 8, 12 + s * 8, 12 + c2 * 11.2, 12 + s2 * 11.2, 12 + Math.cos(a + 0.62) * 8, 12 + Math.sin(a + 0.62) * 8], '#e6dcd2', 0.2); } G.ell(12, 12, 8.6, 8.6, '#b0a4a0'); G.ell(12, 12, 6, 6, '#8a8088'); for (let i = 0; i < 4; i++) { const a = i * 1.5708 + 0.4; G.limb(12 + Math.cos(a) * 3.4, 12 + Math.sin(a) * 3.4, 12 + Math.cos(a) * 5.2, 12 + Math.sin(a) * 5.2, 0.6, 0.6, '#3a3034', -0.8); } G.ell(12, 12, 2.4, 2.4, '#3a3034'); G.ell(11.4, 11.4, 0.8, 0.8, '#c8c8d8', 0.9); }, 24);
+  SP.bolt = wesen(1, G => { S0(G); G.poly([2, 9, 7.4, 11.5, 2, 11.5], '#e6dcd2', 0.2); G.poly([2, 12.5, 7.4, 12.5, 2, 15], '#e6dcd2', -0.3); G.limb(3, 12, 19, 12, 0.7, 0.7, '#6a4426'); G.poly([18.4, 9.8, 23.6, 12, 18.4, 14.2], '#eef2f4', 0.2); G.poly([18.4, 12, 23.6, 12, 18.4, 14.2], '#b8c0c8', 0.2); }, 24);
+  for (const k of [0, 1]) SP['fish' + k] = wesen(1, G => { S0(G); G.poly([1.6, 5.6, 6.4, 10, 1.6, 14.4, 3.2, 10], '#5a6a7a', 0.2); G.poly([7.6, 6.6, 11, 3.2, 12.4, 6.8], '#5a6a7a', 0.2); G.ell(10, 10, 5.6, 4.2, '#8a9aaa'); G.ell(9.6, 11.8, 4.2, 2.1, '#ff7a2a'); G.box(11.6, 7.2, 2.2, 2.2, '#ffffff', 0.9); G.box(12.6, 8, 1, 1, '#c01020', 0.2);
+    if (k) { G.poly([12.6, 10.2, 17.6, 6.6, 17.6, 13.8], '#3a0a0a', -0.8); for (const x of [14.2, 15.6]) { G.poly([x, 8.6 - (x - 14.2) * 0.6, x + 1, 8.2 - (x - 14.2) * 0.6, x + 0.5, 9.8], '#ffffff', 0.9); G.poly([x, 12 + (x - 14.2) * 0.5, x + 1, 12.4 + (x - 14.2) * 0.5, x + 0.5, 10.8], '#ffffff', 0.9); } }
+    else { G.box(13, 10, 3.4, 0.8, '#3a0a0a', -0.8); for (const x of [13.4, 14.6, 15.8]) G.box(x, 9.2, 0.6, 0.9, '#ffffff', 0.9); } }, 20);
   SP.soul = wesen(1, G => wSoul(G, C.blood, '#ff7a86'), 16); SP.bigsoul = wesen(1, G => wSoul(G, C.ember, C.glow), 16); SP.heart = wesen(1, wHeart, 16); SP.chest = wesen(1, wChest, 16);
   const mkSet = (key, fn, pal, u, n) => { const fr = []; for (let i = 0; i < n; i++) { const s = wesen(u, G => fn(G, i, pal, u > 1)); if (i) SP[key + '_f' + i] = s; fr.push(s); } fr[0].fr = fr; SP[key] = fr[0]; };
   const set = (key, fn, pal) => mkSet(key, fn, pal, 1, 5), boss = (key, fn, pal) => mkSet(key, fn, pal, 4, 8);
@@ -1072,7 +1141,9 @@ function wChest(G) { G.ox = -3; G.oy = -5; G.cyl(1.6, 7, 14.4, 13.6, '#8a0f1e');
   boss('m_bWitch', wWitch, {k: '#0a2a1a', p: '#1a6a4a', g: '#c8c8d8', y: '#ff2238', n: '#8a8a9a', v: '#7dff3a'}); boss('m_bPriest', wPriest, {k: '#3a0a14', w: '#4a4a56', r: '#7dff3a', y: '#e040ff'});
 }
 /* ---------- Sammlung: Klassen, ihr Aussehen und ihre Waffen ---------- */
-const RAR = {g:{n:'Gewöhnlich', c:'var(--bone)', w:55}, s:{n:'Selten', c:'#4aa3ff', w:30}, e:{n:'Episch', c:'var(--epic)', w:12}, l:{n:'Legendär', c:'var(--glow)', w:3}};
+const RAR = {g:{n:'Gewöhnlich', c:'var(--bone)', w:55}, s:{n:'Selten', c:'#4aa3ff', w:30}, e:{n:'Episch', c:'var(--epic)', w:12}, l:{n:'Legendär', c:'var(--glow)', w:3}, m:{n:'Mythisch', c:'#ff3b3b', w:1}};
+// Mythisches bleibt verborgen, bis man es besitzt
+const hiddenIt = (it, own) => it.r === 'm' && !save[own].includes(it.id);
 const pc = x => Math.round(x * 100), dec = x => x.toFixed(1).replace('.', ',');
 // d(m): Beschreibung für den Stufen-Multiplikator m (Stufe 1 = 1, Stufe 5 = 2)
 const SKINS = {
@@ -1088,6 +1159,7 @@ const SKINS = {
   waldlaeufer: {cl:'bow', n:'Waldläufer', r:'s', speed:.15, d:m => '+' + pc(.15 * m) + ' % Lauftempo.', pj:{n:'Jagdmesser', neu:'Jagdmesser fliegen auf die nächsten Gegner.', c1:'#3e3422', c2:'#e6dcd2'}, pal:{h:'#2e4424', w:'#d8b088', r:'#14100e', p:'#6a5a3a', q:'#3e3422', a:'#7ab84a', b:'#3a2e28', k:'#14100e'}},
   hexenjaeger: {cl:'bow', n:'Hexenjäger', r:'e', dmg:.2, d:m => '+' + pc(.2 * m) + ' % Schaden für alle Waffen.', pj:{n:'Silberdolche', neu:'Silberdolche fliegen auf die nächsten Gegner.', c1:'#14141a', c2:'#ffffff'}, pal:{h:'#14141a', w:'#f2e9dd', r:C.blood, p:'#2a2230', q:'#14101a', a:'#c8c8d8', b:'#22222c', k:'#0a0a0e'}},
   inquisitor:  {cl:'bow', n:'Großinquisitor', r:'l', startW:true, xp:.1, d:m => 'Startet mit einer zweiten Zufallswaffe. +' + pc(.1 * m) + ' % Erfahrung.', pj:{n:'Weihdolche', neu:'Geweihte Dolche fliegen auf die nächsten Gegner.', c1:'#8a0f1e', c2:C.glow}, pal:{h:'#8a0f1e', w:'#f2e9dd', r:'#14100e', p:'#f2e9dd', q:C.glow, a:C.glow, b:'#8a0f1e', k:'#2a0a10'}},
+  vektor:      {cl:'bow', n:'Vektor', r:'m', draw:drawVector, startW:true, xp:.1, d:m => 'Startet mit einer zweiten Zufallswaffe. +' + pc(.1 * m) + ' % Erfahrung. Wippt beim Laufen.', pal:{h:'#3a2416', w:'#f0c8a0', r:'#14141a', p:'#f08a1e', q:'#c8641a', a:'#f2f2f2', b:'#f2f2f2', k:'#14141a'}},
   // Zombie
   untoter:     {cl:'saw', n:'Untoter', d:m => 'Frisch aus dem Grab. Kein eigener Bonus.', pal:{g:'#7a9a5a', r:C.blood, k:'#14180e', p:'#5a5f6a', q:'#34383f', b:'#4a3a30'}},
   bueroleiche: {cl:'saw', n:'Büroleiche', r:'g', pick:.3, d:m => '+' + pc(.3 * m) + ' % Sammelradius für Seelen.', pal:{g:'#8aa8a0', r:'#ffe040', k:'#101418', p:'#e6dcd2', q:'#c22a40', b:'#22222c'}},
@@ -1121,6 +1193,7 @@ const SCY = {
   zwillingsbrust:{type:'bow', n:'Zwillingsarmbrust', r:'s', twin:true, d:m => 'Schießt immer einen Bolzen mehr.', t:'#d0d0e8', pal:{b:'#22222c', g:C.blood, w:'#c8c8d8', e:'#ffffff'}},
   frostbrust:   {type:'bow', n:'Frostarmbrust', r:'e', slow:true, d:m => 'Bolzen durchschlagen alles und verlangsamen Gegner für ' + dec(2 * m) + ' Sekunden.', t:'#8fdcff', pal:{b:'#34406a', g:'#8fdcff', w:'#8fdcff', e:'#e8fbff'}},
   seelenschleuder:{type:'bow', n:'Seelenschleuder', r:'l', boom:true, d:m => 'Bolzen explodieren am Ende ihres Flugs (' + pc(.7 * m) + ' % Schaden im Umkreis).', t:'#2fe08a', pal:{b:'#10241c', g:'#b8ffd8', w:'#2fe08a', e:'#b8ffd8'}},
+  piranha:      {type:'bow', n:'Piranha-Kanone', r:'m', boom:true, fish:true, d:m => 'Verschießt Piranhas. Sie platzen am Ende ihres Flugs (' + pc(.7 * m) + ' % Schaden im Umkreis).', t:'#6fd0ff', pal:{b:'#eef2f4', g:'#7a828c', w:'#b8c0c8', e:'#ff7a2a'}},
   // Geisterkanonen: schießen schnell, der Strahl springt von Gegner zu Gegner. Viele Treffer, wenig Schaden pro Schuss.
   protonen:     {type:'ray', n:'Protonen-Blaster', r:'g', d:m => 'Der Strahl springt von Gegner zu Gegner.', t:'#ffb040', pal:{b:'#4a4a58', g:'#22222c', w:'#b0a4a0', s:'#ffb040', e:'#fff3c0'}},
   ekto:         {type:'ray', n:'Plasma-Blaster', r:'s', slow:true, d:m => 'Getroffene Gegner werden für ' + dec(1.2 * m) + ' Sekunden langsamer.', t:'#7dff3a', pal:{b:'#2a4a3a', g:'#10241c', w:'#8fc0b6', s:'#7dff3a', e:'#b8ffd8'}},
@@ -1149,8 +1222,8 @@ for (const id in SKINS) {
   if (!k.pj) k.pj = k.cl === 'ray' ? Object.assign({}, cl.pj, {c1: k.pal.a}) : cl.pj;
   if (!k.nc) k.nc = k.cl === 'saw' ? '#c2182e' : cl.c;
   k.hand = k.pal[cl.hand];
-  k.dir = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dir[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal))); }); k.sp = k.dir.f[0];
-  if (k.cl !== 'sense') { k.armC = k.pal[cl.arm]; k.armD = shade(k.armC); k.dirN = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dirN[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => cl.draw(P, d, t, k.pal, true))); }); }
+  k.dir = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dir[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => (k.draw || cl.draw)(P, d, t, k.pal))); }); k.sp = k.dir.f[0];
+  if (k.cl !== 'sense') { k.armC = k.pal[cl.arm]; k.armD = shade(k.armC); k.dirN = {}; ['f', 'fs', 's', 'bs', 'b'].forEach((n, d) => { k.dirN[n] = [0, 1, 2].map(t => painted(cl.cw, cl.ch, P => (k.draw || cl.draw)(P, d, t, k.pal, true))); }); }
 }
 // Blickrichtung aus der Laufrichtung: acht Richtungen, links ist die gespiegelte rechte Seite
 const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', true], ['bs', true], ['b', false], ['bs', false]];
@@ -1163,7 +1236,7 @@ function reaperSprite(moving) {
   return [(state !== 'menu' ? sk.dirN : sk.dir)[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
 }
 const wcl = id => SCY[id].type || 'sense';
-for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } const dr = it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe; it.sp = painted(32, 32, P => dr(P, it.pal)); if (it.type) it.rot = rotSprites(painted(32, 32, P => dr(P, it.pal), true), it.type === 'ray' ? 6 : 8, it.type === 'saw' ? 17 : it.type === 'ray' ? 16 : 15); }
+for (const id in SCY) { const it = SCY[id]; it.id = id; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } const dr = it.fish ? drawFishGun : it.type === 'saw' ? drawSaw : it.type === 'bow' ? drawBow : it.type === 'ray' ? drawGun : drawScythe; it.sp = painted(32, 32, P => dr(P, it.pal)); if (!it.type) it.big = scale2x(scale2x(it.sp.img)); if (it.type) it.rot = rotSprites(painted(32, 32, P => dr(P, it.pal), true), it.type === 'ray' ? 6 : 8, it.type === 'saw' ? 17 : it.type === 'ray' ? 16 : 15); }
 const BOX = {
   k_sense: {n:'Reaper-Sarg', pl:'Reaper-Särge', d:'Enthält ein Gewand für den Reaper.', cost:100, sp:SP.coffinSkin, set:SKINS, own:'skins', tp:'sense'},
   k_bow:   {n:'Vorratskiste', pl:'Vorratskisten', d:'Enthält ein Aussehen für den Menschen.', cost:100, sp:mk(CRATE, {k:'#1a1210', d:'#8a5638', y:'#c8a040'}), set:SKINS, own:'skins', tp:'bow'},
@@ -1192,6 +1265,7 @@ const WTH = {
   zwillingsbrust: {c: ['#d0d0e8', '#ffffff', '#f02238']},
   frostbrust: {c: ['#e8fbff', '#8fdcff', '#ffffff'], g: 26, d: 1.7, ring: '#8fdcff'},
   seelenschleuder: {c: ['#2fe08a', '#b8ffd8', '#ffffff'], g: -75, d: 1.5},
+  piranha: {c: ['#6fd0ff', '#ffffff', '#bfe6ee'], g: 150, d: 1.2},
   protonen: {c: ['#ffb040', '#fff3c0']},
   ekto:     {c: ['#7dff3a', '#b8ffd8'], g: 90, d: 1.4},
   sturm:    {c: ['#6fd0ff', '#ffffff'], d: 0.8},
@@ -1200,7 +1274,7 @@ const WTH = {
 for (const id in SCY) SCY[id].th = WTH[id] || {c: [SCY[id].t, '#ffffff']};
 const MAXL = 5;
 // Seltenheit: Sensen schlagen härter zu, Gewänder erhöhen den Schaden aller Waffen in 10-%-Schritten
-const RDM = {u:1, g:1.2, s:1.5, e:1.9, l:2.4}, SKD = {u:0, g:0.1, s:0.2, e:0.3, l:0.4};
+const RDM = {u:1, g:1.2, s:1.5, e:1.9, l:2.4, m:2.4}, SKD = {u:0, g:0.1, s:0.2, e:0.3, l:0.4, m:0.4};
 
 // Testspielstand: Link mit #test am Ende. Eigener Speicherplatz, der echte Spielstand bleibt unberührt.
 const HASH = typeof location !== 'undefined' ? location.hash : '', TEST = HASH === '#test';
@@ -1228,7 +1302,7 @@ if (!save.lvls || typeof save.lvls !== 'object') save.lvls = {};
 save.coins = Math.max(0, Math.round(+save.coins || 0));
 const opt = save.opt = Object.assign({dev:'', q:2, fpsN:-1, res:'nativ', vol:0.7, shake:true, showFps:false}, save.opt || {});
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
-const ilvl = id => Math.min(MAXL, Math.max(1, save.lvls[id] | 0)), mult = id => 1 + 0.25 * (ilvl(id) - 1), RUP = {u: 1, g: 1, s: 1.5, e: 2.25, l: 3.5}, upCost = id => Math.round(80 * ilvl(id) * RUP[(SKINS[id] || SCY[id]).r || 'u'] / 10) * 10;
+const ilvl = id => Math.min(MAXL, Math.max(1, save.lvls[id] | 0)), mult = id => 1 + 0.25 * (ilvl(id) - 1), RUP = {u: 1, g: 1, s: 1.5, e: 2.25, l: 3.5, m: 5}, upCost = id => Math.round(80 * ilvl(id) * RUP[(SKINS[id] || SCY[id]).r || 'u'] / 10) * 10;
 let sk = SKINS[save.skin], sc = SCY[save.scythe];
 // Schwierigkeit: Leben, Schaden und Tempo der Gegner, wie dicht sie kommen und wie viele Seelensplitter es gibt.
 // Eine Stufe gilt als geschafft, wenn alle Bosse einmal besiegt sind. Das schaltet die nächste frei.
@@ -1522,7 +1596,7 @@ function glInit() {
   atlas.cv = document.createElement('canvas'); atlas.cv.width = atlas.cv.height = atlas.size; atlas.g = atlas.cv.getContext('2d');
   atlas.g.fillStyle = '#fff'; atlas.g.fillRect(2, 2, 8, 8); atlas.white = [4 / atlas.size, 4 / atlas.size, 8 / atlas.size, 8 / atlas.size]; atlas.x = 14; atlas.rowH = 8;
   for (const k in SP) { SP[k].uv = atlasAdd(SP[k].img, SP[k].w, SP[k].h); if (!SP[k].u) SP[k].fuv = atlasAdd(SP[k].flash, SP[k].w, SP[k].h); }
-  for (const k in SCY) SCY[k].sp.uv = atlasAdd(SCY[k].sp.img, 32, 32);
+  for (const k in SCY) { SCY[k].sp.uv = atlasAdd(SCY[k].sp.img, 32, 32); if (SCY[k].big) SCY[k].buv = atlasAdd(SCY[k].big, 128, 128); }
   glTexA = glTexture(atlas.cv, false);
   // zweite Textur, weich gefiltert: links ein Leuchtfleck, rechts eine Scheibe
   glSoft = document.createElement('canvas'); glSoft.width = 512; glSoft.height = 128;
@@ -2505,7 +2579,7 @@ function update(dt) {
   pools = pools.filter(p => p.t < p.d);
   for (const b of beams) {
     b.t += dt;
-    if (!b.hit && b.t >= b.d) { b.hit = true; shake = Math.max(shake, 3); beep(880, 0.35, 'square', 0.04, -500); if (Math.abs((P.x - b.x) * Math.sin(b.a) - (P.y - b.y) * Math.cos(b.a)) < b.w / 2 + 3) { hurt(20 + wave * 0.8); if (state !== 'play') return; } }
+    if (!b.hit && b.t >= b.d) { b.hit = true; for (let i = -9; i <= 9; i++) fx(b.x + Math.cos(b.a) * i * 22, b.y + Math.sin(b.a) * i * 22, 2, {c: ['#ffc94a', '#ffffff'], v0: 20, v1: 90, d0: 0.2, d1: 0.5, s: 2, add: true, j: 5}); shake = Math.max(shake, 3); beep(880, 0.35, 'square', 0.04, -500); if (Math.abs((P.x - b.x) * Math.sin(b.a) - (P.y - b.y) * Math.cos(b.a)) < b.w / 2 + 3) { hurt(20 + wave * 0.8); if (state !== 'play') return; } }
   }
   beams = beams.filter(b => b.t < b.d + 0.3);
   // Armbrustbolzen
@@ -2942,7 +3016,7 @@ function spr(sp, x, y, s, flip, flash) {
 }
 function hash(x, y) { let h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 // Sense mit Griff im Ursprung zeichnen; Stiel zeigt in Richtung ang.
-function scytheAt(x, y, ang, z, al) { gRot(sc.sp.uv, x, y, ang + Math.PI / 4, 16, 16, 5, 13, z, al); }
+function scytheAt(x, y, ang, z, al) { gRot(z > 1.4 && sc.buv ? sc.buv : sc.sp.uv, x, y, ang + Math.PI / 4, 16, 16, 5, 13, z, al); }
 // Säge und Armbrust zeigen nach rechts; Griff liegt im Ursprung
 function weaponAt(x, y, ang, z) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(sc.sp.img, -2.5 * z, -8 * z, 16 * z, 16 * z); ctx.restore(); }
 function spin(sp, x, y, rot, z, al) { gRot(sp.uv, x, y, rot, 16, 16, 8, 8, z, al == null ? 1 : al); }
@@ -3033,10 +3107,10 @@ function draw() {
     // Lichtstrahlen: erst eine dünne Warnlinie, dann der Strahl
     for (const b of beams) {
       const ux = Math.cos(b.a) * b.len, uy = Math.sin(b.a) * b.len, fired = b.t >= b.d;
-      ctx.globalCompositeOperation = add; ctx.lineCap = 'butt';
-      if (!fired) { const q = b.t / b.d; ctx.globalAlpha = 0.12 + q * 0.12; ctx.strokeStyle = '#ffc94a'; ctx.lineWidth = b.w; ctx.beginPath(); ctx.moveTo(b.x - ux, b.y - uy); ctx.lineTo(b.x + ux, b.y + uy); ctx.stroke(); ctx.globalAlpha = 0.5 + q * 0.5; ctx.lineWidth = 1 + q * 2; ctx.beginPath(); ctx.moveTo(b.x - ux, b.y - uy); ctx.lineTo(b.x + ux, b.y + uy); ctx.stroke(); }
-      else { const q = (b.t - b.d) / 0.3; ctx.globalAlpha = 1 - q; ctx.strokeStyle = '#ffc94a'; ctx.lineWidth = b.w * (1.3 - q * 0.6); ctx.beginPath(); ctx.moveTo(b.x - ux, b.y - uy); ctx.lineTo(b.x + ux, b.y + uy); ctx.stroke(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = b.w * 0.45 * (1 - q); ctx.beginPath(); ctx.moveTo(b.x - ux, b.y - uy); ctx.lineTo(b.x + ux, b.y + uy); ctx.stroke(); }
-      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      const x0 = b.x - ux, y0 = b.y - uy, x1 = b.x + ux, y1 = b.y + uy, nx = -Math.sin(b.a), ny = Math.cos(b.a);
+      if (!fired) { const q = b.t / b.d, hw = b.w / 2; gLine(x0, y0, x1, y1, b.w, b.w, '#ffc94a', 0.1 + q * 0.14, ga); for (const s of [-1, 1]) gLine(x0 + nx * hw * s, y0 + ny * hw * s, x1 + nx * hw * s, y1 + ny * hw * s, 0.8, 0.8, '#ffc94a', 0.35 + q * 0.45, ga); gLine(x0, y0, x1, y1, 1 + q * 2.4, 1 + q * 2.4, (clock * 10 | 0) % 2 ? '#ffffff' : '#ffc94a', 0.5 + q * 0.5, ga); for (let i = -6; i <= 6; i++) { const u = ((clock * 1.6 + i * 0.37) % 1 + 1) % 1, sx2 = b.x + Math.cos(b.a) * i * 30, sy2 = b.y + Math.sin(b.a) * i * 30; gRectAdd('#fff3c0', sx2 + nx * hw * (1 - u) - 0.5, sy2 + ny * hw * (1 - u) - 0.5, 1, 1, u * q); gRectAdd('#fff3c0', sx2 - nx * hw * (1 - u) - 0.5, sy2 - ny * hw * (1 - u) - 0.5, 1, 1, u * q); } }
+      else { const q = (b.t - b.d) / 0.3, f = 1 - q; gLine(x0, y0, x1, y1, b.w * 2.2, b.w * 2.2, '#ff8a1a', 0.3 * f, ga); gLine(x0, y0, x1, y1, b.w * (1.3 - q * 0.6), b.w * (1.3 - q * 0.6), '#ffc94a', f, ga); gLine(x0, y0, x1, y1, b.w * 0.5 * f, b.w * 0.5 * f, '#ffffff', f, ga); }
+
     }
     for (const e of enemies) if (e.boss && e.ma === 1) {
       const q = 1 - e.mT / 0.5; ctx.fillStyle = C.blood; ctx.globalAlpha = 0.14 + q * 0.2; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.arc(e.x, e.y, BMR, e.maA - 0.9, e.maA + 0.9); ctx.closePath(); ctx.fill();
@@ -3179,25 +3253,25 @@ function draw() {
       if (v.orb) {
         // Orbitalschlag: dünner Zielstrahl, dann der breite Strahl von oben
         const cO = dark.orbital ? DK : sc.t, q = v.hit ? 1 - (v.t - v.d) / 0.35 : v.t / v.d, w = v.hit ? v.r * 0.8 * q : 1;
-        gRectAdd(cO, v.x - w / 2, v.y - 300, w, 300, v.hit ? q : 0.3 + q * 0.5); if (v.hit) { gRectAdd('#ffffff', v.x - w / 5, v.y - 300, w / 2.5, 300, q); glow(v.x, v.y, v.r * 2, cO, 0.8 * q); } else gRing(cO, v.x, v.y, v.r * (1.4 - q * 0.4), 1, 0.6, ga);
+        gRectAdd(cO, v.x - w / 2, v.y - 300, w, 300, v.hit ? q : 0.3 + q * 0.5); if (v.hit) { gRectAdd(cO, v.x - w * 0.9, v.y - 300, w * 1.8, 300, q * 0.3); gRectAdd('#ffffff', v.x - w / 5, v.y - 300, w / 2.5, 300, q); gDisc('#ffffff', v.x, v.y, v.r * q, v.r * q * 0.8, q * 0.6); gRing(cO, v.x, v.y, v.r * (1.6 - q * 0.6), 2.5 * q, q, ga); glow(v.x, v.y, v.r * 2, cO, 0.8 * q); } else { gDisc(cO, v.x, v.y, v.r, v.r, 0.08 + q * 0.1); gRing(cO, v.x, v.y, v.r * (1.4 - q * 0.4), 1, 0.7, ga); for (let i = 0; i < 4; i++) { const a = -clock * 3 + i * 1.5708; gCrescent(v.x, v.y, v.r * 0.7, a, a + 0.8, 1.4, cO, 0.4 + q * 0.5, 1, ga); } gRectAdd('#ffffff', v.x - 2.5, v.y - 0.4, 5, 0.8, 0.5 + q * 0.5); gRectAdd('#ffffff', v.x - 0.4, v.y - 2.5, 0.8, 5, 0.5 + q * 0.5); }
         continue;
       }
-      if (v.hit) { const q = (v.t - v.d) / 0.35; glow(v.x, v.y, v.r * 1.6, sc.t, 0.6 * (1 - q)); continue; }
+      if (v.hit) { const q = (v.t - v.d) / 0.35; glow(v.x, v.y, v.r * 1.6, sc.t, 0.6 * (1 - q)); for (let i = 0; i < 12; i++) { const ax = v.x + (hash(i, 3 + (v.sd * 99 | 0)) - 0.5) * v.r * 1.7, ay = v.y + (hash(i, 9 + (v.sd * 77 | 0)) - 0.5) * v.r * 1.4; gRot(SP.bolt.uv, ax, ay, 1.75, 12, 12, 11, 6, 0.8, 1 - q); } continue; }
       const q = v.t / v.d;
-      ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = sc.t; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(v.x, v.y, v.r, 0, TAU); ctx.stroke(); ctx.restore();
-      ctx.strokeStyle = sc.pal.e; ctx.lineWidth = 1;
-      for (let i = 0; i < 12; i++) { const ax = v.x + (hash(i, 3 + (v.sd * 99 | 0)) - 0.5) * v.r * 1.7, ay = v.y + (hash(i, 9 + (v.sd * 77 | 0)) - 0.5) * v.r * 1.4, off = (1 - q) * (90 + i * 6); ctx.globalAlpha = 0.5 + q * 0.5; ctx.beginPath(); ctx.moveTo(ax + off * 0.25, ay - off - 9); ctx.lineTo(ax + off * 0.25 * 0.9, ay - off); ctx.stroke(); }
-      ctx.globalAlpha = 1;
+      gDisc(sc.t, v.x, v.y, v.r, v.r, 0.06 + q * 0.08); gRing(sc.t, v.x, v.y, v.r, 0.9, 0.6, ga); for (let i = 0; i < 4; i++) { const a = clock * 2.5 + i * 1.5708; gCrescent(v.x, v.y, v.r * 0.85, a, a + 0.7, 1.3, sc.pal.e, 0.4 + q * 0.4, 1, ga); }
+
+      for (let i = 0; i < 12; i++) { const ax = v.x + (hash(i, 3 + (v.sd * 99 | 0)) - 0.5) * v.r * 1.7, ay = v.y + (hash(i, 9 + (v.sd * 77 | 0)) - 0.5) * v.r * 1.4, off = (1 - q) * (90 + i * 6); gDisc('#000000', ax, ay, 1 + q * 1.5, 0.5 + q * 0.7, 0.2 + q * 0.3); gLine(ax + off * 0.2, ay - off, ax + off * 0.2 + 3, ay - off - 18, 1.6, 0, sc.t, 0.35, ga); gRot(SP.bolt.uv, ax + off * 0.2, ay - off, 1.75, 12, 12, 11, 6, 0.8, 0.6 + q * 0.4); }
+
     }
     // Kreissägen: großes Blatt mit Zähnen und Leuchtspur
     for (const d of discs) {
       { const cD = dark.disc ? DK : sc.th.c[0]; glow(d.x - d.vx * 0.05, d.y - d.vy * 0.05, 14, cD, 0.35); glow(d.x, d.y, 20, cD, 0.6); }
-      ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot);
-      ctx.fillStyle = '#14141a'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, TAU); ctx.fill();
-      ctx.fillStyle = sc.pal.e || '#e6dcd2'; for (let i = 0; i < 8; i++) { ctx.rotate(TAU / 8); ctx.fillRect(6, -1.6, 5.5, 3.2); }
-      ctx.fillStyle = sc.pal.w || '#b0a4a0'; ctx.beginPath(); ctx.arc(0, 0, 7.5, 0, TAU); ctx.fill();
-      ctx.fillStyle = sc.pal.s || '#3a3034'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.fillRect(-6, -1, 3, 1.5); ctx.fillRect(2, 3, 2, 1);
-      ctx.restore();
+      { const cD = dark.disc ? DK : sc.th.c[0], sp = Math.hypot(d.vx, d.vy) || 1, ux = d.vx / sp, uy = d.vy / sp; gLine(d.x, d.y, d.x - ux * 22, d.y - uy * 22, 14, 0, cD, 0.3, ga); gDisc('#000000', d.x, d.y + 9, 8, 2.4, 0.3); gRot(SP.saw.uv, d.x, d.y, d.rot, 12, 12, 6, 6, 1.9, 1); for (let i = 0; i < 2; i++) { const a = d.rot * 0.7 + i * Math.PI; gCrescent(d.x, d.y, 11.5, a, a + 1.4, 1.6, '#ffffff', 0.55, 1, ga); } }
+
+
+
+
+
     }
     // Kugelblitze mit Funkenbögen zu den geschockten Gegnern
     for (const o of orbs) {
@@ -3279,12 +3353,12 @@ function draw() {
     // Armbrustbolzen: Schaft mit Spitze und Federn, dahinter ein langer, schmaler werdender Leuchtschweif
     for (const b of shots) {
       const cS = col('sense'), ux = Math.cos(b.a), uy = Math.sin(b.a);
-      ctx.globalCompositeOperation = add; ctx.strokeStyle = cS; ctx.lineCap = 'round';
-      for (let i = 3; i >= 1; i--) { ctx.globalAlpha = 0.16 * (4 - i); ctx.lineWidth = 1 + (3 - i) * 1.2; ctx.beginPath(); ctx.moveTo(b.x - ux * i * 16, b.y - uy * i * 16); ctx.lineTo(b.x, b.y); ctx.stroke(); }
-      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.lineCap = 'butt';
-      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a);
-      ctx.fillStyle = '#2a1a12'; ctx.fillRect(-9, -0.75, 9, 1.5); ctx.fillStyle = sc.pal.e; ctx.fillRect(-10, -1.5, 2, 3); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, -1.25, 3, 2.5); ctx.fillRect(3, -0.5, 1.5, 1);
-      ctx.restore();
+      gLine(b.x, b.y, b.x - ux * 48, b.y - uy * 48, 3.4, 0, cS, 0.4, ga); gLine(b.x, b.y, b.x - ux * 26, b.y - uy * 26, 1.2, 0, '#ffffff', 0.5, ga);
+      if (sc.fish) gRot(SP['fish' + ((clock * 14 + b.x * 0.05 | 0) & 1)].uv, b.x, b.y, b.a, 10, 10, 6, 5, 1.25, 1); else gRot(SP.bolt.uv, b.x, b.y, b.a, 12, 12, 10, 6, 1, 1);
+
+
+
+
       glow(b.x + ux * 2, b.y + uy * 2, 12, cS, 0.8);
     }
     for (const b of bolts) {
@@ -3320,7 +3394,7 @@ function draw() {
     } else if (sc.type === 'bow') {
       // Armbrust vor dem Körper, Sehne spannt sich beim Nachladen, Rückstoß beim Schuss
       const a = aimS(), z = 0.95, ld = bowLoad;
-      held(px, py + bob, aimK, recoil * 3.5, z, [-3.4 * z, 1], [2.5 * z, 1.2], () => {
+      held(px, py + bob, aimK, recoil * 3.5, z, [-3.4 * z, 1], [2.5 * z, 1.2], sc.fish ? null : () => {
         const tipX = 5.5 * z, tipY = 5.2 * z, nock = (5.5 - 4 * ld) * z;
         ctx.strokeStyle = C.bone; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipX, -tipY); ctx.lineTo(nock, 0); ctx.lineTo(tipX, tipY); ctx.stroke();
       });
@@ -3418,7 +3492,7 @@ function toMenu() {
   $('heroName').textContent = CLS[save.cls].n; $('heroName').style.color = CLS[save.cls].c;
   $('loadout').textContent = sk.n + ' (Stufe ' + ilvl(save.skin) + ') · ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
   $('clsInfo').textContent = CLS[save.cls].d;
-  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.22.0');
+  $('bNews').classList && $('bNews').classList.toggle('neu', save.seenVer !== '0.23.0');
 }
 const CORDER = ['sense', 'bow', 'saw', 'ray'];
 function stepClass(d) { setClass(CORDER[(CORDER.indexOf(save.cls) + d + 4) % 4]); persist(); beep(440, 0.06, 'square', 0.03, 120); toMenu(); }
@@ -3488,14 +3562,14 @@ function openBoxes(cat, cnt) {
   const strips = res.map(r => {
     const reel = el('div', 'reel'), strip = el('div', 'strip'), tiles = [];
     for (let j = 0; j < WIN + 6; j++) {
-      const tid = j === WIN ? r.id : rollId(b), o = b.set[tid], tile = el('div', 'tile');
+      let tid = j === WIN ? r.id : rollId(b); if (j !== WIN) while (b.set[tid].r === 'm') tid = rollId(b); const o = b.set[tid], tile = el('div', 'tile');
       tile.style.cssText = '--rc:' + RAR[o.r].c; tile.append(icon(o.sp, isz)); strip.append(tile); tiles.push(tile);
     }
     reel.append(strip); reels.append(reel);
     return {reel, strip, win: tiles[WIN], r};
   });
   let done = false; const timers = [];
-  const land = (o, quiet) => { o.win.className = 'tile win'; if (!quiet) { const hi = o.r.it.r === 'e' || o.r.it.r === 'l'; beep(hi ? 880 : 587, 0.18, 'triangle', 0.06, hi ? 500 : 120); } };
+  const land = (o, quiet) => { o.win.className = 'tile win'; if (!quiet) { const hi = o.r.it.r === 'e' || o.r.it.r === 'l' || o.r.it.r === 'm'; beep(hi ? 880 : 587, 0.18, 'triangle', 0.06, hi ? 500 : 120); } };
   const finish = () => {
     if (done || seq !== openSeq) return; done = true; timers.forEach(clearTimeout);
     strips.forEach(o => { o.strip.style.transition = 'none'; o.strip.style.transform = 'translateX(' + o.end + 'px)'; land(o, true); });
@@ -3541,7 +3615,7 @@ function openInv(tab) {
     box.innerHTML = '';
     for (const id in set) {
       if ((isSkin ? set[id].cl : wcl(id)) !== invTab) continue;
-      const it = set[id], has = save[own].includes(id), on = id === cur, L = ilvl(id);
+      const it = set[id], has = save[own].includes(id), on = id === cur, L = ilvl(id); if (hiddenIt(it, own)) continue;
       const t = el('div', 'item' + (on ? ' on' : '') + (has ? '' : ' locked'));
       const ic = el('div', 'ico'); ic.append(icon(it.sp, isSkin ? 5 : 4));
       const rar = el('span', 'rar', it.r ? RAR[it.r].n : 'Standard'); rar.style.color = it.r ? RAR[it.r].c : 'var(--ash)';
@@ -3626,6 +3700,7 @@ function showPerks() {
 /* ---------- Neuigkeiten (Patchnotes) und Gerätewahl ---------- */
 // Neueste Version zuerst. Bei jeder Auslieferung oben einen Eintrag ergänzen.
 const NEWS = [
+  ['0.23.0', ['Neue Seltenheit: Mythisch. Mythisches kommt sehr selten aus den Kisten und bleibt im Inventar verborgen, bis du es besitzt.', 'Neu gemalt: Lichtstrahlen des Priesters, Kreissäge, Pfeilhagel, Orbitalschlag und Armbrustbolzen.', 'Die Sense ist beim großen Hieb nicht mehr grob, ihre Kanten sind geglättet.']],
   ['0.22.0', ['Geschosse der Bosse sind neu: schattierte Kugeln mit Leuchtschweif und Knochenspeere statt leuchtender Blöcke.', 'Einschlagzonen der Bosse haben einen klaren Rand mit drehenden Bögen, das Geschoss fällt sichtbar herab und schlägt mit Funken ein.', 'Partikel sind feiner: Funken ziehen einen kleinen Schweif, Blut und Splitter sind runde, schattierte Tupfer. Es fliegen mehr davon.', 'Neu gemalt: Feuer (Benzinspur, Brandflasche), Sprengfalle, Schwerkraftfalle, Kugelblitz, Irrlichter und die Geschosse der Gewänder, Brandflasche, Drohne und Glocke.', 'Skelette sind größer.']],
   ['0.21.0', ['Alle Gegner und Bosse sind neu gemalt, in doppelter Auflösung und mit Schattierung.', 'Gegner holen sichtbar aus und schlagen dann zu: Fledermäuse beißen, Kürbisse springen dich an, Skelette schwingen ihre Keule. Schaden gibt es nur noch beim Zuschlag, nicht mehr durch bloßes Berühren.', 'Bosse kündigen jeden Angriff mit einer eigenen Haltung an: Arm hoch und Licht an der Hand für Würfe und Schüsse, ein Ring am Boden für Großangriffe.', 'Bosse schlagen im Nahkampf zu. Ein roter Fächer am Boden zeigt, wohin.', 'Neuer Boden: Kopfsteinpflaster, Ackerfurchen, Gras und Kiesel, die Gebiete gehen fließend ineinander über.', 'Gebäude, Bäume und Dinge haben Umriss, Schattierung und Muster (Schindeln, Bretter, Mauerwerk).', 'Seelen, Herzen und Truhen sind neu gemalt.', 'Schadenszahlen: Auch Dauerschaden (Seuchenwolke, Feuer, Kugelblitz, Essenzsauger ...) zeigt jetzt Zahlen, klein und orange.']],
   ['0.20.0', ['Balance: Die Armbrust war viel zu stark und ist schwächer. Die geheime Stufe gibt ihr +50 % Schaden und zwei Bolzen mehr statt doppelt so viele.', 'Reaper: Sensenhieb, Seelenkreis, Wurfsense und Essenzsauger machen mehr Schaden.', 'Zombie: +60 Leben, heilt 1 Leben pro Sekunde, nimmt 25 % weniger Schaden. Die Säge ist stärker, Zähes Fleisch schützt doppelt so gut.', 'Alien: Der Blaster trifft Bosse dreifach. Kugelblitz, Schwerkraftfalle, Orbitalschlag und Drohne sind stärker.', 'Hardcore ist etwas milder: Gegner halten weniger aus, treffen schwächer, Herzen fallen öfter.', 'Alle Kisten kosten jetzt 100 Seelensplitter.', 'Handy-Modus: eigene Anordnung für Quer- und Hochformat, schmale Anzeige im Spiel.']],
@@ -3640,8 +3715,8 @@ const NEWS = [
 ];
 function openNews() {
   only('news'); const box = $('newsList'); box.innerHTML = '';
-  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.22.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
-  save.seenVer = '0.22.0'; persist();
+  NEWS.forEach(([v, items], i) => { const a = el('article', i === 0 && save.seenVer !== '0.23.0' ? 'neu' : ''), ul = el('ul'); a.append(el('h4', '', 'Version ' + v + (i === 0 ? ' · aktuell' : ''))); for (const t of items) ul.append(el('li', '', t)); a.append(ul); box.append(a); });
+  save.seenVer = '0.23.0'; persist();
 }
 // Gerät: im Browser fragt das Spiel beim ersten Start, ob am PC oder am Handy gespielt wird
 function setDevice(d, quiet) {
@@ -3883,7 +3958,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.22.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.23.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
@@ -3941,6 +4016,7 @@ if (DEV) window.__dev = {
   },
   sheetW() { const c = document.getElementById('devsheet'), g = c.getContext('2d'); g.fillStyle = '#4a5560'; g.fillRect(0, 0, 1280, 720); let x = 6, y = 6; for (const id in SCY) { g.drawImage(SCY[id].sp.img, x, y, 160, 160); x += 168; if (x > 1100) { x = 6; y += 168; } } },
   sheetE(keys, z) { let c = document.getElementById('devsheet'); if (!c) { c = document.createElement('canvas'); c.id = 'devsheet'; c.style.cssText = 'position:fixed;left:0;top:0;z-index:99;background:#4a5560'; document.body.append(c); } c.width = 1280; c.height = 720; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.fillStyle = '#3a4a3a'; g.fillRect(0, 0, 1280, 720); let x = 4, y = 4; for (const k of keys) { for (const sp of SP[k].fr) { if (x + sp.w * z > 1276) { x = 4; y += sp.h * z + 4; } g.drawImage(sp.img, x, y, sp.w * z, sp.h * z); x += sp.w * z + 4; } x = 4; y += SP[k].h * z + 4; } },
+  sheetS(id, z) { this.sheet(1); const c = document.getElementById('devsheet'), g = c.getContext('2d'), k = SKINS[id]; g.fillStyle = '#4a5560'; g.fillRect(0, 0, 1280, 720); let x = 6, y = 6; for (const set of [k.dir, k.dirN || {}]) { for (const d of ['f', 'fs', 's', 'bs', 'b']) for (const sp of set[d] || []) { g.drawImage(sp.img, x, y, sp.w * z, sp.h * z); x += sp.w * z + 4; if (x > 1280 - sp.w * z) { x = 6; y += sp.h * z + 4; } } x = 6; y += 34 * z; } g.drawImage(SCY.piranha.sp.img, 900, 440, 256, 256); },
   sheetOff() { const c = document.getElementById('devsheet'); if (c) c.remove(); },
   diff(i) { save.diff = i; DF = DIFF[i]; },
   win() { bossKills = BOSSES.length; won = true; winT = 0.05; },
