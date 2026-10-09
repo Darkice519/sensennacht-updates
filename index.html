@@ -2235,7 +2235,7 @@ syncSet();
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.12.1' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.12.2' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
