@@ -628,15 +628,15 @@ const sfx = {
 // Jede Gabe hat ihren eigenen Klang in einer eigenen Tonlage. Damit im Endgame nichts übereinanderliegt,
 // hat jede ihren Mindestabstand, und insgesamt erklingen höchstens drei Gabentöne in 90 Millisekunden.
 const TONES = {
-  kreis:  [920, 380, 0.05, 'triangle', 0.016, 0.08],
-  wurf:   [430, -170, 0.07, 'square', 0.012, 0.09],
-  licht:  [660, 280, 0.055, 'triangle', 0.015, 0.08],
-  sauger: [250, 70, 0.04, 'sine', 0.013, 0.16],
-  disc:   [1280, -380, 0.04, 'square', 0.01, 0.07],
-  spur:   [170, -50, 0.07, 'sawtooth', 0.008, 0.32],
-  kugel:  [1500, -620, 0.035, 'sawtooth', 0.008, 0.14],
-  gfalle: [330, -130, 0.08, 'sine', 0.013, 0.26],
-  nova:   [115, -65, 0.32, 'sine', 0.07, 0.3],
+  kreis:  [920, 380, 0.05, 'triangle', 0.032, 0.08],
+  wurf:   [430, -170, 0.07, 'square', 0.026, 0.09],
+  licht:  [660, 280, 0.055, 'triangle', 0.032, 0.08],
+  sauger: [1500, -800, 0.028, 'square', 0.03, 0.11],      // kurzes, helles Ticken, solange die Kugel saugt
+  disc:   [1280, -380, 0.04, 'square', 0.024, 0.07],
+  spur:   [170, -50, 0.07, 'sawtooth', 0.02, 0.3],
+  kugel:  [1100, -500, 0.035, 'sawtooth', 0.02, 0.14],
+  gfalle: [330, -130, 0.08, 'sine', 0.03, 0.26],
+  nova:   [115, -65, 0.32, 'sine', 0.09, 0.3],
 };
 const toneLast = {}, toneRecent = [];
 function tone(id) {
@@ -2336,7 +2336,7 @@ function detectMonitor() {
     if (lastT) d.push(t - lastT); lastT = t;
     if (++n < 60) { requestAnimationFrame(tick); return; }
     d.sort((a, b) => a - b); const hz = 1000 / d[d.length >> 1]; let best = Math.round(hz);
-    for (const k of [50, 60, 75, 90, 100, 120, 144, 165, 170, 180, 200, 240, 280, 360]) if (Math.abs(k - hz) / k < 0.04) best = k;
+    for (const k of [50, 60, 75, 90, 100, 120, 144, 165, 170, 180, 200, 240, 280, 300, 360, 390, 480, 500, 540, 600]) if (Math.abs(k - hz) / k < 0.04) best = k;
     if (!(APP && APP.setUncapped)) { monHz = best; syncSet(); }
   };
   requestAnimationFrame(tick);
@@ -2480,7 +2480,7 @@ for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(M
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.14.0' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.14.1' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
