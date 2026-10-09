@@ -153,6 +153,23 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .item .lvl{font-size:16px;font-weight:800;color:var(--glow);letter-spacing:.04em}
 .item button.up,.item.on button.up{color:var(--glow);background:var(--void);border-color:var(--glow);cursor:pointer}
 .item button:disabled,.item.on button.up:disabled{opacity:.4;cursor:default}
+.perks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;width:100%;max-width:980px}
+.perk{--cat:var(--gore);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;padding:8px 10px;background:var(--coal);border:2px solid var(--cat);border-left-width:6px}
+.perk canvas{grid-row:1 / 3}
+.perk .nm{font-size:17px;font-weight:700;min-width:0}
+.perk .lv{font-size:14px;font-weight:700;color:var(--cat);letter-spacing:.04em;text-transform:uppercase}
+.perk.dk{background:#1c0b2e}
+.codex{background:linear-gradient(90deg,rgba(8,4,5,.95) 0,rgba(8,4,5,.95) 42%,rgba(8,4,5,0) 54%);justify-items:start}
+.cpanel{display:grid;gap:14px;width:min(40vw,560px);margin-left:4vw;text-align:left;justify-items:start}
+.cpanel .mbtns{justify-content:flex-start}
+.cpanel .cta,.cpanel .alt{font-size:16px;padding:10px 14px}
+.cab{display:flex;flex-wrap:wrap;gap:8px}
+.cabtn{--cat:var(--gore);display:flex;align-items:center;gap:10px;font:inherit;font-weight:700;font-size:17px;color:var(--bone);background:var(--coal);border:2px solid var(--cat);padding:8px 12px;cursor:pointer}
+.cabtn.on{background:var(--cat);color:var(--void)}
+.cinfo{display:grid;gap:4px;padding:12px 14px;background:var(--coal);border:2px solid var(--gore);width:100%;box-sizing:border-box}
+.cinfo .nm{font-size:22px;font-weight:800}
+.cinfo .lvl{font-size:16px;font-weight:800;color:var(--glow);letter-spacing:.04em;text-transform:uppercase}
+@media (max-width:900px){.codex{background:rgba(8,4,5,.9)}.cpanel{width:auto;margin-inline:16px}}
 #shopMsg{color:var(--ember);font-weight:700;min-height:1.5em}
 .opts{display:grid;gap:20px;width:min(100%,480px);text-align:left}
 .opt{display:grid;gap:6px;font-weight:700}
@@ -219,6 +236,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
       <button class="cta" id="bStart" type="button">Ernte beginnen</button>
       <button class="alt" id="bShop" type="button">Särge öffnen</button>
       <button class="alt" id="bInv" type="button">Inventar</button>
+      <button class="alt" id="bCodex" type="button">Waffenkunde</button>
       <button class="alt" id="bSet" type="button">Einstellungen</button>
       <button class="alt" id="bUnlock" type="button" hidden>Test: Alles freischalten</button>
       <button class="alt" id="bExit" type="button" hidden>Beenden</button>
@@ -245,12 +263,16 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
     <h3>Gewänder</h3>
     <div class="items" id="iSkins"></div>
     <h3>Sensen</h3>
+    <p class="dim">Breite Hiebe um dich herum. Die sichere Wahl.</p>
     <div class="items" id="iScythes"></div>
     <h3>Kettensägen</h3>
+    <p class="dim">Fräsen nur, was direkt vor dir steht. Sehr viel Schaden auf engem Raum.</p>
     <div class="items" id="iSaws"></div>
     <h3>Armbrüste</h3>
+    <p class="dim">Schwere Bolzen auf große Entfernung. Stark gegen Bosse, träge gegen Schwärme.</p>
     <div class="items" id="iBows"></div>
     <h3>Geisterkanonen</h3>
+    <p class="dim">Ein Strahl springt von Gegner zu Gegner. Viele Treffer, wenig Schaden pro Treffer.</p>
     <div class="items" id="iRays"></div>
     <button class="alt" id="bInvBack" type="button">Zurück</button>
   </section>
@@ -281,6 +303,18 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
     <button class="alt" id="bSetBack" type="button">Zurück</button>
   </section>
 
+  <section id="codex" class="ov codex" hidden>
+    <div class="cpanel">
+      <h2>Waffenkunde</h2>
+      <div class="mbtns" id="cTabs"></div>
+      <p id="cDesc"></p>
+      <div class="cab" id="cAb"></div>
+      <div class="cinfo"><span class="nm" id="cName"></span><span class="lvl" id="cLvl"></span><p id="cText"></p></div>
+      <p class="dim">Rechts läuft die Gabe im Spiel und steigt von Stufe 1 bis zur höchsten Stufe.</p>
+      <button class="alt" id="bCodexBack" type="button">Zurück</button>
+    </div>
+  </section>
+
   <section id="levelup" class="ov" hidden>
     <h2 id="luTitle">Stufenaufstieg</h2>
     <p id="luSub">Wähle eine Gabe.</p>
@@ -295,6 +329,8 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
       <button class="alt" id="bSetP" type="button">Einstellungen</button>
       <button class="alt" id="bQuit" type="button">Nacht beenden</button>
     </div>
+    <h3 id="perksHead">Deine Gaben in dieser Nacht</h3>
+    <div class="perks" id="perks"></div>
   </section>
 
   <section id="over" class="ov" hidden>
@@ -324,24 +360,26 @@ const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: r
 const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
 
 /* ---------- Sprites ---------- */
-function mk(rows, pal) {
-  const h = rows.length, w = rows[0].length;
+function shade(c) { const n = parseInt(c.slice(1), 16); return '#' + [(n >> 16 & 255), (n >> 8 & 255), (n & 255)].map(v => Math.round(v * 0.68).toString(16).padStart(2, '0')).join(''); }
+function mk(rows, pal0) {
+  const h = rows.length, w = rows[0].length, pal = Object.assign({}, pal0);
+  for (const k in pal0) { const up = k.toUpperCase(); if (up !== k && !pal[up] && /^#[0-9a-f]{6}$/i.test(pal0[k])) pal[up] = shade(pal0[k]); }
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d');
   rows.forEach((row, y) => { for (let x = 0; x < w; x++) { const col = pal[row[x]]; if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); } } });
   const f = document.createElement('canvas'); f.width = w; f.height = h;
   const fg = f.getContext('2d'); fg.drawImage(c, 0, 0); fg.globalCompositeOperation = 'source-in'; fg.fillStyle = '#fff'; fg.fillRect(0, 0, w, h);
-  return {img: c, flash: f, w, h};
+  return {img: c, flash: f, w, h, rows, pal: pal0};
 }
 const REAPER = ['....pppp....','...pppppp...','..ppqqqqpp..','..pqwwwwqp..','..pwrwwrwp..','..pwwwwwwp..','..pqwkkwqp..',
   '.pppqqqqppp.','.pppppppppp.','pppppqqppppp','pppppqqppppp','.pppppppppp.','.ppp.pp.ppp.','.pp..pp..pp.'];
 const SCYTHE = ['...eeeeeee......','.eewwwwwwwee....','ewwwsssswwwwe...','ews.....sswwwe..','e.........swwwe.','...........swwbe','............bbb.','...........bbs..',
   '..........bb....','.........bb.....','........bg......','.......bb.......','......bb........','.....bg.........','....bb..........','...bb...........'];
 const COFFIN = ['...kkkkkk...','..kddddddk..','.kddddddddk.','kddddyyddddk','kdddyyyydddk','kddddyyddddk','.kdddyydddk.','.kdddyydddk.','.kddddddddk.','..kddddddk..','..kddddddk..','..kddddddk..','...kddddk...','...kddddk...','...kkkkkk...'];
-const BAT = ['d...d.d...d','dd.ddddd.dd','ddddydydddd','.ddddddddd.','..ddddddd..','...d.d.d...'];
-const PUMPKIN = ['.....gg.....','.....g......','..oooooooo..','.oooooooooo.','ooyyooooyyoo','oooyooooyooo','oooooooooooo','oyoyoyoyoyoo','ooyyyyyyyyoo','.oooooooooo.','..oooooooo..'];
-const GHOST = ['...wwww...','..wwwwww..','.wwwwwwww.','.wrrwwrrw.','.wrrwwrrw.','wwwwwwwwww','wwwwkkwwww','wwwwkkwwww','wwwwwwwwww','wwwwwwwwww','ww.ww.ww.w','w..w..w..w'];
-const SKEL = ['..wwwwww..','.wwwwwwww.','.wrkwwkrw.','.wkkwwkkw.','.wwwkkwww.','..wkwkww..','...wwww...','.wwwwwwww.','w.wkwwkw.w','w.wwkkww.w','..wwwwww..','..ww..ww..','.www..www.'];
+const BAT = ['D...d.d...D','Dd.ddddd.dD','ddddydydddd','.dddDdDddd.','..ddddddd..','...d.d.d...'];
+const PUMPKIN = ['.....gg.....','.....g......','..oOooooOo..','.ooOooooOoo.','ooyyooooyyoo','oOoyooooyoOo','oOooooooooOo','oyoyoyoyoyoo','ooyyyyyyyyoo','.oOooooooOo.','..oOooooOo..'];
+const GHOST = ['...wwww...','..wwwwwW..','.wwwwwwwW.','.wrrwwrrW.','.wrrwwrrW.','wwwwwwwwwW','wwwwkkwwwW','wwwwkkwwwW','wwwwwwwwwW','wwwwwwwwWW','ww.ww.ww.W','w..w..w..W'];
+const SKEL = ['..wwwwww..','.wwwwwwWW.','.wrkwwkrW.','.wkkwwkkW.','.wwwkkwwW.','..wkwkwW..','...wwWW...','.wWwWwWwW.','w.wkwwkw.w','w.wWkkWw.w','..wwwwWW..','..ww..ww..','.www..www.'];
 const WITCH = ['......k.....','.....kkk....','....kkkk....','...kkpkkk...','.kkkkkkkkkk.','...gggggg...','...gygygg...','...ggggng...','..pppppppp..','.pppppppppp.','.pppvppvppp.','.pppppppppp.','..pppppppp..','..pp....pp..'];
 const PRIEST = ['....yy....','...kyyk...','..kkkkkk..','..kwwwwk..','..krwwrk..','..kwwwwk..','.kkkkkkkk.','kkkkyykkkk','kkkyyyykkk','kkkkyykkkk','kkkkyykkkk','.kkkkkkkk.','.kkkkkkkk.','.kk....kk.'];
 const SP = {
@@ -438,13 +476,46 @@ const BOW = ['................','................','.........w......','.........
 const WPLUS = {sense: 'Mehr Schaden und Reichweite. Ab Stufe 3 auch nach hinten, ab Stufe 5 ringsum.', saw: 'Mehr Schaden und eine längere Säge. Ab Stufe 3 breiter, ab Stufe 5 läuft die Kette schneller.', bow: 'Mehr Schaden und Durchschlag. Stufe 3 und 5 geben je einen Bolzen mehr.', ray: 'Mehr Schaden, jede zweite Stufe ein Sprung mehr. Ab Stufe 4 lädt sie schneller nach.'};
 const WDK = {sense: 'Doppelter Hiebschaden, +25 % Reichweite, schlägt immer ringsum.', saw: 'Doppelter Schaden, +25 % Länge und eine zweite Säge nach hinten.', bow: 'Doppelter Schaden und doppelt so viele Bolzen.', ray: 'Doppelter Schaden, der Strahl springt doppelt so oft.'};
 const fits = (b, id) => b.tp == null || (b.set[id].type || 'sense') === b.tp;
-for (const id in SKINS) SKINS[id].sp = mk(REAPER, SKINS[id].pal);
+// Der Schnitter von vorn, schräg vorn, von der Seite, schräg hinten und von hinten; dazu Stand und zwei Schritte
+const RP = {f:['....pppp....','...pppppp...','..ppqqqqpp..','..pqwwwwqp..','..pwrwwrwp..','..pwwwwwwp..','..pqwkkwqp..','.pppqqqqppp.','.pppppppppp.','pppppqqppppp','pppppqqppppp','.pppppppppp.'],fs:['....pppp....','...pppppp...','..pppqqqqp..','..ppqwwwwp..','..ppwrwwrw..','..ppwwwwww..','..ppqwkkwp..','.pppqqqqpp..','.pppppppppp.','ppppppqqpppp','ppppppqqpppp','.pppppppppp.'],s:['....pppp....','...pppppp...','..ppppqqqp..','..pppqwwwp..','..pppqwrww..','..pppqwwww..','..ppppqwkp..','..ppppqqpp..','.ppppppppp..','.pppppqpppp.','.pppppqpppp.','..pppppppp..'],bs:['....pppp....','...pppppp...','..pppppppq..','..ppqppppq..','..pppqqppw..','..pppqqppq..','..pppppppp..','.pppppppppp.','.ppqppppppp.','ppppqppppppp','ppppppqppppp','.pppppppppp.'],b:['....pppp....','...pppppp...','..pppppppp..','..ppqppqpp..','..pppqqppp..','..pppqqppp..','..pppppppp..','.pppppppppp.','.ppqppppqpp.','ppppqppqpppp','pppppqqppppp','.pppppppppp.']};
+const FEET = [['.ppp.pp.ppp.','.pp..pp..pp.'],['.pppp.pppp..','.ppp...pp...'],['..pppp.pppp.','...pp...ppp.']];
+for (const id in SKINS) { const k = SKINS[id]; k.dir = {}; for (const d in RP) k.dir[d] = FEET.map(ft => mk(RP[d].concat(ft), k.pal)); k.sp = k.dir.f[0]; }
+// Blickrichtung aus der Laufrichtung: acht Richtungen, links ist die gespiegelte rechte Seite
+const RDIR = [['s', false], ['fs', false], ['f', false], ['fs', true], ['s', true], ['bs', true], ['b', false], ['bs', false]];
+function reaperSprite(moving) {
+  const d = RDIR[Math.round(P.face / (Math.PI / 4)) & 7];
+  return [sk.dir[d[0]][moving ? 1 + ((P.walk / 1.7 | 0) & 1) : 0], d[1]];
+}
 for (const id in SCY) { const it = SCY[id]; if (it.type === 'saw') { it.pal.h = it.pal.e; it.pal.k = '#14080a'; } it.sp = mk(it.type === 'saw' ? SAW : it.type === 'bow' ? BOW : it.type === 'ray' ? RAY : SCYTHE, it.pal); }
 const BOX = {skin: {n:'Gewandsarg', pl:'Gewandsärge', d:'Enthält ein Gewand mit eigenem Bonus.', cost:100, sp:SP.coffinSkin, set:SKINS, own:'skins'},
              scy:  {n:'Klingensarg', pl:'Klingensärge', d:'Enthält eine Sense mit eigener Wirkung.', cost:100, sp:SP.coffinScy, set:SCY, own:'scythes', tp:'sense'},
              saw:  {n:'Sägensarg', pl:'Sägensärge', d:'Enthält eine Kettensäge: kurze Reichweite, sehr viel Schaden.', cost:150, sp:mk(COFFIN, {k:'#1a1014', d:'#7a4a22', y:'#e6dcd2'}), set:SCY, own:'scythes', tp:'saw'},
              bow:  {n:'Bolzensarg', pl:'Bolzensärge', d:'Enthält eine Armbrust: schwere Bolzen auf große Entfernung.', cost:150, sp:mk(COFFIN, {k:'#101a14', d:'#2a4a3a', y:'#b8ffd8'}), set:SCY, own:'scythes', tp:'bow'},
              ray:  {n:'Strahlensarg', pl:'Strahlensärge', d:'Enthält eine Geisterkanone: schnelle Strahlen, die von Gegner zu Gegner springen.', cost:150, sp:mk(COFFIN, {k:'#14081e', d:'#34406a', y:'#6fd0ff'}), set:SCY, own:'scythes', tp:'ray'}};
+// Partikel jeder Waffe: Farben, Schwerkraft (g, negativ steigt), Größe, Dauer, deckend oder leuchtend, Fleck am Boden
+const WTH = {
+  rost:     {c: ['#f02238', '#e6dcd2']},
+  knochen:  {c: ['#f2e9dd', '#d8ccb8', '#b8a898'], g: 170, s: 2, add: false},
+  frost:    {c: ['#e8fbff', '#8fdcff', '#ffffff'], g: 26, d: 1.7, ring: '#8fdcff'},
+  blut:     {c: ['#f02238', '#8a0f1e', '#ff5a6e'], g: 230, s: 2, add: false, decal: '#5a0a14'},
+  glut:     {c: ['#ffc94a', '#ff6a2a', '#ff3a1a'], g: -95, s: 2, d: 1.2},
+  zwilling: {c: ['#ffffff', '#d0d0e8', '#f02238']},
+  mond:     {c: ['#fff6c8', '#e8e0ff', '#ffffff'], g: -22, d: 1.6},
+  seelen:   {c: ['#2fe08a', '#b8ffd8', '#ffffff'], g: -75, s: 2, d: 1.5},
+  rostsaege: {c: ['#ffc94a', '#ffffff', '#8a5638'], g: 130},
+  knochensaege: {c: ['#f2e9dd', '#d8ccb8'], g: 170, s: 2, add: false},
+  hoellensaege: {c: ['#ffc94a', '#ff6a2a', '#ff3a1a'], g: -95, s: 2, d: 1.2},
+  blutreisser: {c: ['#f02238', '#8a0f1e', '#ff5a6e'], g: 230, s: 2, add: false, decal: '#5a0a14'},
+  jagdbrust: {c: ['#f2e9dd', '#ffffff']},
+  zwillingsbrust: {c: ['#d0d0e8', '#ffffff', '#f02238']},
+  frostbrust: {c: ['#e8fbff', '#8fdcff', '#ffffff'], g: 26, d: 1.7, ring: '#8fdcff'},
+  seelenschleuder: {c: ['#2fe08a', '#b8ffd8', '#ffffff'], g: -75, d: 1.5},
+  protonen: {c: ['#ffb040', '#fff3c0']},
+  ekto:     {c: ['#7dff3a', '#b8ffd8'], g: 90, d: 1.4},
+  sturm:    {c: ['#6fd0ff', '#ffffff'], d: 0.8},
+  seelenstrahl: {c: ['#e040ff', '#ffffff', '#d9a0ff'], g: -50, d: 1.3},
+};
+for (const id in SCY) SCY[id].th = WTH[id] || {c: [SCY[id].t, '#ffffff']};
 const MAXL = 5;
 // Seltenheit: Sensen schlagen härter zu, Gewänder erhöhen den Schaden aller Waffen in 10-%-Schritten
 const RDM = {u:1, g:1.2, s:1.5, e:1.9, l:2.4}, SKD = {u:0, g:0.1, s:0.2, e:0.3, l:0.4};
@@ -561,7 +632,7 @@ let P, lv, st, zones, enemies, picks, bolts, swings, throws, wisps, novas, parts
 let time, kills, bossKills, level, xp, xpNeed, wave, waveT, spawnAcc, boss, shake, orbA, cd, pickCombo, pickComboT;
 const grid = new Map();
 const keys = new Set();
-let joy = null;
+let joy = null, auraT = 0;
 
 function resize() {
   const nat = Math.min(window.devicePixelRatio || 1, 3);
@@ -796,7 +867,16 @@ function crescent(cx, cy, r, a0, a1, w, c, al, p) {
   for (let i = m; i >= 0; i--) { const a = a0 + (a1 - a0) * i / m, rr = r - w * Math.sin(Math.PI * Math.pow(i / m, p || 1)); ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
   ctx.closePath(); ctx.globalAlpha = Math.max(0, al); ctx.fillStyle = c; ctx.fill(); ctx.globalAlpha = 1;
 }
-
+// Partikel im Stil der getragenen Waffe (Blutstropfen fallen, Glut steigt, Frost schwebt ...)
+function wfx(x, y, n, a, sp, v0, v1) {
+  const t = sc.th; fx(x, y, n, {c: t.c, a, sp, v0, v1, d0: 0.18 * (t.d || 1), d1: 0.42 * (t.d || 1), s: t.s || 1.5, g: t.g || 0, add: t.add !== false});
+}
+// Treffer mit der Hauptwaffe: Partikel, dazu je nach Waffe ein Blutfleck oder ein Frostring
+function whit(e, a) {
+  const t = sc.th; wfx(e.x, e.y, 4, a, 0.7, 40, 120);
+  if (t.decal && Math.random() < 0.5) decal(e.x + rnd(-4, 4), e.y + rnd(2, 6), rnd(1.5, 3.5), t.decal);
+  if (t.ring && Q >= 1) ring(e.x, e.y, 9, t.ring, 0.3, 2);
+}
 /* ---------- Gegner ---------- */
 function spawnR() { return Math.hypot(VW, VH) / 2 + 18; }
 function addEnemy(t, x, y, o) {
@@ -877,7 +957,7 @@ function drop(k, x, y, v) {
   picks.push({k, x, y, v, sp: autoPick && k === 'soul' ? 240 : 0, mag: autoPick && k === 'soul', ph: rnd(0, TAU)});
 }
 function hurt(d) {
-  if (P.inv > 0) return;
+  if (P.inv > 0 || demoOn) return;
   if (st.dodge && Math.random() < st.dodge) { P.inv = 0.4; nums.push({x: P.x, y: P.y - 10, v: 'Daneben', t: 0, c: true}); ring(P.x, P.y, 22, NC(), 0.3, 2); return; }
   P.hp -= Math.max(1, d - st.armor); P.inv = 0.7; shake = Math.max(shake, 4); hurtT = 0.4; sfx.hurt();
   fx(P.x, P.y, 10, {c: [C.bone, C.blood], v0: 30, v1: 90, d0: 0.25, d1: 0.45});
@@ -889,10 +969,23 @@ function nearest(x, y, maxD) {
   return best;
 }
 function gainXp(v) {
+  if (demoOn) return;
   xp += v * st.xp;
   while (xp >= xpNeed) { xp -= xpNeed; level++; xpNeed = needFor(level); pending.push({rare: false}); }
 }
 
+/* ---------- Laufbilder ---------- */
+// Zweites Bild je Figur: Flügelschlag, Hüpfer, Schritt. Wird für alle Farbfassungen (normal, mutiert, Boss) erzeugt.
+const BAT2 = ['....d.d....','...ddddd...','DdddydydddD','DdddDdDdddD','D.ddddddd.D','...d.d.d...'];
+const PUMPKIN2 = ['............','.....gg.....','.....g......','.oOooooooOo.','ooOooooooOoo','ooyyooooyyoo','oOoyooooyoOo','oyoyoyoyoyoo','ooyyyyyyyyoo','oOooooooooOo','.oOooooooOo.'];
+const GHOST2 = ['...wwww...','..wwwwwW..','.wwwwwwwW.','.wrrwwrrW.','.wrrwwrrW.','wwwwwwwwwW','wwwwkkwwwW','wwwwkkwwwW','wwwwwwwwwW','wwwwwwwwWW','w.ww.ww.wW','..w..w..w.'];
+const SKEL2 = ['..wwwwww..','.wwwwwwWW.','.wrkwwkrW.','.wkkwwkkW.','.wwwkkwwW.','..wkwkwW..','...wwWW...','.wWwWwWwW.','w.wkwwkw..','..wWkkWw.w','..wwwwWW..','.ww....ww.','.ww....www'];
+const WITCH2 = WITCH.slice(0, 13).concat(['...pp..pp...']);
+const PRIEST2 = PRIEST.slice(0, 13).concat(['..kk..kk..']);
+{
+  const alt = new Map([[BAT, BAT2], [PUMPKIN, PUMPKIN2], [GHOST, GHOST2], [SKEL, SKEL2], [WITCH, WITCH2], [PRIEST, PRIEST2]]);
+  for (const k of Object.keys(SP)) { const a = alt.get(SP[k].rows); if (a) SP[k + '_2'] = mk(a, SP[k].pal); }
+}
 /* ---------- Bosse: jeder kämpft anders ---------- */
 let bux = 0, buy = 0, bsp = 0;
 function ringShot(e, n, spd, c) { const a0 = rnd(0, TAU); for (let i = 0; i < n; i++) { const a = a0 + i / n * TAU; bolts.push({x: e.x, y: e.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, t: 0, c}); } }
@@ -1051,13 +1144,13 @@ function sawTick(dt) {
     if (Math.abs(angd(ea, aimA)) <= hw || (dark.sense && Math.abs(angd(ea, aimA + Math.PI)) <= hw) || d < e.r + 4) {
       hits++; hit(e, dmg * (e.boss ? TUNE.sawBoss : 1), dx / d * 14, dy / d * 14, hits > 1);
       if (!e.dead && sc.burn) { e.burnT = 2; e.burnD = dmg / tick * 0.5 * st.scm; }
-      if (Math.random() < 0.6 * PM) fx(e.x, e.y, 1, {c: [C.blood, C.gore, sc.t], a: ea, sp: 0.9, v0: 40, v1: 130, d0: 0.15, d1: 0.35, s: 2});
+      if (Math.random() < 0.6 * PM) { fx(e.x, e.y, 1, {c: [C.blood, C.gore], a: ea, sp: 0.9, v0: 40, v1: 130, d0: 0.15, d1: 0.35, s: 2}); whit(e, ea); }
     }
   }
   const tx = P.x + Math.cos(aimA) * R * 0.8, ty = P.y + Math.sin(aimA) * R * 0.8;
   if (hits) {
     sawHit = 0.2; rev = Math.min(1, rev + (sc.rev ? 0.07 : 0.035)); shake = Math.max(shake, 0.6);
-    fx(tx, ty, 2, {c: [C.glow, '#ffffff', sc.pal.e], a: aimA + Math.PI, sp: 1.3, v0: 40, v1: 150, d0: 0.1, d1: 0.28, s: 1.5, add: true});
+    wfx(tx, ty, 3, aimA + Math.PI, 1.3, 40, 150);
     beep(70 + rev * 60, 0.09, 'sawtooth', 0.03, 25);
   } else { rev = Math.max(0, rev - 0.03); if (Math.random() < 0.15 * PM) fx(P.x, P.y - 4, 1, {c: '#5a474e', a: -1.57, sp: 0.5, v0: 6, v1: 16, d0: 0.3, d1: 0.5, s: 2}); }
 }
@@ -1104,7 +1197,7 @@ function rayTick(dt) {
       hit(e, dmg, 0, 0, b.n > 2);
       if (!e.dead && sc.slow) e.slowT = 1.2 * st.scm;
       if (e.dead && sc.boom) { for (const o of enemies) { if (o.dead) continue; const ox = o.x - e.x, oy = o.y - e.y, rr = 22 + o.r; if (ox * ox + oy * oy < rr * rr) hit(o, dmg * 0.4 * st.scm, ox, oy, true); } ring(e.x, e.y, 22, sc.t, 0.3, 3); }
-      fx(e.x, e.y, 3, {c: [sc.t, '#ffffff'], v0: 20, v1: 80, d0: 0.1, d1: 0.28, s: 1.5, add: true});
+      whit(e);
       // nach dem ersten Treffer gabelt sich der Strahl auf höheren Stufen
       if (b.n === 1) for (let k = 1; k < b.forks; k++) { const nh = {x: e.x, y: e.y, pts: [e.x, e.y], n: 1, left: h.left - 1, tg: null}; nh.tg = rayHop(b, nh); if (nh.tg) b.heads.push(nh); }
       h.tg = h.left-- > 0 ? rayHop(b, h) : null;
@@ -1141,7 +1234,14 @@ function shotEnd(b) {
 }
 function weapons(dt) {
   // Hauptwaffe: Sense, Kettensäge oder Armbrust
-  if (sc.type === 'saw') sawTick(dt); else if (sc.type === 'bow') bowTick(dt); else if (sc.type === 'ray') rayTick(dt); else senseTick(dt);
+  if (!demoOn || demoOn.ab === 'sense') { if (sc.type === 'saw') sawTick(dt); else if (sc.type === 'bow') bowTick(dt); else if (sc.type === 'ray') rayTick(dt); else senseTick(dt); }
+  // die Waffe selbst verliert ständig ein paar Partikel in ihrem Stil
+  auraT -= dt;
+  if (auraT <= 0 && Q >= 1 && save.scythe !== 'rost' && (!demoOn || demoOn.ab === 'sense')) {
+    auraT = 0.09;
+    if (sc.type) wfx(P.x + Math.cos(aimA) * 14, P.y + 2 + Math.sin(aimA) * 14, 1, undefined, 0, 2, 12);
+    else wfx(P.x + (P.flip ? -9 : 9) + rnd(-5, 5), P.y - 9 + rnd(-3, 3), 1, undefined, 0, 2, 12);
+  }
   // Seelenkreis
   if (lv.kreis) {
     orbA += 2.5 * dt;
@@ -1264,6 +1364,7 @@ function orbPos() { return [P.x + Math.cos(clock * 1.7) * 17, P.y - 7 + Math.sin
 /* ---------- Update ---------- */
 function update(dt) {
   time += dt;
+  if (demoOn) demoTick(dt);
   let mx = 0, my = 0;
   if (keys.has('a') || keys.has('arrowleft')) mx -= 1;
   if (keys.has('d') || keys.has('arrowright')) mx += 1;
@@ -1290,12 +1391,12 @@ function update(dt) {
   P.inv -= dt; if (st.regen && P.hp < st.maxHp) P.hp = Math.min(st.maxHp, P.hp + st.regen * dt);
 
   // Wellen
-  waveT += dt;
+  if (!demoOn) waveT += dt;
   const isBoss = wave % 5 === 0, len = 26 + Math.min(wave, 8);
-  if (!isBoss && waveT >= len) nextWave();
+  if (!demoOn && !isBoss && waveT >= len) nextWave();
   const rate = (1.15 + wave * 0.55) * (isBoss ? 0.55 : 1), cap = Math.min(400, 70 + wave * 20);
   spawnAcc += rate * dt;
-  while (spawnAcc >= 1) { spawnAcc -= 1; if (enemies.length < cap) spawnOne(); }
+  while (spawnAcc >= 1) { spawnAcc -= 1; if (!demoOn && enemies.length < cap) spawnOne(); }
 
   weapons(dt);
 
@@ -1390,12 +1491,12 @@ function update(dt) {
       const ea = Math.atan2(dy, dx), off = ((a1 - ea) % TAU + TAU) % TAU;
       if ((off <= prog + 0.15 && off <= 2 * s.hw + 0.15) || off > TAU - 0.15 || d < e.r + 6) {
         s.seen.add(e); hits++; hit(e, s.dmg, dx / (d || 1) * 70, dy / (d || 1) * 70);
-        fx(e.x, e.y, 2, {c: [sc.t, sc.pal.e], a: ea, sp: 0.5, v0: 40, v1: 100, d0: 0.15, d1: 0.3, s: 2, add: true});
+        whit(e, ea);
         if (!e.dead) { if (sc.burn) { e.burnT = 2.5; e.burnD = s.dmg * 0.25 * st.scm; } if (sc.slow) e.slowT = 2 * st.scm; }
       }
     }
     if (hits) shake = Math.max(shake, 0.8);
-    if (Q >= 1) fx(P.x + Math.cos(th) * s.r, P.y + Math.sin(th) * s.r, 1, {c: [sc.t, sc.pal.e], a: th - 1.57, sp: 0.4, v0: 15, v1: 60, d0: 0.2, d1: 0.4, s: 1.5, add: true});
+    if (Q >= 1) wfx(P.x + Math.cos(th) * s.r, P.y + Math.sin(th) * s.r, 2, th - 1.57, 0.5, 15, 70);
   }
   swings = swings.filter(s => s.t < s.d);
   // Strahlen, Kugelblitze, Geisterfallen
@@ -1489,7 +1590,7 @@ function update(dt) {
         if (--b.pierce <= 0) { shotEnd(b); break; }
       }
     }
-    if (Math.random() < 0.7 * PM) fx(b.x, b.y, 1, {c: [sc.t, '#ffffff'], v0: 2, v1: 18, d0: 0.12, d1: 0.3, s: 1.5, add: true});
+    if (Math.random() < 0.8 * PM) wfx(b.x, b.y, 1, undefined, 0, 2, 18);
     if (b.t > 0.8 && b.t < 9) shotEnd(b);
   }
   shots = shots.filter(b => b.t < 9);
@@ -1807,7 +1908,9 @@ function draw() {
   // Kamera hängt fest an der gerasterten Spielerposition, damit die Figur nicht zittert
   px = snap(px); py = snap(py);
   const sh = (reduceMotion || !opt.shake) ? 0 : shake;
-  const cx = px - snap(VW / 2) + snap(rnd(-sh, sh)), cy = py - snap(VH / 2) + snap(rnd(-sh, sh));
+  const [RS, RF] = reaperSprite(inGame ? P.mv : true);
+  // in der Waffenkunde steht der Schnitter rechts im Bild, links liegt der Text
+  const cx = px - snap(VW * (demoOn && W > 900 ? 0.72 : 0.5)) + snap(rnd(-sh, sh)), cy = py - snap(VH / 2) + snap(rnd(-sh, sh));
   ctx.setTransform(k, 0, 0, k, -cx * k, -cy * k);
   glBegin(cx, cy, k);
 
@@ -1897,8 +2000,13 @@ function draw() {
         else if (e.sc === 1) gRect('#000000', snap(e.x - 4), snap(e.y + e.r), 8, 1.5, 0.3);
         if (e.boss && e.mode === 'tele') { ctx.globalAlpha = 0.35; ctx.strokeStyle = C.blood; ctx.lineWidth = 14; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.dx * 150, e.y + e.dy * 150); ctx.stroke(); ctx.globalAlpha = 1; }
         const fl = e.flash > 0 || (e.boss && e.mode === 'tele' && (clock * 12 | 0) % 2 === 0);
-        const bob = e.t === 'bat' ? Math.sin(clock * 14 + e.ph) * 1.2 : e.t === 'ghost' ? Math.sin(clock * 4 + e.ph) * 1.5 : 0;
-        gSprite(SP[e.sp || e.t], e.x, e.y + bob, e.sc, e.x > P.x, fl, e.t === 'ghost' ? (e.mode === 'fade' ? 0.25 : 0.85) : 1);
+        // Laufbilder: Fledermäuse flattern, Kürbisse hüpfen, Skelette, Hexe und Priester gehen, Geister wabern
+        const key = e.sp || e.t, big = Math.min(e.sc, 2.5); let fr = 0, bob = 0;
+        if (e.t === 'bat') { fr = ((clock * 9 + e.ph) | 0) & 1; bob = Math.sin(clock * 14 + e.ph) * 1.2; }
+        else if (e.t === 'ghost') { fr = ((clock * 2.5 + e.ph) | 0) & 1; bob = Math.sin(clock * 4 + e.ph) * 1.5; }
+        else if (e.t === 'pumpkin') { const hop = Math.abs(Math.sin(clock * 6.5 + e.ph)); fr = hop < 0.3 ? 1 : 0; bob = -hop * 2.6 * big; }
+        else { fr = ((clock * (3 + e.spd * 0.09) + e.ph) | 0) & 1; bob = fr ? -big : 0; }
+        gSprite(fr && SP[key + '_2'] ? SP[key + '_2'] : SP[key], e.x, e.y + bob, e.sc, e.x > P.x, fl, e.t === 'ghost' ? (e.mode === 'fade' ? 0.25 : 0.85) : 1);
         if (e.boss && e.kind < 2) { const bx = snap(e.x), by = snap(e.y - (e.kind ? 30 : 24)); gRect(C.glow, bx - 9, by, 18, 3, 1); gRect(C.glow, bx - 9, by - 4, 3, 4, 1); gRect(C.glow, bx - 1, by - 5, 3, 5, 1); gRect(C.glow, bx + 6, by - 4, 3, 4, 1); gRect(C.blood, bx, by, 1, 2, 1); }
         if (e.elite) gRect(C.glow, snap(e.x) - 1, snap(e.y - e.r - 6), 2, 2, 1);
         if (e.slowT > 0) gRect('#8fdcff', snap(e.x) - 3, snap(e.y + e.r + 1), 6, 1, 1);
@@ -2051,10 +2159,10 @@ function draw() {
   // Spieler
   glow(px, py, 100, '#ffd8a0', 0.2); glow(px, py, 34, '#fff0d0', 0.22);
   if (!(state === 'play' && P.inv > 0 && (clock * 20 | 0) % 2)) {
-    const bob = (inGame && !P.mv) ? 0 : snap(Math.sin(P.walk) * 0.7);
+    const bob = (inGame && !P.mv) ? 0 : (((P.walk / 1.7 | 0) & 1) ? -1 : 0);
     ctx.globalAlpha = 0.4; ctx.fillStyle = '#000'; ctx.fillRect(px - 5, py + 6, 10, 2); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
-    ctx.globalAlpha = 0.8; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(sk.sp, px + q[0], py + bob + q[1], 1, P.flip, true); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
-    spr(sk.sp, px, py + bob, 1, P.flip, false);
+    ctx.globalAlpha = 0.8; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py + bob + q[1], 1, RF, true); ctx.globalAlpha = sk.dodge ? 0.85 : 1;
+    spr(RS, px, py + bob, 1, RF, false);
     ctx.globalAlpha = 1;
     if (sc.type === 'saw') {
       // Motorblock sitzt vor dem Körper, die Schiene zeigt nach vorn; die Kette läuft sichtbar um
@@ -2084,14 +2192,14 @@ function draw() {
     }
     else if (!inGame || !swings.length) { ctx.save(); ctx.translate(px + (P.flip ? -6 : 6), py + 5 + bob); if (P.flip) ctx.scale(-1, 1); ctx.drawImage(sc.sp.img, -6, -15.6, 19.2, 19.2); ctx.restore(); }
     // Zeigt die Waffe nach oben, hält er sie hinter dem Körper: Figur noch einmal darüber zeichnen
-    if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(sk.sp, px, py + bob, 1, P.flip, false); ctx.globalAlpha = 1; }
+    if (sc.type && Math.sin(inGame ? aimA : -0.3) < -0.2) { ctx.globalAlpha = sk.dodge ? 0.85 : 1; spr(RS, px, py + bob, 1, RF, false); ctx.globalAlpha = 1; }
     if (inGame && P.hp < st.maxHp) { ctx.fillStyle = C.void; ctx.fillRect(px - 10, py + 10, 20, 4); ctx.fillStyle = C.blood; ctx.fillRect(px - 9, py + 11, Math.max(0, Math.round(18 * P.hp / st.maxHp)), 2); }
   }
   // ... und was vor ihm steht, verdeckt ihn
   let hidden = false;
   for (const o of objs) if (o.y > py + 3) { drawObjC(o); const bx = BOXES[o.k]; if (bx && Math.abs(o.x - px) < bx[0] + 5 && o.y - py < bx[1] * 2 + 34) hidden = true; }
   // Steht der Schnitter hinter einem Gebäude, scheint er als Umriss durch
-  if (hidden) { ctx.globalAlpha = 0.55; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(sk.sp, px + q[0], py + q[1], 1, P.flip, true); ctx.globalAlpha = 0.75; spr(sk.sp, px, py, 1, P.flip, false); ctx.globalAlpha = 1; }
+  if (hidden) { ctx.globalAlpha = 0.55; for (const q of [[-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]]) spr(RS, px + q[0], py + q[1], 1, RF, true); ctx.globalAlpha = 0.75; spr(RS, px, py, 1, RF, false); ctx.globalAlpha = 1; }
   if (inGame) {
     // Ringe, Partikel, Zahlen
     ctx.globalCompositeOperation = add;
@@ -2157,7 +2265,7 @@ function hud() {
   set('moon', 'background', 'conic-gradient(var(--blood) ' + p + '%, var(--coal) 0)');
   if (boss) set('bossfill', 'width', Math.max(0, boss.hp / boss.maxHp * 100).toFixed(1) + '%');
 }
-const SCREENS = ['menu', 'shop', 'inv', 'opening', 'settings', 'levelup', 'pause', 'over'];
+const SCREENS = ['menu', 'shop', 'inv', 'opening', 'settings', 'codex', 'levelup', 'pause', 'over'];
 function show(id, on) { $(id).hidden = !on; }
 function only(id) { SCREENS.forEach(s => show(s, s === id)); }
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
@@ -2166,7 +2274,7 @@ function icon(sp, scale) { const c = document.createElement('canvas'); c.width =
 /* ---------- Hauptmenü, Särge, Inventar ---------- */
 function bestLine(b) { return b ? 'Bestleistung: Welle ' + b.wave + ' · ' + b.kills + ' Seelen · ' + fmt(b.time) : ''; }
 function toMenu() {
-  openSeq++; state = 'menu'; sk = SKINS[save.skin]; sc = SCY[save.scythe]; swings = [];
+  openSeq++; demoOn = null; state = 'menu'; sk = SKINS[save.skin]; sc = SCY[save.scythe]; swings = []; enemies = []; picks = []; parts = [];
   show('hud', false); show('banner', false); only('menu');
   $('mCoins').textContent = save.coins; $('best').textContent = (TEST ? 'Testspielstand: alles freigeschaltet und auf Stufe 5. ' : '') + bestLine(save.best);
   $('loadout').textContent = 'Gewand: ' + sk.n + ' (Stufe ' + ilvl(save.skin) + ') · Waffe: ' + sc.n + ' (Stufe ' + ilvl(save.scythe) + ')';
@@ -2281,6 +2389,66 @@ function openInv() {
   }
 }
 
+/* ---------- Waffenkunde und Gabenübersicht ---------- */
+// Waffenkunde: links der Text, rechts läuft das echte Spiel als Vorschau. Die gewählte Gabe steigt dabei
+// von Stufe 1 bis zur höchsten normalen Stufe. Die geheime dunkle Stufe wird hier nicht gezeigt.
+const WCLS = {
+  sense: {n: 'Sense', item: 'rost', d: 'Die sichere Wahl. Breite Hiebe um dich herum, gut gegen Gruppen und solide gegen Bosse. Keine echte Schwäche, aber auch keine Spitze.'},
+  saw:   {n: 'Kettensäge', item: 'rostsaege', d: 'Für Mutige. Sie fräst nur, was direkt vor dir steht, dreht dabei hoch und macht dann sehr viel Schaden. Schwach, wenn der Schwarm von allen Seiten kommt.'},
+  bow:   {n: 'Armbrust', item: 'jagdbrust', d: 'Die Bosswaffe. Wenige, schwere Bolzen auf große Entfernung, die ganze Reihen durchschlagen. Träge gegen viele kleine Gegner.'},
+  ray:   {n: 'Geisterkanone', item: 'protonen', d: 'Für Schwärme. Ein Strahl springt von Gegner zu Gegner und trifft viele auf einmal. Wenig Schaden pro Treffer, schwach gegen Bosse.'},
+};
+let demoOn = null;
+function codexAbilities(cls) { return ['sense'].concat(UP.filter(u => u.only === cls).map(u => u.id)); }
+function codexText() {
+  const d = demoOn, u = UP.find(x => x.id === d.ab);
+  $('cName').textContent = d.ab === 'sense' ? WCLS[d.cls].n : u.n;
+  $('cLvl').textContent = 'Stufe ' + d.L + ' / ' + u.max;
+  $('cText').textContent = d.ab === 'sense' ? WPLUS[d.cls] : u.neu + ' ' + u.plus;
+}
+function codexPick(cls, ab) {
+  reset(); sc = SCY[WCLS[cls].item];
+  UP.forEach(u => lv[u.id] = 0); lv.sense = 1; lv[ab] = 1; recompute(); P.hp = st.maxHp;
+  demoOn = {cls, ab, t: 0, L: 1}; state = 'play'; wave = 1; waveT = 0; aimA = 0;
+  const tabs = $('cTabs'); tabs.innerHTML = '';
+  for (const c in WCLS) { const b = el('button', c === cls ? 'cta' : 'alt', WCLS[c].n); b.type = 'button'; b.addEventListener('click', () => codexPick(c, 'sense')); tabs.append(b); }
+  $('cDesc').textContent = WCLS[cls].d;
+  const box = $('cAb'); box.innerHTML = '';
+  for (const id of codexAbilities(cls)) {
+    const u = UP.find(x => x.id === id), b = el('button', 'cabtn' + (id === ab ? ' on' : '')); b.type = 'button';
+    b.style.cssText = '--cat:' + CAT[u.c].c;
+    b.append(icon(id === 'sense' ? sc.sp : u.ic, id === 'sense' ? 3 : 4), el('span', '', id === 'sense' ? 'Hauptwaffe' : u.n));
+    b.addEventListener('click', () => codexPick(cls, id)); box.append(b);
+  }
+  codexText();
+}
+function openCodex() { audioOn(); only('codex'); show('hud', false); codexPick(sc.type || 'sense', 'sense'); }
+// läuft in jedem Bild der Vorschau: Übungsgegner nachfüllen, Stufe hochzählen, niemand stirbt
+function demoTick(dt) {
+  const d = demoOn, u = UP.find(x => x.id === d.ab);
+  P.hp = st.maxHp; pending.length = 0; keys.clear(); joy = null;
+  if (d.ab === 'spur') keys.add(['d', 's', 'a', 'w'][(time / 1.2 | 0) % 4]);     // die Benzinspur braucht Bewegung
+  d.t += dt;
+  if (d.t > 3.4) { d.t = 0; d.L = d.L % u.max + 1; lv[d.ab] = d.L; recompute(); P.hp = st.maxHp; codexText(); ring(P.x, P.y, 30, C.glow, 0.4, 2); }
+  while (enemies.length < 12) {
+    const a = rnd(0, TAU), r = rnd(70, 120), e = addEnemy(['bat', 'pumpkin', 'skel', 'ghost'][Math.random() * 4 | 0], P.x + Math.cos(a) * r, P.y + Math.sin(a) * r);
+    e.spd *= 0.45; e.hp *= 2.2; e.maxHp = e.hp;
+  }
+}
+
+// Pause: was du in dieser Nacht schon gewählt hast
+function showPerks() {
+  const box = $('perks'); box.innerHTML = '';
+  const have = UP.filter(u => lv[u.id] > 0);
+  for (const u of have) {
+    const t = el('div', 'perk' + (dark[u.id] ? ' dk' : '')), isPj = u.id === 'licht';
+    t.style.cssText = '--cat:' + (dark[u.id] ? DK : CAT[u.c].c);
+    t.append(icon(u.id === 'sense' ? sc.sp : isPj && sk.pj.sp ? SP[sk.pj.sp] : u.ic, u.id === 'sense' ? 2 : 3),
+      el('span', 'nm', isPj ? sk.pj.n : u.id === 'sense' ? sc.n : altN(u)), el('span', 'lv', dark[u.id] ? 'Dunkle Stufe' : 'Stufe ' + lv[u.id] + ' / ' + u.max));
+    box.append(t);
+  }
+  $('perksHead').textContent = 'Deine Gaben in dieser Nacht (' + have.length + ')';
+}
 /* ---------- Einstellungen ---------- */
 let setFrom = 'menu', monHz = 60, monW = 0, monH = 0, hullUncapped = false, hullWant = null;
 // Bildrate: -1 = dem Monitor folgen, 0 = unbegrenzt, sonst eine feste Zahl
@@ -2344,7 +2512,7 @@ function detectMonitor() {
 
 /* ---------- Rundenablauf ---------- */
 function start() {
-  openSeq++; audioOn(); reset(); resize();
+  openSeq++; demoOn = null; audioOn(); reset(); resize();
   only(null); show('hud', true); show('boss', false);
   state = 'play'; nextWave(); hud();
 }
@@ -2401,7 +2569,7 @@ function choose(o) {
   if (pending.length) openLevelUp(); else { state = 'play'; P.inv = Math.max(P.inv, 0.5); hud(); }
 }
 function pause(on) {
-  if (on && state === 'play') { state = 'pause'; keys.clear(); joy = null; show('pause', true); }
+  if (on && state === 'play') { state = 'pause'; keys.clear(); joy = null; showPerks(); show('pause', true); }
   else if (!on && state === 'pause') { state = 'play'; show('pause', false); }
 }
 function gameOver() {
@@ -2421,6 +2589,7 @@ function gameOver() {
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+  if (demoOn) { if (k === 'escape') toMenu(); return; }      // Waffenkunde: nur Esc, die Vorschau steuert sich selbst
   if (state === 'levelup') { const i = '123'.indexOf(k); if (i >= 0 && luOpts[i]) choose(luOpts[i]); return; }
   if (k === 'p' || k === 'escape') { if (state === 'play' || state === 'pause') pause(state === 'play'); else if (state === 'menu') toMenu(); return; }
   if ((k === 'enter' || k === ' ') && ((state === 'menu' && !$('menu').hidden) || state === 'over') && document.activeElement.tagName !== 'BUTTON') { start(); return; }
@@ -2451,6 +2620,8 @@ soundLabel();
 
 /* ---------- Schleife ---------- */
 $('bSet').addEventListener('click', () => openSet('menu'));
+$('bCodex').addEventListener('click', openCodex);
+$('bCodexBack').addEventListener('click', toMenu);
 // Testknopf (nur im Entwicklermodus sichtbar): schaltet alles frei, setzt alles auf die höchste Stufe und gibt Seelensplitter
 $('bUnlock').addEventListener('click', () => {
   save.skins = Object.keys(SKINS); save.scythes = Object.keys(SCY);
@@ -2472,15 +2643,16 @@ const MI = {
   home:   ['....x....','...xxx...','..xxxxx..','.xxxxxxx.','xxxxxxxxx','.xxxxxxx.','.xx...xx.','.xx...xx.','.xx...xx.'],
   moon:   ['...xxxx..','..xxx....','.xxx.....','.xxx.....','.xxx.....','.xxx.....','.xxx.....','..xxx....','...xxxx..'],
   cross:  ['x.......x','.x.....x.','..x...x..','...x.x...','....x....','...x.x...','..x...x..','.x.....x.','x.......x'],
+  book:   ['.xxxxxxx.','xx.....xx','xx.xxx.xx','xx.....xx','xx.xxx.xx','xx.....xx','xx.....xx','xxxxxxxxx','.xxxxxxx.'],
   skip:   ['.........','x...x....','.x...x...','..x...x..','...x...x.','..x...x..','.x...x...','x...x....','.........'],
 };
-const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross'};
+const BTN = {bStart:'play', bShop:'coffin', bInv:'chest', bSet:'gear', bSetP:'gear', bUnlock:'key', bShopBack:'back', bInvBack:'back', bSetBack:'back', bResume:'play', bQuit:'cross', bAgain:'moon', bMenu:'home', bSkip:'skip', bOpDone:'play', bExit:'cross', bCodex:'book', bCodexBack:'back'};
 for (const id in BTN) { const b = $(id); if (b && b.prepend) b.prepend(icon(mk(MI[BTN[id]], {x: b.className === 'cta' ? C.void : C.bone}), 3)); }
 
 // Entwicklermodus: Adresse endet auf #dev (die Exe startet so mit dem Schalter --dev)
 const DEV = typeof location !== 'undefined' && location.hash === '#dev';
 show('bUnlock', DEV);
-$('ver').textContent = 'Version 0.14.1' + (DEV ? ' · Entwicklermodus' : '');
+$('ver').textContent = 'Version 0.15.0' + (DEV ? ' · Entwicklermodus' : '');
 // In der Exe stellt die Hülle window.sensen bereit (Beenden, Vollbild)
 const APP = typeof window !== 'undefined' && window.sensen ? window.sensen : null;
 if (APP) { show('bExit', true); $('bExit').addEventListener('click', () => APP.quit()); }
